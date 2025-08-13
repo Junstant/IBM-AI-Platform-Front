@@ -1,61 +1,109 @@
-import React, { useState } from 'react';
-import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock } from 'lucide-react';
+import React, { useState } from "react";
+import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock } from "lucide-react";
 
 const FraudDetectionPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzingDatabase, setIsAnalyzingDatabase] = useState(false);
   const [results, setResults] = useState(null);
+  const [databaseResults, setDatabaseResults] = useState(null);
+  const [apiPort] = useState(8000); // Puerto por defecto, puedes hacerlo configurable
   const [transactionData, setTransactionData] = useState({
-    amount: '',
-    merchant: '',
-    location: '',
-    cardType: 'credit',
-    timeOfDay: 'morning'
+    monto: "",
+    comerciante: "",
+    ubicacion: "",
+    tipo_tarjeta: "Visa",
+    horario_transaccion: "14:30:00",
   });
 
   const handleAnalyzeTransaction = async () => {
+    if (!transactionData.monto || !transactionData.comerciante || !transactionData.ubicacion) {
+      alert("Por favor complete todos los campos obligatorios");
+      return;
+    }
+
     setIsAnalyzing(true);
-    
+
     try {
-      // Aquí conectarás con tu API de FastAPI
-      // const response = await fetch('http://localhost:8000/predict-fraud', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(transactionData)
-      // });
-      // const data = await response.json();
-      
-      // Simulación temporal - reemplaza con tu llamada real
-      setTimeout(() => {
-        const mockResult = {
-          fraudProbability: Math.random() > 0.7 ? 0.85 : 0.15,
-          riskLevel: Math.random() > 0.7 ? 'HIGH' : 'LOW',
-          factors: [
-            { factor: 'Ubicación inusual', weight: 0.3, suspicious: Math.random() > 0.5 },
-            { factor: 'Horario de transacción', weight: 0.2, suspicious: Math.random() > 0.5 },
-            { factor: 'Monto de transacción', weight: 0.4, suspicious: Math.random() > 0.5 },
-            { factor: 'Historial del comerciante', weight: 0.1, suspicious: Math.random() > 0.5 }
-          ],
-          processingTime: '127ms',
-          timestamp: new Date().toLocaleString()
-        };
-        setResults(mockResult);
-        setIsAnalyzing(false);
-      }, 2000);
-      
+      const response = await fetch(`http://localhost:${apiPort}/predict_single_transaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          monto: parseFloat(transactionData.monto),
+          comerciante: transactionData.comerciante,
+          ubicacion: transactionData.ubicacion,
+          tipo_tarjeta: transactionData.tipo_tarjeta,
+          horario_transaccion: transactionData.horario_transaccion,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Transformar respuesta para el formato del UI
+      const transformedResult = {
+        fraudProbability: data.es_fraude ? 0.85 : 0.15,
+        riskLevel: data.es_fraude ? "HIGH" : "LOW",
+        prediction: data.prediccion,
+        originalData: data.transaccion_enviada,
+        processingTime: "< 1s",
+        timestamp: new Date().toLocaleString(),
+      };
+
+      setResults(transformedResult);
     } catch (error) {
-      console.error('Error analyzing transaction:', error);
+      console.error("Error analyzing transaction:", error);
+      alert(`Error al conectar con la API: ${error.message}`);
+    } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleAnalyzeDatabase = async () => {
+    setIsAnalyzingDatabase(true);
+
+    try {
+      const response = await fetch(`http://localhost:${apiPort}/predict_all_from_db`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      setDatabaseResults({
+        totalFraudulent: data.transacciones_fraudulentas_encontradas,
+        results: data.resultados, // Mostrar todos los resultados, no solo los primeros 10
+        totalResults: data.resultados.length,
+        timestamp: new Date().toLocaleString(),
+      });
+    } catch (error) {
+      console.error("Error analyzing database:", error);
+      alert(`Error al conectar con la API: ${error.message}`);
+    } finally {
+      setIsAnalyzingDatabase(false);
     }
   };
 
   const getRiskColor = (level) => {
     switch (level) {
-      case 'HIGH': return 'text-danger bg-red-50';
-      case 'MEDIUM': return 'text-warning bg-yellow-50';
-      case 'LOW': return 'text-success bg-green-50';
-      default: return 'text-ibm-gray-70 bg-ibm-gray-10';
+      case "HIGH":
+        return "text-danger bg-red-50";
+      case "MEDIUM":
+        return "text-warning bg-yellow-50";
+      case "LOW":
+        return "text-success bg-green-50";
+      default:
+        return "text-ibm-gray-70 bg-ibm-gray-10";
     }
   };
 
@@ -90,81 +138,68 @@ const FraudDetectionPage = () => {
         {/* Input Form */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
           <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Datos de Transacción</h2>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Monto de la transacción
-              </label>
+              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Monto de la transacción</label>
               <input
                 type="number"
-                value={transactionData.amount}
-                onChange={(e) => setTransactionData({...transactionData, amount: e.target.value})}
+                step="0.01"
+                value={transactionData.monto}
+                onChange={(e) => setTransactionData({ ...transactionData, monto: e.target.value })}
                 placeholder="Ej: 1250.00"
                 className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Comerciante
-              </label>
+              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Comerciante</label>
               <input
                 type="text"
-                value={transactionData.merchant}
-                onChange={(e) => setTransactionData({...transactionData, merchant: e.target.value})}
+                value={transactionData.comerciante}
+                onChange={(e) => setTransactionData({ ...transactionData, comerciante: e.target.value })}
                 placeholder="Ej: Amazon, Walmart, etc."
                 className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Ubicación
-              </label>
+              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Ubicación</label>
               <input
                 type="text"
-                value={transactionData.location}
-                onChange={(e) => setTransactionData({...transactionData, location: e.target.value})}
+                value={transactionData.ubicacion}
+                onChange={(e) => setTransactionData({ ...transactionData, ubicacion: e.target.value })}
                 placeholder="Ej: Nueva York, USA"
                 className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Tipo de tarjeta
-              </label>
+              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Tipo de tarjeta</label>
               <select
-                value={transactionData.cardType}
-                onChange={(e) => setTransactionData({...transactionData, cardType: e.target.value})}
+                value={transactionData.tipo_tarjeta}
+                onChange={(e) => setTransactionData({ ...transactionData, tipo_tarjeta: e.target.value })}
                 className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="credit">Crédito</option>
-                <option value="debit">Débito</option>
-                <option value="prepaid">Prepago</option>
+                <option value="Visa">Visa</option>
+                <option value="Mastercard">Mastercard</option>
+                <option value="American Express">American Express</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Horario de transacción
-              </label>
-              <select
-                value={transactionData.timeOfDay}
-                onChange={(e) => setTransactionData({...transactionData, timeOfDay: e.target.value})}
+              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Horario de transacción</label>
+              <input
+                type="time"
+                value={transactionData.horario_transaccion}
+                onChange={(e) => setTransactionData({ ...transactionData, horario_transaccion: e.target.value + ":00" })}
                 className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="morning">Mañana (6:00-12:00)</option>
-                <option value="afternoon">Tarde (12:00-18:00)</option>
-                <option value="evening">Noche (18:00-24:00)</option>
-                <option value="late_night">Madrugada (00:00-6:00)</option>
-              </select>
+              />
             </div>
 
             <button
               onClick={handleAnalyzeTransaction}
-              disabled={isAnalyzing || !transactionData.amount}
+              disabled={isAnalyzing || !transactionData.monto}
               className="w-full px-6 py-3 bg-gradient-to-r from-ibm-orange via-ibm-red to-danger text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isAnalyzing ? (
@@ -189,12 +224,21 @@ const FraudDetectionPage = () => {
 
             {/* Botón analizar toda la base */}
             <button
-              onClick={() => alert('Funcionalidad de análisis masivo próximamente')}
-              disabled={isAnalyzing}
+              onClick={handleAnalyzeDatabase}
+              disabled={isAnalyzing || isAnalyzingDatabase}
               className="w-full px-6 py-3 bg-gradient-to-r from-ibm-orange via-ibm-red to-danger text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              <BarChart3 className="w-4 h-4" />
-              <span>Analizar toda la base de datos</span>
+              {isAnalyzingDatabase ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Analizando base de datos...</span>
+                </>
+              ) : (
+                <>
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Analizar toda la base de datos</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -202,7 +246,7 @@ const FraudDetectionPage = () => {
         {/* Results Panel */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
           <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Resultados del Análisis</h2>
-          
+
           {!results && !isAnalyzing && (
             <div className="text-center py-12">
               <BarChart3 className="w-16 h-16 text-ibm-gray-40 mx-auto mb-4" />
@@ -223,33 +267,32 @@ const FraudDetectionPage = () => {
               {/* Risk Level */}
               <div className="text-center">
                 <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${getRiskColor(results.riskLevel)}`}>
-                  {results.riskLevel === 'HIGH' ? (
-                    <XCircle className="w-5 h-5" />
-                  ) : (
-                    <CheckCircle className="w-5 h-5" />
-                  )}
-                  <span className="font-semibold">Riesgo: {results.riskLevel}</span>
+                  {results.riskLevel === "HIGH" ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+                  <span className="font-semibold">Resultado: {results.prediction}</span>
                 </div>
-                <p className="text-2xl font-bold text-ibm-gray-90 mt-2">
-                  {(results.fraudProbability * 100).toFixed(1)}% probabilidad de fraude
-                </p>
+                <p className="text-2xl font-bold text-ibm-gray-90 mt-2">{(results.fraudProbability * 100).toFixed(1)}% probabilidad de fraude</p>
               </div>
 
-              {/* Risk Factors */}
+              {/* Transaction Details */}
               <div>
-                <h3 className="text-lg font-semibold text-ibm-gray-90 mb-3">Factores de Riesgo</h3>
+                <h3 className="text-lg font-semibold text-ibm-gray-90 mb-3">Detalles de la Transacción</h3>
                 <div className="space-y-2">
-                  {results.factors.map((factor, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-2 h-2 rounded-full ${factor.suspicious ? 'bg-warning' : 'bg-success'}`}></div>
-                        <span className="text-sm text-ibm-gray-90">{factor.factor}</span>
-                      </div>
-                      <div className="text-xs text-ibm-gray-60">
-                        Peso: {(factor.weight * 100).toFixed(0)}%
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
+                    <span className="text-sm text-ibm-gray-70">Monto</span>
+                    <span className="text-sm font-semibold text-ibm-gray-90">${results.originalData?.monto}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
+                    <span className="text-sm text-ibm-gray-70">Comerciante</span>
+                    <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.comerciante}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
+                    <span className="text-sm text-ibm-gray-70">Ubicación</span>
+                    <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.ubicacion}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
+                    <span className="text-sm text-ibm-gray-70">Tipo de Tarjeta</span>
+                    <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.tipo_tarjeta}</span>
+                  </div>
                 </div>
               </div>
 
@@ -261,6 +304,104 @@ const FraudDetectionPage = () => {
                     <span>Tiempo de procesamiento: {results.processingTime}</span>
                   </div>
                   <span>{results.timestamp}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Database Results */}
+          {databaseResults && (
+            <div className="mt-8 space-y-6">
+              <div className="border-t border-ibm-gray-20 pt-6">
+                <h3 className="text-lg font-semibold text-ibm-gray-90 mb-4">Análisis de Base de Datos</h3>
+
+                {/* Summary */}
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-danger" />
+                    <span className="font-semibold text-danger">{databaseResults.totalFraudulent} transacciones fraudulentas detectadas</span>
+                  </div>
+                  <p className="text-sm text-red-700 mt-2">De un total de {databaseResults.totalResults} transacciones analizadas</p>
+                </div>
+
+                {/* Sample Results Table */}
+                <div>
+                  <h4 className="font-medium text-ibm-gray-90 mb-3">Transacciones Fraudulentas Detectadas:</h4>
+                  <div className="max-h-96 overflow-y-auto border border-ibm-gray-20 rounded-lg">
+                    <table className="w-full text-sm">
+                      <thead className="bg-ibm-gray-10 sticky top-0">
+                        <tr>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">ID</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Origen</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Destino</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Monto</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Comerciante</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Ubicación</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Tarjeta</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Fecha</th>
+                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Hora</th>
+                          <th className="px-3 py-3 text-center font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Predicción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {databaseResults.results.map((transaction, index) => (
+                          <tr key={index} className={`${index % 2 === 0 ? "bg-white" : "bg-red-50"} hover:bg-red-100 transition-colors`}>
+                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 font-mono text-xs">{transaction.id}</td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_origen_id}</td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_destino_id}</td>
+                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 font-semibold">${transaction.monto?.toFixed(2)}</td>
+                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.comerciante}>
+                              {transaction.comerciante}
+                            </td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.ubicacion}>
+                              {transaction.ubicacion}
+                            </td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs">{transaction.tipo_tarjeta}</td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs">{transaction.fecha_transaccion}</td>
+                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs font-mono">{transaction.horario_transaccion?.slice(0, 8)}</td>
+                            <td className="px-3 py-3 border-b border-ibm-gray-10 text-center">
+                              <div className="inline-flex items-center space-x-1">
+                                {transaction.prediccion_fraude ? (
+                                  <>
+                                    <XCircle className="w-4 h-4 text-danger" />
+                                    <span className="text-xs font-semibold text-danger">FRAUDE</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 text-success" />
+                                    <span className="text-xs font-semibold text-success">NORMAL</span>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mostrar información adicional */}
+                  <div className="mt-4 p-4 bg-ibm-gray-10 rounded-lg border border-ibm-gray-20">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-ibm-gray-90">Total de transacciones:</span>
+                        <span className="ml-2 text-ibm-gray-70">{databaseResults.totalResults}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-danger">Fraudulentas detectadas:</span>
+                        <span className="ml-2 text-danger font-semibold">{databaseResults.totalFraudulent}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-success">Porcentaje de fraude:</span>
+                        <span className="ml-2 text-success font-semibold">{((databaseResults.totalFraudulent / databaseResults.totalResults) * 100).toFixed(2)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timestamp */}
+                <div className="mt-4 text-right">
+                  <span className="text-xs text-ibm-gray-60">Análisis realizado: {databaseResults.timestamp}</span>
                 </div>
               </div>
             </div>
