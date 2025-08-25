@@ -1,14 +1,15 @@
 import React, { useState } from "react";
+import config from "../config/environment";
 
 const MODELS = [
-  { name: "Gemma 2b", port: 8093 },
-  { name: "Google Gemma 12b", port: 2005 },
-  { name: "Mistral", port: 8096 },
-  { name: "Granite", port: 8095 },
-  { name: "Google gemma 4b", port: 8094 },
-  { name: "Deepseek 1.5b", port: 8092 },
-  { name: "Deepseek 8b", port: 8091 },
-  { name: "Deepseek 14b", port: 8090 },
+  { name: "Gemma 2b", port: config.llm.gemma2b },     // gemma2b-td-server
+  { name: "Google Gemma 12b", port: config.llm.gemma12b },   // google_gemma12b-td-server
+  { name: "Mistral", port: config.llm.mistral },      // mistral-td-server
+  { name: "Granite", port: config.llm.granite },      // granite-td-server
+  { name: "Google gemma 4b", port: config.llm.gemma4b },    // google_gemma4b-td-server
+  { name: "Deepseek 1.5b", port: config.llm.deepseek1_5b },      // deepseek1.5B-td-server
+  { name: "Deepseek 8b", port: config.llm.deepseek8b },        // deepseek8b-td-server
+  { name: "Deepseek 14b", port: config.llm.deepseek14b },       // deepseek14B-td-server
 ];
 
 /**

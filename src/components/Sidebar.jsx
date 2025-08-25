@@ -13,7 +13,7 @@ const Sidebar = () => {
     { icon: Image, label: "Generador Imágenes", path: "/image-generator" },
     { icon: FileText, label: "Análisis Documentos", path: "/document-analysis" },
     { icon: BarChart3, label: "Analytics IA", path: "/analytics" },
-    { icon: MessageSquare, label: "Procesamiento Lenguaje", path: "/nlp" },
+    { icon: MessageSquare, label: "Procesamiento Lenguaje", path: "/nlp-models" },
     { icon: Cpu, label: "Machine Learning", path: "/ml-models" },
     { icon: Zap, label: "Automatización", path: "/automation" },
     { icon: Settings, label: "Configuración", path: "/settings" },
