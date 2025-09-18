@@ -80,7 +80,7 @@ const NLPAnalysisPage = () => {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch(`http://localhost:${apiPort}/analyze_text`, {
+      const response = await fetch(`http://${ServerIP}:${apiPort}/analyze_text`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,12 +122,14 @@ const NLPAnalysisPage = () => {
     }
   };
 
+  const ServerIP = import.meta.env.VITE_SERVER_IP || "localhost";
+
   const handleAnalyzeDatabase = async () => {
     setIsAnalyzingDatabase(true);
 
     try {
       console.log("Iniciando análisis masivo de textos...");
-      const response = await fetch(`http://localhost:${apiPort}/analyze_all_texts`, {
+      const response = await fetch(`http://${ServerIP}:${apiPort}/analyze_all_texts`, {
         method: "GET",
       });
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Database, Play, Download, History, Settings, HelpCircle, AlertCircle, CheckCircle, Copy, Eye, EyeOff, Loader, RefreshCw } from "lucide-react";
-import ModelSelector from "../components/ModelSelector";
 import config from "../config/environment";
 import ExcelJS from "exceljs";
 
@@ -433,12 +432,34 @@ const TextToSQLPage = () => {
 
           <div>
             <label className="block text-sm font-medium mb-2">Modelo LLM</label>
-            <ModelSelector 
-              value={selectedModel?.name} 
-              onChange={setSelectedModel} 
-              showPort={false}
+            <select 
+              value={selectedModel?.name || ""}
+              onChange={(e) => {
+                const model = [
+                  { name: "Gemma 2b", port: config.llm.gemma2b },
+                  { name: "Google Gemma 12b", port: config.llm.gemma12b },
+                  { name: "Mistral", port: config.llm.mistral },
+                  { name: "Granite", port: config.llm.granite },
+                  { name: "Google gemma 4b", port: config.llm.gemma4b },
+                  { name: "Deepseek 1.5b", port: config.llm.deepseek1_5b },
+                  { name: "Deepseek 8b", port: config.llm.deepseek8b },
+                  { name: "Deepseek 14b", port: config.llm.deepseek14b },
+                ].find((m) => m.name === e.target.value);
+                setSelectedModel(model);
+              }}
               disabled={!connected || !selectedDatabaseName}
-            />
+              className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">-- Selecciona un modelo --</option>
+              <option value="Gemma 2b">Gemma 2b</option>
+              <option value="Google Gemma 12b">Google Gemma 12b</option>
+              <option value="Mistral">Mistral</option>
+              <option value="Granite">Granite</option>
+              <option value="Google gemma 4b">Google gemma 4b</option>
+              <option value="Deepseek 1.5b">Deepseek 1.5b</option>
+              <option value="Deepseek 8b">Deepseek 8b</option>
+              <option value="Deepseek 14b">Deepseek 14b</option>
+            </select>
           </div>
         </div>
 

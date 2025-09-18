@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock, Maximize2 } from "lucide-react";
-import config from "../config/environment";
 const FraudDetectionPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingDatabase, setIsAnalyzingDatabase] = useState(false);
@@ -10,7 +9,6 @@ const FraudDetectionPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showFullscreenTable, setShowFullscreenTable] = useState(false);
-  const apiHost = config.database.host || "localhost";
   // Descargar Excel con exceljs
   const handleDownloadExcel = async () => {
     if (!databaseResults?.results) return;
@@ -56,7 +54,6 @@ const FraudDetectionPage = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
-  const [apiPort] = useState(8000); // Puerto por defecto, puedes hacerlo configurable
   const [transactionData, setTransactionData] = useState({
     monto: "",
     comerciante: "",
@@ -74,7 +71,7 @@ const FraudDetectionPage = () => {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch(`http://${apiHost}:${apiPort}/predict_single_transaction`, {
+      const response = await fetch(`/predict_single_transaction`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +97,7 @@ const FraudDetectionPage = () => {
       // Transformar respuesta para el formato del UI
       // Intentar diferentes nombres de campo que podría usar el backend
       let probability = data.probabilidad_fraude || data.fraud_probability || data.probability || 0;
-      
+
       const transformedResult = {
         fraudProbability: probability,
         riskLevel: probability >= 0.7 ? "HIGH" : probability >= 0.3 ? "MEDIUM" : "LOW",
@@ -119,12 +116,14 @@ const FraudDetectionPage = () => {
     }
   };
 
+  const ServerIP = import.meta.env.VITE_SERVER_IP || "localhost";
+
   const handleAnalyzeDatabase = async () => {
     setIsAnalyzingDatabase(true);
 
     try {
       console.log("Iniciando petición a la API...");
-      const response = await fetch(`http://localhost:${apiPort}/predict_all_from_db`, {
+      const response = await fetch("/api/fraude/predict_all_from_db", {
         method: "GET",
       });
 
@@ -142,21 +141,22 @@ const FraudDetectionPage = () => {
       console.log("Primeras 3 transacciones:", data.resultados?.slice(0, 3));
 
       // Mapear los datos según la nueva documentación
-      const mappedResults = data.resultados?.map(transaction => ({
-        id: transaction.id,
-        cuenta_origen_id: transaction.cuenta_origen || `cuenta_${transaction.id}_origen`,
-        cuenta_destino_id: transaction.cuenta_destino || `cuenta_${transaction.id}_destino`,
-        monto: transaction.monto,
-        comerciante: transaction.comerciante,
-        ubicacion: transaction.ubicacion,
-        tipo_tarjeta: transaction.tipo_tarjeta,
-        fecha_transaccion: transaction.fecha_transaccion,
-        horario_transaccion: transaction.horario_transaccion,
-        prediccion_fraude: transaction.es_fraude, // Mapear es_fraude a prediccion_fraude
-        probabilidad_fraude: transaction.probabilidad_fraude,
-        prediccion: transaction.prediccion,
-        nivel_riesgo: transaction.nivel_riesgo
-      })) || [];
+      const mappedResults =
+        data.resultados?.map((transaction) => ({
+          id: transaction.id,
+          cuenta_origen_id: transaction.cuenta_origen || `cuenta_${transaction.id}_origen`,
+          cuenta_destino_id: transaction.cuenta_destino || `cuenta_${transaction.id}_destino`,
+          monto: transaction.monto,
+          comerciante: transaction.comerciante,
+          ubicacion: transaction.ubicacion,
+          tipo_tarjeta: transaction.tipo_tarjeta,
+          fecha_transaccion: transaction.fecha_transaccion,
+          horario_transaccion: transaction.horario_transaccion,
+          prediccion_fraude: transaction.es_fraude, // Mapear es_fraude a prediccion_fraude
+          probabilidad_fraude: transaction.probabilidad_fraude,
+          prediccion: transaction.prediccion,
+          nivel_riesgo: transaction.nivel_riesgo,
+        })) || [];
 
       console.log("Resultados mapeados:", mappedResults.slice(0, 3));
 
@@ -208,7 +208,9 @@ const FraudDetectionPage = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-ibm-gray-90">Detección de fraude financiero</h1>
-            <p className="text-ibm-gray-70">Análisis de transacciones con Machine Learning - aprende de los comportamientos de tu base de datos para detectar cosas fuera de lo usual, tanto patrones como anomalías.</p>
+            <p className="text-ibm-gray-70">
+              Análisis de transacciones con Machine Learning - aprende de los comportamientos de tu base de datos para detectar cosas fuera de lo usual, tanto patrones como anomalías.
+            </p>
           </div>
         </div>
 
@@ -356,20 +358,21 @@ const FraudDetectionPage = () => {
                   <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${getRiskColor(results.riskLevel)}`}>
                     {results.riskLevel === "HIGH" ? <XCircle className="w-5 h-5" /> : results.riskLevel === "MEDIUM" ? <AlertTriangle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
                     <span className="font-semibold">
-                      Resultado: {results.fraudProbability !== undefined && !isNaN(results.fraudProbability) && results.fraudProbability >= 0.5 
-                        ? "Fraude detectado" 
-                        : results.prediction === "Sin predicción" ? "Transacción normal" : results.prediction}
+                      Resultado:{" "}
+                      {results.fraudProbability !== undefined && !isNaN(results.fraudProbability) && results.fraudProbability >= 0.5
+                        ? "Fraude detectado"
+                        : results.prediction === "Sin predicción"
+                        ? "Transacción normal"
+                        : results.prediction}
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-ibm-gray-90 mt-2">
-                    {results.fraudProbability !== undefined && !isNaN(results.fraudProbability) 
+                    {results.fraudProbability !== undefined && !isNaN(results.fraudProbability)
                       ? `${(results.fraudProbability * 100).toFixed(1)}% probabilidad de fraude`
                       : "Probabilidad no disponible"}
                   </p>
                   <p className="text-sm text-ibm-gray-60 mt-1">
-                    {results.fraudProbability !== undefined && !isNaN(results.fraudProbability)
-                      ? getProbabilityInterpretation(results.fraudProbability)
-                      : "No se pudo determinar el nivel de riesgo"}
+                    {results.fraudProbability !== undefined && !isNaN(results.fraudProbability) ? getProbabilityInterpretation(results.fraudProbability) : "No se pudo determinar el nivel de riesgo"}
                   </p>
                 </div>
 
@@ -499,18 +502,14 @@ const FraudDetectionPage = () => {
                               <div className="flex items-center justify-center gap-2">
                                 {(() => {
                                   const probability = transaction.probabilidad_fraude || 0;
-                                  const riskLevel = probability >= 0.7 ? 'HIGH' : probability >= 0.3 ? 'MEDIUM' : 'LOW';
-                                  const iconColor = riskLevel === 'HIGH' ? 'text-red-500' : 
-                                                  riskLevel === 'MEDIUM' ? 'text-yellow-500' : 'text-green-500';
-                                  const Icon = riskLevel === 'HIGH' ? XCircle : 
-                                             riskLevel === 'MEDIUM' ? AlertTriangle : CheckCircle;
-                                  
+                                  const riskLevel = probability >= 0.7 ? "HIGH" : probability >= 0.3 ? "MEDIUM" : "LOW";
+                                  const iconColor = riskLevel === "HIGH" ? "text-red-500" : riskLevel === "MEDIUM" ? "text-yellow-500" : "text-green-500";
+                                  const Icon = riskLevel === "HIGH" ? XCircle : riskLevel === "MEDIUM" ? AlertTriangle : CheckCircle;
+
                                   return (
                                     <>
                                       <Icon className={`w-4 h-4 ${iconColor}`} />
-                                      <span className={`font-medium text-xs ${iconColor}`}>
-                                        {(probability * 100).toFixed(1)}%
-                                      </span>
+                                      <span className={`font-medium text-xs ${iconColor}`}>{(probability * 100).toFixed(1)}%</span>
                                     </>
                                   );
                                 })()}
@@ -574,22 +573,15 @@ const FraudDetectionPage = () => {
                 <div className="flex items-center gap-2 mt-1">
                   {(() => {
                     const probability = selectedTransaction.probabilidad_fraude || 0;
-                    const riskLevel = probability >= 0.7 ? 'HIGH' : probability >= 0.3 ? 'MEDIUM' : 'LOW';
-                    const iconColor = riskLevel === 'HIGH' ? 'text-red-500' : 
-                                    riskLevel === 'MEDIUM' ? 'text-yellow-500' : 'text-green-500';
-                    const Icon = riskLevel === 'HIGH' ? XCircle : 
-                               riskLevel === 'MEDIUM' ? AlertTriangle : CheckCircle;
-                    
+                    const riskLevel = probability >= 0.7 ? "HIGH" : probability >= 0.3 ? "MEDIUM" : "LOW";
+                    const iconColor = riskLevel === "HIGH" ? "text-red-500" : riskLevel === "MEDIUM" ? "text-yellow-500" : "text-green-500";
+                    const Icon = riskLevel === "HIGH" ? XCircle : riskLevel === "MEDIUM" ? AlertTriangle : CheckCircle;
+
                     return (
                       <>
                         <Icon className={`w-5 h-5 ${iconColor}`} />
-                        <span className={`font-semibold text-lg ${iconColor}`}>
-                          {(probability * 100).toFixed(1)}%
-                        </span>
-                        <span className="text-gray-600 text-sm">
-                          ({riskLevel === 'HIGH' ? 'Alto riesgo' : 
-                            riskLevel === 'MEDIUM' ? 'Riesgo medio' : 'Bajo riesgo'})
-                        </span>
+                        <span className={`font-semibold text-lg ${iconColor}`}>{(probability * 100).toFixed(1)}%</span>
+                        <span className="text-gray-600 text-sm">({riskLevel === "HIGH" ? "Alto riesgo" : riskLevel === "MEDIUM" ? "Riesgo medio" : "Bajo riesgo"})</span>
                       </>
                     );
                   })()}
@@ -659,18 +651,14 @@ const FraudDetectionPage = () => {
                           <div className="flex items-center justify-center gap-2">
                             {(() => {
                               const probability = transaction.probabilidad_fraude || 0;
-                              const riskLevel = probability >= 0.7 ? 'HIGH' : probability >= 0.3 ? 'MEDIUM' : 'LOW';
-                              const iconColor = riskLevel === 'HIGH' ? 'text-red-500' : 
-                                              riskLevel === 'MEDIUM' ? 'text-yellow-500' : 'text-green-500';
-                              const Icon = riskLevel === 'HIGH' ? XCircle : 
-                                         riskLevel === 'MEDIUM' ? AlertTriangle : CheckCircle;
-                              
+                              const riskLevel = probability >= 0.7 ? "HIGH" : probability >= 0.3 ? "MEDIUM" : "LOW";
+                              const iconColor = riskLevel === "HIGH" ? "text-red-500" : riskLevel === "MEDIUM" ? "text-yellow-500" : "text-green-500";
+                              const Icon = riskLevel === "HIGH" ? XCircle : riskLevel === "MEDIUM" ? AlertTriangle : CheckCircle;
+
                               return (
                                 <>
                                   <Icon className={`w-4 h-4 ${iconColor}`} />
-                                  <span className={`font-medium ${iconColor}`}>
-                                    {(probability * 100).toFixed(1)}%
-                                  </span>
+                                  <span className={`font-medium ${iconColor}`}>{(probability * 100).toFixed(1)}%</span>
                                 </>
                               );
                             })()}

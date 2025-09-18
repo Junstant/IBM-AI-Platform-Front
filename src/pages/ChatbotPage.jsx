@@ -89,7 +89,7 @@ const ChatbotPage = () => {
     // Construir el prompt con todo el historial
     const fullPrompt = buildConversationPrompt(conversationHistory, newMessage);
 
-    const response = await fetch(`http://localhost:${model.port}/completions`, {
+    const response = await fetch(`/proxy/${model.port}/completion`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
