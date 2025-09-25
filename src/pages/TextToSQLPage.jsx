@@ -919,7 +919,7 @@ const TextToSQLPage = () => {
                   // Buscar claves primarias para esta tabla
                   const primaryKeys = schemaData.schema.primary_keys[tableName] || [];
                   
-                  // Buscar relaciones para esta tabla
+                  // Buscar relaciones de esta tabla
                   const tableRelations = schemaData.schema.relationships.filter(
                     rel => rel.table === tableName
                   );
