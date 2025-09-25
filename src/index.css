@@ -256,3 +256,145 @@ html {
 .scrollbar-hide::-webkit-scrollbar { 
   display: none;  /* Safari and Chrome */
 }
+
+/* Markdown content styles - Ensures content doesn't overflow */
+.markdown-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+/* Prevent tables from breaking layout */
+.markdown-content table {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+}
+
+.markdown-content th,
+.markdown-content td {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 0;
+  min-width: 0;
+}
+
+/* Code blocks responsive behavior */
+.markdown-content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.markdown-content code {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Long URLs and text handling */
+.markdown-content a {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+/* Ensure images are responsive */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+/* Better list styling */
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Blockquote responsive styling */
+.markdown-content blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #0060ff;
+  background-color: #f4f4f4;
+  font-style: italic;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Enhanced code block styling */
+.markdown-content pre {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-content pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Table styling improvements */
+.markdown-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: white;
+}
+
+.markdown-content table th {
+  background-color: #f9fafb !important;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.markdown-content table td,
+.markdown-content table th {
+  border-right: 1px solid #e5e7eb;
+}
+
+.markdown-content table td:last-child,
+.markdown-content table th:last-child {
+  border-right: none;
+}
+
+.markdown-content table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Syntax highlighting improvements */
+.prism-code {
+  font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Header improvements */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.markdown-content h1 {
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}

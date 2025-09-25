@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { Send, Bot, User, AlertCircle, Loader2, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
 
 const ChatbotPage = () => {
@@ -231,18 +235,17 @@ const ChatbotPage = () => {
           )}
 
           {messages.map((message) => {
-            // Determinar el ancho máximo basado en la longitud del mensaje
-            const isLongMessage = message.text.length > 200;
-            const maxWidth = isLongMessage ? "max-w-4xl" : "max-w-xs lg:max-w-md";
+            // Determinar el ancho máximo basado en el tipo de mensaje
+            const maxWidth = message.sender === "user" ? "max-w-xs lg:max-w-md" : "max-w-3xl lg:max-w-4xl";
             
             return (
               <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`flex ${maxWidth} ${message.sender === "user" ? "flex-row-reverse" : "flex-row"} space-x-2 gap-1`}>
+                <div className={`flex ${maxWidth} w-full ${message.sender === "user" ? "flex-row-reverse" : "flex-row"} space-x-2 gap-1`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.sender === "user" ? "bg-primary" : "bg-gradient-ibm"}`}>
                     {message.sender === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                   </div>
                   <div
-                    className={`px-4 py-3 rounded-lg ${
+                    className={`px-4 py-3 rounded-lg min-w-0 flex-1 break-words ${
                       message.sender === "user"
                         ? "bg-primary text-white mx-3"
                         : message.isError
@@ -252,61 +255,146 @@ const ChatbotPage = () => {
                   >
                     {/* Renderizar con Markdown para mensajes del bot, texto plano para mensajes del usuario */}
                     {message.sender === "bot" && !message.isError ? (
-                      <div className="text-sm prose prose-sm max-w-none">
+                      <div className="text-sm prose prose-sm max-w-none overflow-hidden markdown-content">
                         <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]}
                           components={{
                             // Estilos personalizados para elementos Markdown
-                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                            ul: ({ children }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
-                            ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
-                            li: ({ children }) => <li className="mb-1">{children}</li>,
-                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            em: ({ children }) => <em className="italic">{children}</em>,
-                            code: ({ children }) => (
-                              <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">
+                            p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
+                            ul: ({ children }) => (
+                              <ul className="mb-4 ml-6 list-disc space-y-1 break-words">
                                 {children}
-                              </code>
+                              </ul>
                             ),
-                            pre: ({ children }) => (
-                              <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-xs">
+                            ol: ({ children }) => (
+                              <ol className="mb-4 ml-6 list-decimal space-y-1 break-words">
                                 {children}
-                              </pre>
+                              </ol>
                             ),
-                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
-                            // Estilos para tablas
+                            li: ({ children }) => (
+                              <li className="break-words leading-relaxed">
+                                {children}
+                              </li>
+                            ),
+                            strong: ({ children }) => <strong className="font-semibold break-words">{children}</strong>,
+                            em: ({ children }) => <em className="italic break-words">{children}</em>,
+                            code: ({ inline, className, children, ...props }) => {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const language = match ? match[1].toLowerCase() : 'text';
+                              
+                              if (!inline && match) {
+                                return (
+                                  <div className="my-4 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                                    <div className="bg-gray-100 text-gray-700 px-4 py-2 text-xs font-medium border-b border-gray-300 flex items-center justify-between">
+                                      <span className="uppercase tracking-wide">{language}</span>
+                                      <span className="text-gray-500">código</span>
+                                    </div>
+                                    <Highlight
+                                      theme={themes.github}
+                                      code={String(children).replace(/\n$/, '')}
+                                      language={language}
+                                    >
+                                      {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                                        <pre 
+                                          className={`${className} p-0 overflow-x-auto text-sm bg-white`} 
+                                          style={{...style, backgroundColor: '#ffffff'}}
+                                        >
+                                          {tokens.map((line, i) => (
+                                            <div key={i} {...getLineProps({ line })} className="flex hover:bg-gray-50">
+                                              <span className="inline-block w-12 text-gray-400 text-right pr-4 pl-4 py-1 bg-gray-50 border-r border-gray-200 select-none text-xs leading-5">
+                                                {i + 1}
+                                              </span>
+                                              <span className="flex-1 px-4 py-1">
+                                                {line.map((token, key) => (
+                                                  <span key={key} {...getTokenProps({ token })} />
+                                                ))}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </pre>
+                                      )}
+                                    </Highlight>
+                                  </div>
+                                );
+                              }
+                              
+                              // Código inline
+                              return (
+                                <code 
+                                  className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono break-all inline-block max-w-full text-gray-800"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              );
+                            },
+                            h1: ({ children }) => (
+                              <h1 className="text-2xl font-bold mb-4 mt-6 pb-2 border-b border-gray-200 text-gray-900 break-words first:mt-0">
+                                {children}
+                              </h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-xl font-bold mb-3 mt-5 text-gray-900 break-words">
+                                {children}
+                              </h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-900 break-words">
+                                {children}
+                              </h3>
+                            ),
+                            h4: ({ children }) => (
+                              <h4 className="text-base font-semibold mb-2 mt-3 text-gray-800 break-words">
+                                {children}
+                              </h4>
+                            ),
+                            h5: ({ children }) => (
+                              <h5 className="text-sm font-semibold mb-1 mt-2 text-gray-800 break-words">
+                                {children}
+                              </h5>
+                            ),
+                            h6: ({ children }) => (
+                              <h6 className="text-sm font-medium mb-1 mt-2 text-gray-700 break-words">
+                                {children}
+                              </h6>
+                            ),
+                            // Estilos para tablas mejoradas y más legibles
                             table: ({ children }) => (
-                              <div className="overflow-x-auto my-3">
-                                <table className="min-w-full border border-gray-300 rounded-lg">
+                              <div className="overflow-x-auto my-6 rounded-lg border border-gray-300 shadow-sm bg-white">
+                                <table className="min-w-full table-auto">
                                   {children}
                                 </table>
                               </div>
                             ),
                             thead: ({ children }) => (
-                              <thead className="bg-gray-50">
+                              <thead>
                                 {children}
                               </thead>
                             ),
                             tbody: ({ children }) => (
-                              <tbody className="bg-white divide-y divide-gray-200">
+                              <tbody>
                                 {children}
                               </tbody>
                             ),
-                            tr: ({ children }) => (
-                              <tr className="hover:bg-gray-50">
-                                {children}
-                              </tr>
-                            ),
+                            tr: ({ children, ...props }) => {
+                              const isHeader = props.isHeader;
+                              return (
+                                <tr className={`border-b border-gray-200 ${isHeader ? 'bg-gray-100' : 'hover:bg-gray-50'} transition-colors`}>
+                                  {children}
+                                </tr>
+                              );
+                            },
                             th: ({ children }) => (
-                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider border-b border-gray-300">
+                              <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 bg-gray-100 border-b-2 border-gray-300 break-words">
                                 {children}
                               </th>
                             ),
                             td: ({ children }) => (
-                              <td className="px-3 py-2 text-xs text-gray-900 border-b border-gray-200">
-                                {children}
+                              <td className="px-6 py-4 text-sm text-gray-700 break-words border-b border-gray-200">
+                                <div className="max-w-xs overflow-hidden">
+                                  {children}
+                                </div>
                               </td>
                             ),
                             // Estilos para listas de tareas
@@ -325,24 +413,35 @@ const ChatbotPage = () => {
                                 href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 underline"
+                                className="text-blue-600 hover:text-blue-800 underline break-all"
                               >
                                 {children}
                               </a>
                             ),
                             // Estilos para texto tachado
                             del: ({ children }) => (
-                              <del className="line-through text-gray-500">
+                              <del className="line-through text-gray-500 break-words">
                                 {children}
                               </del>
                             ),
+                            // Estilos para blockquotes mejorados
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-4 border-blue-500 pl-4 py-3 my-4 bg-blue-50 italic break-words rounded-r-md">
+                                <div className="text-gray-700">{children}</div>
+                              </blockquote>
+                            ),
+                            // Estilos para divisores
+                            hr: () => (
+                              <hr className="my-6 border-gray-300" />
+                            ),
+
                           }}
                         >
                           {message.text}
                         </ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-sm">{message.text}</p>
+                      <p className="text-sm break-words overflow-wrap-anywhere">{message.text}</p>
                     )}
                     
                     <div className="flex justify-between items-center mt-1">
@@ -364,14 +463,14 @@ const ChatbotPage = () => {
           {/* Loading indicator */}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex flex-row space-x-2 max-w-xs lg:max-w-md">
+              <div className="flex flex-row space-x-2 max-w-3xl lg:max-w-4xl w-full">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-ibm">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="px-4 py-3 rounded-lg bg-white border border-ibm-gray-20 text-ibm-gray-90">
+                <div className="px-4 py-3 rounded-lg bg-white border border-ibm-gray-20 text-ibm-gray-90 ml-3 min-w-0 flex-1">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <p className="text-sm">{selectedModel?.name} está pensando...</p>
+                    <p className="text-sm break-words">{selectedModel?.name} está pensando...</p>
                   </div>
                 </div>
               </div>

@@ -1,21 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { Database, Play, Download, History, Settings, HelpCircle, AlertCircle, CheckCircle, Copy, Eye, EyeOff, Loader, RefreshCw } from "lucide-react";
+import React, { useState } from "react";
+import { Database, Play, Download, Settings, AlertCircle, CheckCircle, Copy, Eye, EyeOff, Loader, RefreshCw } from "lucide-react";
 import config from "../config/environment";
 import ExcelJS from "exceljs";
 
 const TextToSQLPage = () => {
   // Estados principales
-  const [selectedModel, setSelectedModel] = useState();
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [selectedDatabase, setSelectedDatabase] = useState(null);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSchemaModal, setShowSchemaModal] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const [availableDatabases, setAvailableDatabases] = useState([]);
-  const [selectedDatabaseName, setSelectedDatabaseName] = useState(config.database.name || "");
+  const [discoveryComplete, setDiscoveryComplete] = useState(false);
   const [error, setError] = useState(null);
   const [rawLLMResponse, setRawLLMResponse] = useState("");
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [schemaData, setSchemaData] = useState(null);
+  const [isLoadingSchema, setIsLoadingSchema] = useState(false);
+  const [isResultsFullscreen, setIsResultsFullscreen] = useState(false);
+  const [isLoadingFullscreen, setIsLoadingFullscreen] = useState(false);
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10000);
+  
+  // Nuevos estados para multi-modelo y multi-BD
+  const [availableModels, setAvailableModels] = useState([]);
+  const [availableDatabases, setAvailableDatabases] = useState([]);
+
   // Suggested questions for quick use
   const [suggestedQuestions] = useState([
     "Dame las cuentas bancarias con saldo mayor a 50.000.",
@@ -32,22 +45,48 @@ const TextToSQLPage = () => {
     password: config.database.password,
   });
 
-  // Configuración de API LLM
-  const [llmConfig, setLlmConfig] = useState({
-    host: config.database.host,
-    port: selectedModel?.port || "8096",
-  });
-
-  useEffect(() => {
-    if (selectedModel) {
-      setLlmConfig((prev) => ({ ...prev, port: selectedModel.port }));
+  // Función para obtener modelos disponibles
+  const handleGetAvailableModels = async () => {
+    try {
+      const response = await fetch('/api/textosql/models');
+      if (!response.ok) {
+        throw new Error("No se pudieron obtener los modelos disponibles");
+      }
+      const data = await response.json();
+      setAvailableModels(data.models || []);
+      return data.models || [];
+    } catch (error) {
+      console.error("Error obteniendo modelos:", error);
+      // Fallback a configuración estática si la API no funciona
+      const fallbackModels = [
+        { id: "mistral-7b", name: "Mistral 7B", port: "8096", description: "Modelo general equilibrado" },
+        { id: "gemma-2b", name: "Gemma 2B", port: "9470", description: "Modelo ligero y rápido" },
+        { id: "gemma-4b", name: "Gemma 4B", port: "8094", description: "Modelo balanceado" },
+        { id: "gemma-12b", name: "Gemma 12B", port: "2005", description: "Modelo de alta capacidad" },
+        { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
+        { id: "deepseek-8b", name: "DeepSeek 8B", port: "8092", description: "Equilibrado" },
+        { id: "deepseek-14b", name: "DeepSeek 14B", port: "8090", description: "Alta capacidad" },
+        { id: "granite", name: "IBM Granite", port: "8095", description: "Especializado en código" }
+      ];
+      setAvailableModels(fallbackModels);
+      return fallbackModels;
     }
-  }, [selectedModel]);
+  };
 
-  // Función para hacer pregunta en lenguaje natural
+  // Función para hacer pregunta en lenguaje natural usando el nuevo endpoint dinámico
   const handleAskQuestion = async () => {
-    if (!question.trim() || !selectedModel || !connected || !selectedDatabaseName) {
-      setError("Debes conectarte a la base de datos, seleccionar una base de datos y un modelo antes de hacer preguntas");
+    if (!question.trim()) {
+      setError("Debes escribir una pregunta");
+      return;
+    }
+
+    if (!selectedDatabase) {
+      setError("Debes seleccionar una base de datos");
+      return;
+    }
+
+    if (!selectedModel) {
+      setError("Debes seleccionar un modelo LLM");
       return;
     }
 
@@ -57,101 +96,45 @@ const TextToSQLPage = () => {
     setRawLLMResponse("");
 
     try {
-      // Primero obtener la query SQL del LLM
-      const llmResponse = await fetch(`http://${llmConfig.host}:${llmConfig.port}/v1/chat/completions`, {
+      // Usar el nuevo endpoint dinámico
+      const response = await fetch('/api/textosql/query/ask-dynamic', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: selectedModel.name,
-          messages: [
-            {
-              role: "system",
-              content: `Eres un experto en SQL para PostgreSQL. Convierte preguntas en lenguaje natural a consultas SQL válidas para la base de datos ${dbConfig.database}. 
-              
-              Responde SOLO con el query SQL, sin explicaciones adicionales. El query debe ser ejecutable directamente.
-              
-              Esquema de la base de datos:
-              - Tabla: clientes (id, nombre, email, telefono, fecha_registro)
-              - Tabla: cuentas_bancarias (id, cliente_id, numero_cuenta, tipo_cuenta, saldo, fecha_creacion)
-              - Tabla: transacciones (id, cuenta_origen_id, cuenta_destino_id, monto, tipo_transaccion, fecha_transaccion, descripcion)
-              
-              Usa JOINs cuando sea necesario para relacionar las tablas.`,
-            },
-            {
-              role: "user",
-              content: question,
-            },
-          ],
-          max_tokens: 500,
-          temperature: 0.1,
+          database_id: selectedDatabase.id,
+          model_id: selectedModel.id,
+          question: question.trim()
         }),
       });
 
-      if (!llmResponse.ok) {
-        throw new Error(`Error del LLM: ${llmResponse.status}`);
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          throw new Error(await response.text());
+        }
+        throw new Error(errorData.detail?.error || errorData.detail || "Error en la consulta");
       }
 
-      const llmData = await llmResponse.json();
-      const sqlQuery = llmData.choices[0].message.content.trim();
-      setRawLLMResponse(sqlQuery);
-
-      // Ejecutar la query SQL
-
-      const dbResponse = await fetch(`http://${dbConfig.host}:${dbConfig.port}/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...dbConfig,
-          query: sqlQuery,
-        }),
-      });
-
-      if (!dbResponse.ok) {
-        const errorData = await dbResponse.json();
-        throw new Error(`Error de base de datos: ${errorData.error || "Error desconocido"}`);
-      }
-
-      const queryResults = await dbResponse.json();
-
-      // Generar explicación de los resultados
-      const explanationResponse = await fetch(`http://${llmConfig.host}:${llmConfig.port}/v1/chat/completions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: selectedModel.name,
-          messages: [
-            {
-              role: "system",
-              content: "Explica de manera concisa y clara los resultados de la consulta SQL en español.",
-            },
-            {
-              role: "user",
-              content: `Pregunta original: ${question}\nQuery SQL: ${sqlQuery}\nResultados obtenidos: ${queryResults.rows.length} filas\nPrimeras filas: ${JSON.stringify(
-                queryResults.rows.slice(0, 3)
-              )}`,
-            },
-          ],
-          max_tokens: 200,
-          temperature: 0.3,
-        }),
-      });
-
-      let explanation = `Se obtuvieron ${queryResults.rows.length} resultados.`;
-      if (explanationResponse.ok) {
-        const explanationData = await explanationResponse.json();
-        explanation = explanationData.choices[0].message.content.trim();
-      }
+      const data = await response.json();
+      
+      setRawLLMResponse(data.sql_query);
 
       const resultData = {
-        question,
-        sqlQuery,
-        results: queryResults.rows,
-        explanation,
+        question: data.question,
+        sqlQuery: data.sql_query,
+        results: data.results,
+        explanation: data.explanation,
         timestamp: new Date().toLocaleString(),
-        executionTime: queryResults.executionTime || 0,
+        executionTime: 0,
+        error: data.error || null,
+        database_used: data.database_used,
+        model_used: data.model_used
       };
 
       setResults(resultData);
+      setCurrentPage(1); // Reset pagination when new results arrive
     } catch (error) {
       console.error("Error:", error);
       setError(error.message);
@@ -204,6 +187,8 @@ const TextToSQLPage = () => {
       infoSheet.addRow(["SQL Query", data.sqlQuery]);
       infoSheet.addRow(["Timestamp", data.timestamp]);
       infoSheet.addRow(["Rows", data.results.length]);
+      infoSheet.addRow(["Database Used", data.database_used]);
+      infoSheet.addRow(["Model Used", data.model_used]);
       infoSheet.addRow(["Explanation", data.explanation]);
 
       // Formatear headers de info
@@ -242,55 +227,81 @@ const TextToSQLPage = () => {
     navigator.clipboard.writeText(text);
   };
 
-  // Connect to database test endpoint
-  const handleConnectDatabase = async () => {
+
+
+  // Función para descubrir recursos disponibles (bases de datos y modelos)
+  const handleDiscoverResources = async () => {
     setError(null);
+    setIsDiscovering(true);
     try {
-      const resp = await fetch(`http://${dbConfig.host}:${dbConfig.port}/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dbConfig),
-      });
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || "No se pudo conectar a la base");
+      // Verificar que la API esté disponible
+      const healthResp = await fetch(`/api/textosql/health`);
+      if (!healthResp.ok) {
+        throw new Error("No se pudo conectar a la API de Text-to-SQL");
       }
-      setConnected(true);
-      // fetch available DBs
-      const listResp = await fetch(`http://${dbConfig.host}:${dbConfig.port}/list`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ host: dbConfig.host, port: dbConfig.port, username: dbConfig.username, password: dbConfig.password }),
-      });
-      if (listResp.ok) {
-        const listData = await listResp.json();
-        setAvailableDatabases(listData.databases || []);
+
+      // Obtener bases de datos disponibles
+      const dbsResp = await fetch(`/api/textosql/databases`);
+      if (!dbsResp.ok) {
+        throw new Error("No se pudieron obtener las bases de datos disponibles");
       }
+      const dbsData = await dbsResp.json();
+      setAvailableDatabases(dbsData.databases || []);
+
+      // Obtener modelos disponibles
+      await handleGetAvailableModels();
+
+      setDiscoveryComplete(true);
     } catch (err) {
       setError(err.message);
-      setConnected(false);
+      setAvailableDatabases([]);
+      setAvailableModels([]);
+    } finally {
+      setIsDiscovering(false);
     }
   };
 
-  const handleSelectDatabase = (name) => {
-    setSelectedDatabaseName(name);
-    setDbConfig((prev) => ({ ...prev, database: name }));
+
+
+  // Función para cargar el esquema de la base de datos específica
+  const handleLoadSchema = async () => {
+    if (!selectedDatabase) return;
+    
+    setIsLoadingSchema(true);
+    try {
+      const response = await fetch(`/api/textosql/schema/${selectedDatabase.id}`);
+      if (!response.ok) {
+        throw new Error("No se pudo cargar el esquema de la base de datos");
+      }
+      const data = await response.json();
+      setSchemaData(data);
+    } catch (error) {
+      console.error("Error loading schema:", error);
+      setError(error.message);
+    } finally {
+      setIsLoadingSchema(false);
+    }
   };
 
-  const handleToggleSchemaModal = () => setShowSchemaModal((v) => !v);
+  const handleToggleSchemaModal = async () => {
+    if (!showSchemaModal && !schemaData && selectedDatabase) {
+      await handleLoadSchema();
+    }
+    setShowSchemaModal((v) => !v);
+  };
 
   return (
-    <div className="p-6 space-y-6 bg-ibm-gray-10 min-h-screen">
+    <div className="p-6 bg-ibm-gray-10 min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
+      <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
               <Database className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-ibm-gray-90">Texto a SQL</h1>
-              <p className="text-ibm-gray-70">Convierte preguntas en lenguaje natural a consultas SQL</p>
+              <h1 className="text-2xl font-bold text-ibm-gray-90">Texto a SQL - Multi-Modelo</h1>
+              <p className="text-ibm-gray-70">Convierte preguntas en lenguaje natural a consultas SQL usando diferentes modelos y bases de datos</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -307,34 +318,11 @@ const TextToSQLPage = () => {
 
       {/* Configuración */}
       {showSettings && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
+        <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
           <h3 className="text-lg font-semibold mb-4">Configuración de Runtime</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold mb-3">LLM Runtime API</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Host</label>
-                  <input
-                    type="text"
-                    value={llmConfig.host}
-                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, host: e.target.value }))}
-                    className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Port</label>
-                  <input
-                    type="text"
-                    value={llmConfig.port}
-                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, port: e.target.value }))}
-                    className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3">Conexión de Base de Datos</h4>
+              <h4 className="font-semibold mb-3">Configuración de Base de Datos</h4>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Host</label>
@@ -387,98 +375,167 @@ const TextToSQLPage = () => {
                 </div>
               </div>
             </div>
+            <div>
+              <h4 className="font-semibold mb-3">Información de Recursos</h4>
+              <div className="space-y-3">
+                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                  <div className="text-sm font-medium text-green-800">Modelos Disponibles</div>
+                  <div className="text-sm text-green-600">{availableModels.length} modelos encontrados</div>
+                </div>
+                <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                  <div className="text-sm font-medium text-emerald-800">Bases de Datos</div>
+                  <div className="text-sm text-emerald-600">{availableDatabases.length} bases de datos encontradas</div>
+                </div>
+
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Conexión y Configuración Principal */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
+      {/* Discovery y Configuración Principal */}
+      <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
         <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Configuración Principal</h2>
-        
-        {/* Controles de conexión */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Conexión a Base de Datos</label>
+
+        {/* Paso 1: Discovery de recursos */}
+        {!discoveryComplete && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Paso 1: Descubrir Recursos Disponibles</h3>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleDiscoverResources}
+                disabled={isDiscovering}
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+              >
+                {isDiscovering ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Descubriendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-4 h-4" />
+                    <span>Descubrir Bases de Datos y Modelos</span>
+                  </>
+                )}
+              </button>
+              <span className="text-sm text-ibm-gray-70">
+                Descubre qué bases de datos y modelos LLM están disponibles
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Paso 2: Selección de recursos */}
+        {discoveryComplete && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Selección de Base de Datos */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Base de Datos</label>
+                <select
+                  value={selectedDatabase?.id || ""}
+                  onChange={(e) => {
+                    const db = availableDatabases.find(db => db.id === e.target.value);
+                    setSelectedDatabase(db);
+                    // Limpiar esquema cuando cambie la BD
+                    setSchemaData(null);
+                  }}
+                  className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                >
+                  <option value="">-- Selecciona una base de datos --</option>
+                  {availableDatabases.map((db) => (
+                    <option key={db.id} value={db.id}>
+                      {db.name} ({db.size || 'Tamaño desconocido'})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-ibm-gray-60 mt-1">
+                  {availableDatabases.length} base(s) de datos encontrada(s)
+                </p>
+              </div>
+
+              {/* Selección de Modelo LLM */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Modelo LLM</label>
+                <select
+                  value={selectedModel?.id || ""}
+                  onChange={(e) => {
+                    const model = availableModels.find(m => m.id === e.target.value);
+                    setSelectedModel(model);
+                  }}
+                  className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                >
+                  <option value="">-- Selecciona un modelo --</option>
+                  {availableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.name} - {model.description}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-ibm-gray-60 mt-1">
+                  {availableModels.length} modelo(s) encontrado(s)
+                </p>
+              </div>
+            </div>
+
+
+          </div>
+        )}
+
+        {/* Botones de acción */}
+        {discoveryComplete && (
+          <div className="flex items-center space-x-4 mt-6">
+            {/* Botón para reiniciar discovery */}
             <button
-              onClick={handleConnectDatabase}
-              className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                connected 
-                  ? 'bg-green-100 text-green-800 border border-green-300' 
-                  : 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white hover:opacity-90'
-              }`}
-            >
-              <Database className="w-4 h-4" />
-              <span>{connected ? "✓ Conectado a banco_global" : "Conectar a banco_global"}</span>
-            </button>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Base de Datos</label>
-            <select 
-              value={selectedDatabaseName} 
-              onChange={(e) => handleSelectDatabase(e.target.value)}
-              disabled={!connected}
-              className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              <option value="">-- Selecciona una base de datos --</option>
-              <option value="banco_global">banco_global</option>
-              {availableDatabases.map((db) => (
-                <option key={db} value={db}>
-                  {db}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Modelo LLM</label>
-            <select 
-              value={selectedModel?.name || ""}
-              onChange={(e) => {
-                const model = [
-                  { name: "Gemma 2b", port: config.llm.gemma2b },
-                  { name: "Google Gemma 12b", port: config.llm.gemma12b },
-                  { name: "Mistral", port: config.llm.mistral },
-                  { name: "Granite", port: config.llm.granite },
-                  { name: "Google gemma 4b", port: config.llm.gemma4b },
-                  { name: "Deepseek 1.5b", port: config.llm.deepseek1_5b },
-                  { name: "Deepseek 8b", port: config.llm.deepseek8b },
-                  { name: "Deepseek 14b", port: config.llm.deepseek14b },
-                ].find((m) => m.name === e.target.value);
-                setSelectedModel(model);
+              onClick={() => {
+                setDiscoveryComplete(false);
+                setSelectedDatabase(null);
+                setSelectedModel(null);
+                setAvailableDatabases([]);
+                setAvailableModels([]);
+                setError(null);
+                setSchemaData(null);
               }}
-              disabled={!connected || !selectedDatabaseName}
-              className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
-              <option value="">-- Selecciona un modelo --</option>
-              <option value="Gemma 2b">Gemma 2b</option>
-              <option value="Google Gemma 12b">Google Gemma 12b</option>
-              <option value="Mistral">Mistral</option>
-              <option value="Granite">Granite</option>
-              <option value="Google gemma 4b">Google gemma 4b</option>
-              <option value="Deepseek 1.5b">Deepseek 1.5b</option>
-              <option value="Deepseek 8b">Deepseek 8b</option>
-              <option value="Deepseek 14b">Deepseek 14b</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Botón de esquema */}
-        {connected && selectedDatabaseName && (
-          <div className="mb-4">
-            <button
-              onClick={handleToggleSchemaModal}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition-colors"
-            >
-              {showSchemaModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              <span>{showSchemaModal ? "Ocultar" : "Ver"} Esquema de la Base de Datos</span>
+              <RefreshCw className="w-4 h-4" />
+              <span>Nuevo Discovery</span>
             </button>
+
+
+
+            {/* Botón de esquema */}
+            {selectedDatabase && (
+              <button
+                onClick={handleToggleSchemaModal}
+                disabled={isLoadingSchema}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+              >
+                {isLoadingSchema ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Cargando Esquema...</span>
+                  </>
+                ) : showSchemaModal ? (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    <span>Ocultar Esquema</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    <span>Ver Esquema</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         )}
 
         {/* Preguntas sugeridas */}
-        {connected && selectedDatabaseName && selectedModel && (
-          <div>
+        {selectedDatabase && selectedModel && (
+          <div className="mt-6">
             <h3 className="font-semibold mb-3">Preguntas Sugeridas</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {suggestedQuestions.map((q, idx) => (
@@ -486,7 +543,6 @@ const TextToSQLPage = () => {
                   key={idx}
                   onClick={() => {
                     setQuestion(q);
-                    handleAskQuestion();
                   }}
                   className="text-left px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-colors"
                 >
@@ -499,13 +555,37 @@ const TextToSQLPage = () => {
       </div>
 
       {/* Input principal para preguntas */}
-      {connected && selectedDatabaseName && selectedModel && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
+      {selectedDatabase && selectedModel && (
+        <div className="relative bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
           <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Haz tu Pregunta</h2>
+          
+          {/* Loader global cuando está procesando */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center space-y-4">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
+                  <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-semibold text-green-700 animate-pulse">🤖 Procesando tu consulta</p>
+                  <p className="text-sm text-green-600">El modelo {selectedModel.name} está analizando tu pregunta...</p>
+                  <div className="flex justify-center space-x-1 mt-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
-                Escribe tu pregunta en español sobre la base de datos
+                Escribe tu pregunta en español sobre la base de datos "{selectedDatabase.name}" usando el modelo "{selectedModel.name}"
               </label>
               <div className="flex space-x-3">
                 <input
@@ -519,10 +599,22 @@ const TextToSQLPage = () => {
                 <button
                   onClick={handleAskQuestion}
                   disabled={!question.trim() || isLoading}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 >
-                  {isLoading ? <Loader className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
-                  <span>{isLoading ? "Procesando..." : "Preguntar"}</span>
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Play className="w-5 h-5" />
+                  )}
+                  <span className={isLoading ? "animate-pulse" : ""}>
+                    {isLoading ? "Analizando tu pregunta..." : "Preguntar"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -542,26 +634,45 @@ const TextToSQLPage = () => {
       )}
 
       {/* Mensaje cuando no está todo configurado */}
-      {(!connected || !selectedDatabaseName || !selectedModel) && (
+      {discoveryComplete && (!selectedDatabase || !selectedModel) && (
         <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
           <div className="text-center py-8">
             <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-ibm-gray-90 mb-2">Configuración Requerida</h3>
-            <p className="text-ibm-gray-70 mb-4">
-              Para comenzar a hacer preguntas, necesitas:
-            </p>
+            <h3 className="text-lg font-semibold text-ibm-gray-90 mb-2">Configuración Incompleta</h3>
+            <p className="text-ibm-gray-70 mb-4">Para comenzar a hacer preguntas, completa estos pasos:</p>
             <div className="space-y-2 text-left max-w-md mx-auto">
-              <div className={`flex items-center space-x-2 ${connected ? 'text-green-600' : 'text-gray-500'}`}>
-                <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span>Conectar a la base de datos banco_global</span>
+              <div className={`flex items-center space-x-2 ${selectedDatabase ? "text-green-600" : "text-gray-500"}`}>
+                <div className={`w-2 h-2 rounded-full ${selectedDatabase ? "bg-green-500" : "bg-gray-300"}`}></div>
+                <span>Seleccionar una base de datos ({availableDatabases.length} disponibles)</span>
               </div>
-              <div className={`flex items-center space-x-2 ${selectedDatabaseName ? 'text-green-600' : 'text-gray-500'}`}>
-                <div className={`w-2 h-2 rounded-full ${selectedDatabaseName ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span>Seleccionar una base de datos</span>
+              <div className={`flex items-center space-x-2 ${selectedModel ? "text-green-600" : "text-gray-500"}`}>
+                <div className={`w-2 h-2 rounded-full ${selectedModel ? "bg-green-500" : "bg-gray-300"}`}></div>
+                <span>Seleccionar un modelo LLM ({availableModels.length} disponibles)</span>
               </div>
-              <div className={`flex items-center space-x-2 ${selectedModel ? 'text-green-600' : 'text-gray-500'}`}>
-                <div className={`w-2 h-2 rounded-full ${selectedModel ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span>Elegir un modelo LLM</span>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loader para pantalla completa */}
+      {isLoadingFullscreen && (
+        <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
+              <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2" style={{animationDirection: 'reverse', animationDuration: '1.2s'}}></div>
+              <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2" style={{animationDuration: '0.8s'}}></div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-2xl font-bold text-green-600 animate-pulse">🚀 Activando Modo Pantalla Completa</p>
+              <p className="text-lg text-green-600">Preparando la vista optimizada para tus datos...</p>
+              <div className="flex justify-center space-x-2 mt-4">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-3 h-3 bg-teal-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
               </div>
             </div>
           </div>
@@ -570,11 +681,46 @@ const TextToSQLPage = () => {
 
       {/* Resultados de la consulta */}
       {results && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Resultados</h2>
+        <div className={`bg-white rounded-lg mt-4 p-6 shadow-sm border border-ibm-gray-20 ${isResultsFullscreen ? 'fixed inset-0 z-50 overflow-auto bg-white' : ''}`}>
+          {!isResultsFullscreen && (
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-ibm-gray-90">Resultados</h2>
+            </div>
+          )}
           
-          {/* Respuesta cruda del LLM */}
-          {rawLLMResponse && (
+          {isResultsFullscreen && (
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 border-b border-gray-200 pb-4">
+              <h2 className="text-xl font-bold text-ibm-gray-90">Resultados - Pantalla Completa</h2>
+              <button
+                onClick={() => setIsResultsFullscreen(false)}
+                className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:opacity-90 transition-colors"
+              >
+                <EyeOff className="w-4 h-4" />
+                <span>Cerrar Pantalla Completa</span>
+              </button>
+            </div>
+          )}
+
+          {/* Información de la consulta - Solo en modo normal */}
+          {!isResultsFullscreen && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <div className="text-sm font-medium text-green-800">Base de Datos</div>
+                <div className="text-sm text-green-600">{results.database_used}</div>
+              </div>
+              <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                <div className="text-sm font-medium text-emerald-800">Modelo LLM</div>
+                <div className="text-sm text-emerald-600">{results.model_used}</div>
+              </div>
+              <div className="p-3 bg-gradient-to-r from-teal-50 to-green-50 border border-teal-200 rounded-lg">
+                <div className="text-sm font-medium text-teal-800">Timestamp</div>
+                <div className="text-sm text-teal-600">{results.timestamp}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Respuesta cruda del LLM - Solo en modo normal */}
+          {!isResultsFullscreen && rawLLMResponse && (
             <div className="p-4 bg-gray-50 rounded-lg mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-gray-800">Query SQL Generada</h4>
@@ -590,112 +736,261 @@ const TextToSQLPage = () => {
             </div>
           )}
 
-          {/* Explicación */}
-          <div className="flex items-center space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-            <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-green-800">Respuesta</h4>
-              <p className="text-green-700 mt-1">{results.explanation}</p>
-            </div>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex space-x-3">
-              <button
-                onClick={() => downloadToExcel(results, "sql_query_results")}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                <span>Descargar Excel</span>
-              </button>
-            </div>
-            <span className="text-sm text-gray-600">
-              {results.results.length} filas • Tiempo: {results.executionTime}ms
-            </span>
-          </div>
-
-          {/* Tabla de resultados */}
-          {results.results.length > 0 && (
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {Object.keys(results.results[0]).map((key) => (
-                      <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {results.results.slice(0, 10).map((row, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      {Object.values(row).map((value, cellIndex) => (
-                        <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {value !== null ? String(value) : "NULL"}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {results.results.length > 10 && (
-                <div className="px-6 py-3 bg-gray-50 text-sm text-gray-500 text-center">
-                  Mostrando 10 de {results.results.length} resultados
-                </div>
-              )}
+          {/* Explicación - Solo en modo normal */}
+          {!isResultsFullscreen && (
+            <div className="flex items-center space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-green-800">Explicación</h4>
+                <p className="text-green-700 mt-1">{results.explanation}</p>
+              </div>
             </div>
           )}
+
+          {/* Botones de acción - Solo en modo normal */}
+          {!isResultsFullscreen && (
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => downloadToExcel(results, "sql_query_results")}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Excel</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsLoadingFullscreen(true);
+                    setTimeout(() => {
+                      setIsResultsFullscreen(true);
+                      setIsLoadingFullscreen(false);
+                    }, 300);
+                  }}
+                  disabled={isLoadingFullscreen}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+                >
+                  {isLoadingFullscreen ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Cargando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      <span>Pantalla Completa</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <span className="text-sm text-gray-600">
+                {results.results.length} filas encontradas
+              </span>
+            </div>
+          )}
+
+          {/* Tabla de resultados */}
+          {results.results.length > 0 && (() => {
+            const totalItems = results.results.length;
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const currentItems = isResultsFullscreen 
+              ? results.results.slice(startIndex, endIndex)
+              : results.results.slice(0, 15);
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const showingCount = isResultsFullscreen ? currentItems.length : Math.min(15, totalItems);
+            
+            return (
+              <div className={`border border-gray-200 rounded-lg ${isResultsFullscreen ? 'h-full overflow-auto' : 'overflow-x-auto'}`}>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-green-50 to-emerald-50 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
+                        #ID
+                      </th>
+                      {Object.keys(results.results[0]).map((key) => (
+                        <th key={key} className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
+                          {key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentItems.map((row, index) => {
+                      const globalIndex = isResultsFullscreen ? startIndex + index + 1 : index + 1;
+                      return (
+                        <tr key={globalIndex} className="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                            {globalIndex}
+                          </td>
+                          {Object.values(row).map((value, cellIndex) => (
+                            <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {value !== null ? String(value) : <span className="text-gray-400 italic">NULL</span>}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                
+                {/* Paginación y controles */}
+                {!isResultsFullscreen && results.results.length > 15 && (
+                  <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                    Mostrando {showingCount} de {totalItems} resultados - Usa pantalla completa para ver todos
+                  </div>
+                )}
+                
+                {isResultsFullscreen && totalPages > 1 && (
+                  <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-green-700">
+                        Mostrando {startIndex + 1} - {endIndex} de {totalItems} resultados (Página {currentPage} de {totalPages})
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Anterior
+                        </button>
+                        <span className="px-3 py-2 text-sm text-green-700 bg-white border border-green-300 rounded-lg">
+                          {currentPage} / {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Siguiente
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Cargar Próximos 10,000
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {isResultsFullscreen && totalPages === 1 && (
+                  <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                    Mostrando todos los {totalItems} resultados
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
       {/* Schema Modal */}
       {showSchemaModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
+        <div className="fixed inset-0 z-50 gap-4 flex items-start justify-center p-6">
           <div className="bg-black bg-opacity-40 absolute inset-0" onClick={handleToggleSchemaModal} />
-          <div className="bg-white rounded-lg shadow-lg z-50 max-w-4xl w-full max-h-[80vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Esquema de Base de Datos</h3>
+          <div className="bg-white rounded-lg shadow-lg z-50 max-w-6xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <h3 className="text-lg font-semibold">Esquema de Base de Datos: {selectedDatabase?.name}</h3>
               <button onClick={handleToggleSchemaModal} className="px-3 py-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded">
                 Cerrar
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-600 mb-2">clientes</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• id (Primary Key)</li>
-                  <li>• nombre</li>
-                  <li>• email</li>
-                  <li>• telefono</li>
-                  <li>• fecha_registro</li>
-                </ul>
+            
+            {isLoadingSchema ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader className="w-8 h-8 animate-spin text-green-500" />
+                <span className="ml-2 text-gray-600">Cargando esquema...</span>
               </div>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-600 mb-2">cuentas_bancarias</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• id (Primary Key)</li>
-                  <li>• cliente_id (Foreign Key)</li>
-                  <li>• numero_cuenta</li>
-                  <li>• tipo_cuenta</li>
-                  <li>• saldo</li>
-                  <li>• fecha_creacion</li>
-                </ul>
+            ) : schemaData && schemaData.schema ? (
+              <div>
+                {/* Información de la base de datos */}
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2">Base de Datos: {schemaData.database_id}</h4>
+                  <p className="text-sm text-green-600">
+                    {Object.keys(schemaData.schema.tables).length} tablas encontradas
+                  </p>
+                </div>
+
+                {/* Tablas */}
+                {Object.entries(schemaData.schema.tables).map(([tableName, tableInfo]) => {
+                  // Buscar claves primarias para esta tabla
+                  const primaryKeys = schemaData.schema.primary_keys[tableName] || [];
+                  
+                  // Buscar relaciones para esta tabla
+                  const tableRelations = schemaData.schema.relationships.filter(
+                    rel => rel.table === tableName
+                  );
+
+                  return (
+                    <div key={tableName} className="bg-gray-50 p-4 my-4 rounded-lg border border-gray-100">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-semibold text-green-700 text-lg">{tableName}</h4>
+                        <div className="text-sm text-green-600">
+                          {tableInfo.columns.length} columnas
+                        </div>
+                      </div>
+                      
+                      {/* Columnas */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+                        {tableInfo.columns.map((column, index) => {
+                          const isPrimaryKey = primaryKeys.includes(column.name);
+                          const isForeignKey = tableRelations.some(rel => rel.column === column.name);
+                          const isRequired = column.nullable === "NO";
+                          
+                          return (
+                            <div key={index} className="text-sm text-gray-700 bg-white p-2 rounded border shadow-sm">
+                              <div className="font-medium text-gray-800">{column.name}</div>
+                              <div className="text-gray-500 text-xs">
+                                {column.type}
+                                {column.max_length && ` (${column.max_length})`}
+                                {column.precision && ` (${column.precision}${column.scale ? `,${column.scale}` : ''})`}
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {isPrimaryKey && (
+                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-medium">PK</span>
+                                )}
+                                {isForeignKey && (
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-medium">FK</span>
+                                )}
+                                {isRequired && (
+                                  <span className="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded font-medium">NOT NULL</span>
+                                )}
+                                {column.default && (
+                                  <span className="text-xs bg-gray-100 text-gray-700 px-1 py-0.5 rounded">DEFAULT</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Relaciones */}
+                      {tableRelations.length > 0 && (
+                        <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
+                          <strong>Relaciones:</strong> {tableRelations.map(rel => 
+                            `${rel.column} → ${rel.references_table}.${rel.references_column}`
+                          ).join(', ')}
+                        </div>
+                      )}
+
+                      {/* Datos de muestra */}
+                      {schemaData.schema.sample_data && schemaData.schema.sample_data[tableName] && (
+                        <div className="mt-2 text-xs text-green-600">
+                          <strong>Datos de muestra:</strong> {schemaData.schema.sample_data[tableName].length} registros disponibles
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-600 mb-2">transacciones</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• id (Primary Key)</li>
-                  <li>• cuenta_origen_id</li>
-                  <li>• cuenta_destino_id</li>
-                  <li>• monto</li>
-                  <li>• tipo_transaccion</li>
-                  <li>• fecha_transaccion</li>
-                  <li>• descripcion</li>
-                </ul>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No se pudo cargar el esquema de la base de datos
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

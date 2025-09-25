@@ -72,7 +72,7 @@ const DashboardPage = () => {
       description: "Análisis de lenguaje natural avanzado",
       icon: MessageSquare,
       color: "bg-gradient-to-r from-ibm-blue-60 via-ibm-purple to-ibm-magenta",
-      path: "/nlp",
+      path: "/nlp-models",
     },
     {
       title: "Modelos ML",
