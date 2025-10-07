@@ -1,10 +1,16 @@
 #!/bin/sh
+set -e
 
-# Sustituye las variables en la plantilla y crea el archivo de configuración final
-# Es importante listar las variables para no reemplazar accidentalmente variables de Nginx como $host
-envsubst '${NGINX_PORT_INTERNAL} ${FRAUDE_API_HOST} ${FRAUDE_API_PORT} ${TEXTOSQL_API_HOST} ${TEXTOSQL_API_PORT}' \
+# Lista COMPLETA de variables a sustituir
+VARS_TO_SUBST='${NGINX_PORT_INTERNAL} ${FRAUDE_API_HOST} ${FRAUDE_API_PORT} ${TEXTOSQL_API_HOST} ${TEXTOSQL_API_PORT} ${GEMMA_2B_PORT} ${GEMMA_4B_PORT} ${GEMMA_12B_PORT} ${MISTRAL_PORT} ${DEEPSEEK_8B_PORT} ${DEEPSEEK_14B_PORT}'
+
+envsubst "$VARS_TO_SUBST" \
     < /etc/nginx/templates/nginx.conf.template \
     > /etc/nginx/conf.d/default.conf
 
-# Ejecuta el comando original de Nginx para iniciar el servidor
+# Muestra la configuración generada para depuración (opcional)
+echo "--- Nginx conf generated ---"
+cat /etc/nginx/conf.d/default.conf
+echo "--------------------------"
+
 exec nginx -g 'daemon off;'
