@@ -3,7 +3,6 @@ FROM node:20-slim AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-RUN apk add --no-cache gettext curl
 COPY . .
 RUN npm run build
 
@@ -11,7 +10,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # 1. Instalar 'gettext' que contiene la utilidad 'envsubst'
-RUN apk add --no-cache gettext
+RUN apk add --no-cache gettext curl
 
 # 2. Copiar los archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
