@@ -1,32 +1,30 @@
-# Etapa de construcción
+# ETAPA 1: BUILD (Se mantiene igual)
 FROM node:18-alpine AS build
-
-# Establecer directorio de trabajo
 WORKDIR /app
-
-# Copiar archivos de dependencias
 COPY package*.json ./
-
-# Instalar dependencias
 RUN npm install
-
-# Copiar código fuente
 COPY . .
-
-# Construir la aplicación
 RUN npm run build
 
-# Etapa de producción
+# ETAPA 2: PRODUCCIÓN
 FROM nginx:alpine
 
-# Copiar archivos construidos desde la etapa anterior
+# 1. Instalar 'gettext' que contiene la utilidad 'envsubst'
+RUN apk add --no-cache gettext
+
+# 2. Copiar los archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copiar configuración personalizada de Nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+# 3. Crear un directorio para la plantilla y copiarla
+RUN mkdir -p /etc/nginx/templates
+COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
-# Exponer puerto 80
+# 4. Copiar y dar permisos al script de inicio
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 5. Exponer el puerto interno del contenedor
 EXPOSE 80
 
-# Comando por defecto
-CMD ["nginx", "-g", "daemon off;"]
+# 6. Definir el script como el punto de entrada del contenedor
+ENTRYPOINT ["/entrypoint.sh"]
