@@ -1,108 +1,64 @@
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log;
-pid /run/nginx.pid;
+server {
+    # Variable para el puerto INTERNO del contenedor (generalmente 80)
+    listen ${NGINX_PORT_INTERNAL};
+    server_name _;
 
-include /usr/share/nginx/modules/*.conf;
+    # Ruta donde el Dockerfile copia los archivos compilados del frontend
+    root /usr/share/nginx/html;
+    index index.html;
 
-events {
-    worker_connections 1024;
-}
+    # Proxy para la API de Fraude
+    location /api/fraude/ {
+        # Variables para el host y puerto de la API de fraude
+        proxy_pass http://${FRAUDE_API_HOST}:${FRAUDE_API_PORT}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
-http {
-    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" '
-                      '"$http_user_agent" "$http_x_forwarded_for"';
+    location /predict_single_transaction {
+        proxy_pass http://${FRAUDE_API_HOST}:${FRAUDE_API_PORT}/predict_single_transaction;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Proxy dinámico para los modelos LLM
+    location ~ ^/proxy/(\d+)/(.*)$ {
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
 
-    access_log /var/log/nginx/access.log main;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding on;
 
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
-    types_hash_max_size 4096;
+        # Apunta a los puertos publicados en el HOST
+        proxy_pass http://host.docker.internal:$1/$2;
 
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
-    server {
-        # Variable para el puerto INTERNO del contenedor (generalmente 80)
-        listen ${NGINX_PORT_INTERNAL};
-        server_name _;
+    # Proxy para la API TEXT-TO-SQL
+    location /api/textosql/ {
+        # Variables para el host y puerto de la API de texto a SQL
+        proxy_pass http://${TEXTOSQL_API_HOST}:${TEXTOSQL_API_PORT}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
-        # Ruta donde el Dockerfile copia los archivos compilados del frontend
-        root /usr/share/nginx/html;
-        index index.html;
-
-        # Proxy para la API de Fraude
-        location /api/fraude/ {
-            # Variables para el host y puerto de la API de fraude
-            proxy_pass http://${FRAUDE_API_HOST}:${FRAUDE_API_PORT}/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /predict_single_transaction {
-            proxy_pass http://${FRAUDE_API_HOST}:${FRAUDE_API_PORT}/predict_single_transaction;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-        
-        # Proxy dinámico para los modelos LLM (éste ya es dinámico, no necesita cambios)
-        location ~ ^/proxy/(\d+)/(.*)$ {
-            add_header 'Access-Control-Allow-Origin' '*' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
-            add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            chunked_transfer_encoding on;
-
-            proxy_pass http://127.0.0.1:$1/$2;
-
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Proxy para la API TEXT-TO-SQL
-        location /api/textosql/ {
-            # Variables para el host y puerto de la API de texto a SQL
-            proxy_pass http://${TEXTOSQL_API_HOST}:${TEXTOSQL_API_PORT}/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Regla principal para servir la aplicación de una sola página (SPA)
-        location / {
-            try_files $uri /index.html;
-        }
-
-        # Cache para archivos estáticos
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 1y;
-            add_header Cache-Control "public";
-        }
-
-        # Páginas de error
-        error_page 404 /404.html;
-        location = /404.html {
-            internal;
-        }
-
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            internal;
-        }
+    # Regla principal para servir la aplicación de una sola página (SPA)
+    location / {
+        try_files $uri /index.html;
     }
 }
