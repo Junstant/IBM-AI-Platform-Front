@@ -39,7 +39,7 @@ server {
         chunked_transfer_encoding on;
 
         # Apunta a los puertos publicados en el HOST
-        proxy_pass http://host.docker.internal:$1/$2;
+        proxy_pass http://127.0.0.1:$1/$2;
 
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
