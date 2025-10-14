@@ -384,7 +384,14 @@ const TextToSQLPage = () => {
                 </div>
                 <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
                   <div className="text-sm font-medium text-emerald-800">Bases de Datos</div>
-                  <div className="text-sm text-emerald-600">{availableDatabases.length} bases de datos encontradas</div>
+                  <div className="text-sm text-emerald-600">
+                    {availableDatabases.length} bases de datos encontradas
+                    {availableDatabases.length > 0 && (
+                      <div className="mt-1 text-xs">
+                        {availableDatabases.reduce((total, db) => total + (db.tables || 0), 0)} tablas en total
+                      </div>
+                    )}
+                  </div>
                 </div>
 
               </div>
@@ -446,7 +453,7 @@ const TextToSQLPage = () => {
                   <option value="">-- Selecciona una base de datos --</option>
                   {availableDatabases.map((db) => (
                     <option key={db.id} value={db.id}>
-                      {db.name} ({db.size || 'Tamaño desconocido'})
+                      {db.name} ({db.size || 'Tamaño desconocido'} - {db.tables || 0} tablas)
                     </option>
                   ))}
                 </select>
@@ -479,6 +486,32 @@ const TextToSQLPage = () => {
               </div>
             </div>
 
+            {/* Información detallada de la base de datos seleccionada */}
+            {selectedDatabase && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">Base de Datos Seleccionada</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <span className="font-medium text-green-700">Nombre:</span>
+                    <div className="text-green-600">{selectedDatabase.name}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-green-700">Tamaño:</span>
+                    <div className="text-green-600">{selectedDatabase.size || 'No disponible'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-green-700">Tablas:</span>
+                    <div className="text-green-600">{selectedDatabase.tables || 0} tablas</div>
+                  </div>
+                </div>
+                {selectedDatabase.description && (
+                  <div className="mt-2 text-sm">
+                    <span className="font-medium text-green-700">Descripción:</span>
+                    <div className="text-green-600">{selectedDatabase.description}</div>
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         )}
