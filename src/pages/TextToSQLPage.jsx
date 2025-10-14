@@ -59,12 +59,12 @@ const TextToSQLPage = () => {
       console.error("Error obteniendo modelos:", error);
       // Fallback a configuración estática si la API no funciona
       const fallbackModels = [
-        { id: "mistral-7b", name: "Mistral 7B", port: "8096", description: "Modelo general equilibrado" },
-        { id: "gemma-2b", name: "Gemma 2B", port: "9470", description: "Modelo ligero y rápido" },
-        { id: "gemma-4b", name: "Gemma 4B", port: "8094", description: "Modelo balanceado" },
-        { id: "gemma-12b", name: "Gemma 12B", port: "2005", description: "Modelo de alta capacidad" },
+        { id: "mistral-7b", name: "Mistral 7B", port: "8088", description: "Modelo general equilibrado" },
+        { id: "gemma-2b", name: "Gemma 2B", port: "8085", description: "Modelo ligero y rápido" },
+        { id: "gemma-4b", name: "Gemma 4B", port: "8086", description: "Modelo balanceado" },
+        { id: "gemma-12b", name: "Gemma 12B", port: "8087", description: "Modelo de alta capacidad" },
         { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
-        { id: "deepseek-8b", name: "DeepSeek 8B", port: "8092", description: "Equilibrado" },
+        { id: "deepseek-8b", name: "DeepSeek 8B", port: "8089", description: "Equilibrado" },
         { id: "deepseek-14b", name: "DeepSeek 14B", port: "8090", description: "Alta capacidad" },
         { id: "granite", name: "IBM Granite", port: "8095", description: "Especializado en código" }
       ];
