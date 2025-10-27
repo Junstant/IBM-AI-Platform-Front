@@ -22,6 +22,7 @@ const config = {
   apis: {
     textosql: import.meta.env.VITE_TEXTOSQL_API_PORT || "",
     fraude: import.meta.env.VITE_FRAUDE_API_PORT || "",
+    stats: import.meta.env.VITE_STATS_API_PORT || "", // ✅ AGREGAR ESTA LÍNEA
   },
 
   // Puertos de modelos LLM (actualizados según configuración centralizada)
@@ -45,6 +46,12 @@ const config = {
   // Puerto del frontend
   frontend: {
     port: import.meta.env.VITE_NGINX_PORT || "",
+  },
+
+  // ✅ AGREGAR CONFIGURACIÓN PARA STATS API
+  stats: {
+    apiPort: import.meta.env.VITE_STATS_API_PORT || "8003",
+    baseUrl: "/api/stats" // Ruta relativa al proxy nginx
   },
 };
 

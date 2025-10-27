@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STATS_API_BASE = 'http://localhost:8003/api/stats';
+const STATS_API_BASE = '/api/stats';
 
 export const useStatsAPI = () => {
   const [loading, setLoading] = useState(false);

@@ -25,6 +25,29 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
+    # --- PROXY PARA STATS API ---
+    location /api/stats/ {
+        proxy_pass http://${STATS_API_HOST}:${STATS_API_PORT}/api/stats/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location /api/admin/ {
+        proxy_pass http://${STATS_API_HOST}:${STATS_API_PORT}/api/admin/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location /api/metrics/ {
+        proxy_pass http://${STATS_API_HOST}:${STATS_API_PORT}/api/metrics/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # --- PROXY PARA MODELOS (SEPARADOS) ---
     location /proxy/${MISTRAL_PORT}/ {
         proxy_pass http://mistral-7b:8080/;
