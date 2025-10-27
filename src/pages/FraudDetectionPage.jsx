@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock, Maximize2 } from "lucide-react";
-const FraudDetectionPage = () => {
+import SimpleStatus from "../components/SimpleStatus";
+
+const FraudDetectionPageContent = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingDatabase, setIsAnalyzingDatabase] = useState(false);
   const [results, setResults] = useState(null);
@@ -9,6 +11,8 @@ const FraudDetectionPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showFullscreenTable, setShowFullscreenTable] = useState(false);
+  
+  // Conectividad simple manejada por SimpleStatus
   // Descargar Excel con exceljs
   const handleDownloadExcel = async () => {
     if (!databaseResults?.results) return;
@@ -216,10 +220,10 @@ const FraudDetectionPage = () => {
 
         {/* Connection Status */}
         <div className="flex items-center space-x-4 p-3 bg-ibm-gray-10 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-            <span className="text-sm text-ibm-gray-90">FastAPI Conectado</span>
-          </div>
+          <SimpleStatus 
+            url="http://localhost:8001/api/fraude/health"
+            name="FastAPI"
+          />
           <div className="flex items-center space-x-2">
             <Database className="w-4 h-4 text-info" />
             <span className="text-sm text-ibm-gray-90">Base de datos SQL activa</span>
@@ -675,6 +679,11 @@ const FraudDetectionPage = () => {
       )}
     </div>
   );
+};
+
+// Componente principal simplificado - sin preloader complejo
+const FraudDetectionPage = () => {
+  return <FraudDetectionPageContent />;
 };
 
 export default FraudDetectionPage;

@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Database, Play, Download, Settings, AlertCircle, CheckCircle, Copy, Eye, EyeOff, Loader, RefreshCw } from "lucide-react";
 import config from "../config/environment";
 import ExcelJS from "exceljs";
+import DatabaseSchemaFlow from "../components/DatabaseSchemaFlow";
+import SimpleStatus from "../components/SimpleStatus";
 
-const TextToSQLPage = () => {
+const TextToSQLPageContent = () => {
   // Estados principales
   const [selectedModel, setSelectedModel] = useState(null);
   const [selectedDatabase, setSelectedDatabase] = useState(null);
@@ -24,7 +26,9 @@ const TextToSQLPage = () => {
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10000);
-  
+
+  // Conectividad simple manejada por SimpleStatus
+
   // Nuevos estados para multi-modelo y multi-BD
   const [availableModels, setAvailableModels] = useState([]);
   const [availableDatabases, setAvailableDatabases] = useState([]);
@@ -48,7 +52,7 @@ const TextToSQLPage = () => {
   // Función para obtener modelos disponibles
   const handleGetAvailableModels = async () => {
     try {
-      const response = await fetch('/api/textosql/models');
+      const response = await fetch("/api/textosql/models");
       if (!response.ok) {
         throw new Error("No se pudieron obtener los modelos disponibles");
       }
@@ -66,7 +70,7 @@ const TextToSQLPage = () => {
         { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
         { id: "deepseek-8b", name: "DeepSeek 8B", port: "8089", description: "Equilibrado" },
         { id: "deepseek-14b", name: "DeepSeek 14B", port: "8090", description: "Alta capacidad" },
-        { id: "granite", name: "IBM Granite", port: "8095", description: "Especializado en código" }
+        { id: "granite", name: "IBM Granite", port: "8095", description: "Especializado en código" },
       ];
       setAvailableModels(fallbackModels);
       return fallbackModels;
@@ -97,13 +101,13 @@ const TextToSQLPage = () => {
 
     try {
       // Usar el nuevo endpoint dinámico
-      const response = await fetch('/api/textosql/query/ask-dynamic', {
+      const response = await fetch("/api/textosql/query/ask-dynamic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           database_id: selectedDatabase.id,
           model_id: selectedModel.id,
-          question: question.trim()
+          question: question.trim(),
         }),
       });
 
@@ -118,7 +122,7 @@ const TextToSQLPage = () => {
       }
 
       const data = await response.json();
-      
+
       setRawLLMResponse(data.sql_query);
 
       const resultData = {
@@ -130,7 +134,7 @@ const TextToSQLPage = () => {
         executionTime: 0,
         error: data.error || null,
         database_used: data.database_used,
-        model_used: data.model_used
+        model_used: data.model_used,
       };
 
       setResults(resultData);
@@ -227,19 +231,14 @@ const TextToSQLPage = () => {
     navigator.clipboard.writeText(text);
   };
 
-
-
   // Función para descubrir recursos disponibles (bases de datos y modelos)
   const handleDiscoverResources = async () => {
     setError(null);
     setIsDiscovering(true);
+    
+    // La conectividad se verifica automáticamente por SimpleStatus
+    
     try {
-      // Verificar que la API esté disponible
-      const healthResp = await fetch(`/api/textosql/health`);
-      if (!healthResp.ok) {
-        throw new Error("No se pudo conectar a la API de Text-to-SQL");
-      }
-
       // Obtener bases de datos disponibles
       const dbsResp = await fetch(`/api/textosql/databases`);
       if (!dbsResp.ok) {
@@ -261,12 +260,10 @@ const TextToSQLPage = () => {
     }
   };
 
-
-
   // Función para cargar el esquema de la base de datos específica
   const handleLoadSchema = async () => {
     if (!selectedDatabase) return;
-    
+
     setIsLoadingSchema(true);
     try {
       const response = await fetch(`/api/textosql/schema/${selectedDatabase.id}`);
@@ -386,14 +383,9 @@ const TextToSQLPage = () => {
                   <div className="text-sm font-medium text-emerald-800">Bases de Datos</div>
                   <div className="text-sm text-emerald-600">
                     {availableDatabases.length} bases de datos encontradas
-                    {availableDatabases.length > 0 && (
-                      <div className="mt-1 text-xs">
-                        {availableDatabases.reduce((total, db) => total + (db.tables || 0), 0)} tablas en total
-                      </div>
-                    )}
+                    {availableDatabases.length > 0 && <div className="mt-1 text-xs">{availableDatabases.reduce((total, db) => total + (db.tables || 0), 0)} tablas en total</div>}
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -402,7 +394,15 @@ const TextToSQLPage = () => {
 
       {/* Discovery y Configuración Principal */}
       <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
-        <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Configuración Principal</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-ibm-gray-90">Configuración Principal</h2>
+          
+          {/* Indicador de conectividad simple */}
+          <SimpleStatus 
+            url="http://localhost:8000/api/textosql/health"
+            name="FastAPI"
+          />
+        </div>
 
         {/* Paso 1: Discovery de recursos */}
         {!discoveryComplete && (
@@ -426,9 +426,7 @@ const TextToSQLPage = () => {
                   </>
                 )}
               </button>
-              <span className="text-sm text-ibm-gray-70">
-                Descubre qué bases de datos y modelos LLM están disponibles
-              </span>
+              <span className="text-sm text-ibm-gray-70">Descubre qué bases de datos y modelos LLM están disponibles</span>
             </div>
           </div>
         )}
@@ -443,7 +441,7 @@ const TextToSQLPage = () => {
                 <select
                   value={selectedDatabase?.id || ""}
                   onChange={(e) => {
-                    const db = availableDatabases.find(db => db.id === e.target.value);
+                    const db = availableDatabases.find((db) => db.id === e.target.value);
                     setSelectedDatabase(db);
                     // Limpiar esquema cuando cambie la BD
                     setSchemaData(null);
@@ -453,13 +451,11 @@ const TextToSQLPage = () => {
                   <option value="">-- Selecciona una base de datos --</option>
                   {availableDatabases.map((db) => (
                     <option key={db.id} value={db.id}>
-                      {db.name} ({db.size || 'Tamaño desconocido'} - {db.tables || 0} tablas)
+                      {db.name} ({db.size || "Tamaño desconocido"} - {db.tables || 0} tablas)
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-ibm-gray-60 mt-1">
-                  {availableDatabases.length} base(s) de datos encontrada(s)
-                </p>
+                <p className="text-xs text-ibm-gray-60 mt-1">{availableDatabases.length} base(s) de datos encontrada(s)</p>
               </div>
 
               {/* Selección de Modelo LLM */}
@@ -468,7 +464,7 @@ const TextToSQLPage = () => {
                 <select
                   value={selectedModel?.id || ""}
                   onChange={(e) => {
-                    const model = availableModels.find(m => m.id === e.target.value);
+                    const model = availableModels.find((m) => m.id === e.target.value);
                     setSelectedModel(model);
                   }}
                   className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
@@ -480,9 +476,7 @@ const TextToSQLPage = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-ibm-gray-60 mt-1">
-                  {availableModels.length} modelo(s) encontrado(s)
-                </p>
+                <p className="text-xs text-ibm-gray-60 mt-1">{availableModels.length} modelo(s) encontrado(s)</p>
               </div>
             </div>
 
@@ -497,7 +491,7 @@ const TextToSQLPage = () => {
                   </div>
                   <div>
                     <span className="font-medium text-green-700">Tamaño:</span>
-                    <div className="text-green-600">{selectedDatabase.size || 'No disponible'}</div>
+                    <div className="text-green-600">{selectedDatabase.size || "No disponible"}</div>
                   </div>
                   <div>
                     <span className="font-medium text-green-700">Tablas:</span>
@@ -512,7 +506,6 @@ const TextToSQLPage = () => {
                 )}
               </div>
             )}
-
           </div>
         )}
 
@@ -535,8 +528,6 @@ const TextToSQLPage = () => {
               <RefreshCw className="w-4 h-4" />
               <span>Nuevo Discovery</span>
             </button>
-
-
 
             {/* Botón de esquema */}
             {selectedDatabase && (
@@ -591,30 +582,33 @@ const TextToSQLPage = () => {
       {selectedDatabase && selectedModel && (
         <div className="relative bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
           <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Haz tu Pregunta</h2>
-          
+
           {/* Loader global cuando está procesando */}
           {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center z-10">
               <div className="text-center space-y-4">
                 <div className="relative">
                   <div className="w-16 h-16 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
-                  <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                  <div
+                    className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                    style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+                  ></div>
                 </div>
                 <div className="space-y-2">
                   <p className="text-lg font-semibold text-green-700 animate-pulse">🤖 Procesando tu consulta</p>
                   <p className="text-sm text-green-600">El modelo {selectedModel.name} está analizando tu pregunta...</p>
                   <div className="flex justify-center space-x-1 mt-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: "0s" }}></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: "0.8s" }}></div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
@@ -637,17 +631,15 @@ const TextToSQLPage = () => {
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                       </div>
                     </div>
                   ) : (
                     <Play className="w-5 h-5" />
                   )}
-                  <span className={isLoading ? "animate-pulse" : ""}>
-                    {isLoading ? "Analizando tu pregunta..." : "Preguntar"}
-                  </span>
+                  <span className={isLoading ? "animate-pulse" : ""}>{isLoading ? "Analizando tu pregunta..." : "Preguntar"}</span>
                 </button>
               </div>
             </div>
@@ -682,7 +674,6 @@ const TextToSQLPage = () => {
                 <div className={`w-2 h-2 rounded-full ${selectedModel ? "bg-green-500" : "bg-gray-300"}`}></div>
                 <span>Seleccionar un modelo LLM ({availableModels.length} disponibles)</span>
               </div>
-
             </div>
           </div>
         </div>
@@ -694,18 +685,24 @@ const TextToSQLPage = () => {
           <div className="text-center">
             <div className="relative">
               <div className="w-20 h-20 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
-              <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2" style={{animationDirection: 'reverse', animationDuration: '1.2s'}}></div>
-              <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2" style={{animationDuration: '0.8s'}}></div>
+              <div
+                className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                style={{ animationDirection: "reverse", animationDuration: "1.2s" }}
+              ></div>
+              <div
+                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
+                style={{ animationDuration: "0.8s" }}
+              ></div>
             </div>
             <div className="space-y-3">
               <p className="text-2xl font-bold text-green-600 animate-pulse">🚀 Activando Modo Pantalla Completa</p>
               <p className="text-lg text-green-600">Preparando la vista optimizada para tus datos...</p>
               <div className="flex justify-center space-x-2 mt-4">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-3 h-3 bg-teal-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
               </div>
             </div>
           </div>
@@ -714,13 +711,13 @@ const TextToSQLPage = () => {
 
       {/* Resultados de la consulta */}
       {results && (
-        <div className={`bg-white rounded-lg mt-4 p-6 shadow-sm border border-ibm-gray-20 ${isResultsFullscreen ? 'fixed inset-0 z-50 overflow-auto bg-white' : ''}`}>
+        <div className={`bg-white rounded-lg mt-4 p-6 shadow-sm border border-ibm-gray-20 ${isResultsFullscreen ? "fixed inset-0 z-50 overflow-auto bg-white" : ""}`}>
           {!isResultsFullscreen && (
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-ibm-gray-90">Resultados</h2>
             </div>
           )}
-          
+
           {isResultsFullscreen && (
             <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 border-b border-gray-200 pb-4">
               <h2 className="text-xl font-bold text-ibm-gray-90">Resultados - Pantalla Completa</h2>
@@ -815,108 +812,101 @@ const TextToSQLPage = () => {
                   )}
                 </button>
               </div>
-              <span className="text-sm text-gray-600">
-                {results.results.length} filas encontradas
-              </span>
+              <span className="text-sm text-gray-600">{results.results.length} filas encontradas</span>
             </div>
           )}
 
           {/* Tabla de resultados */}
-          {results.results.length > 0 && (() => {
-            const totalItems = results.results.length;
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-            const currentItems = isResultsFullscreen 
-              ? results.results.slice(startIndex, endIndex)
-              : results.results.slice(0, 15);
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            const showingCount = isResultsFullscreen ? currentItems.length : Math.min(15, totalItems);
-            
-            return (
-              <div className={`border border-gray-200 rounded-lg ${isResultsFullscreen ? 'h-full overflow-auto' : 'overflow-x-auto'}`}>
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gradient-to-r from-green-50 to-emerald-50 sticky top-0">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
-                        #ID
-                      </th>
-                      {Object.keys(results.results[0]).map((key) => (
-                        <th key={key} className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
-                          {key}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((row, index) => {
-                      const globalIndex = isResultsFullscreen ? startIndex + index + 1 : index + 1;
-                      return (
-                        <tr key={globalIndex} className="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                            {globalIndex}
-                          </td>
-                          {Object.values(row).map((value, cellIndex) => (
-                            <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {value !== null ? String(value) : <span className="text-gray-400 italic">NULL</span>}
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                
-                {/* Paginación y controles */}
-                {!isResultsFullscreen && results.results.length > 15 && (
-                  <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
-                    Mostrando {showingCount} de {totalItems} resultados - Usa pantalla completa para ver todos
-                  </div>
-                )}
-                
-                {isResultsFullscreen && totalPages > 1 && (
-                  <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-green-700">
-                        Mostrando {startIndex + 1} - {endIndex} de {totalItems} resultados (Página {currentPage} de {totalPages})
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          Anterior
-                        </button>
-                        <span className="px-3 py-2 text-sm text-green-700 bg-white border border-green-300 rounded-lg">
-                          {currentPage} / {totalPages}
-                        </span>
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
-                          className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          Siguiente
-                        </button>
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
-                          className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          Cargar Próximos 10,000
-                        </button>
+          {results.results.length > 0 &&
+            (() => {
+              const totalItems = results.results.length;
+              const startIndex = (currentPage - 1) * itemsPerPage;
+              const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+              const currentItems = isResultsFullscreen ? results.results.slice(startIndex, endIndex) : results.results.slice(0, 15);
+              const totalPages = Math.ceil(totalItems / itemsPerPage);
+              const showingCount = isResultsFullscreen ? currentItems.length : Math.min(15, totalItems);
+
+              return (
+                <div className={`border border-gray-200 rounded-lg ${isResultsFullscreen ? "h-full overflow-auto" : "overflow-x-auto"}`}>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gradient-to-r from-green-50 to-emerald-50 sticky top-0">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">#ID</th>
+                        {Object.keys(results.results[0]).map((key) => (
+                          <th key={key} className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
+                            {key}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {currentItems.map((row, index) => {
+                        const globalIndex = isResultsFullscreen ? startIndex + index + 1 : index + 1;
+                        return (
+                          <tr key={globalIndex} className="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">{globalIndex}</td>
+                            {Object.values(row).map((value, cellIndex) => (
+                              <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {value !== null ? String(value) : <span className="text-gray-400 italic">NULL</span>}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Paginación y controles */}
+                  {!isResultsFullscreen && results.results.length > 15 && (
+                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                      Mostrando {showingCount} de {totalItems} resultados - Usa pantalla completa para ver todos
+                    </div>
+                  )}
+
+                  {isResultsFullscreen && totalPages > 1 && (
+                    <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-green-700">
+                          Mostrando {startIndex + 1} - {endIndex} de {totalItems} resultados (Página {currentPage} de {totalPages})
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Anterior
+                          </button>
+                          <span className="px-3 py-2 text-sm text-green-700 bg-white border border-green-300 rounded-lg">
+                            {currentPage} / {totalPages}
+                          </span>
+                          <button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Siguiente
+                          </button>
+                          <button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Cargar Próximos 10,000
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                {isResultsFullscreen && totalPages === 1 && (
-                  <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
-                    Mostrando todos los {totalItems} resultados
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+                  )}
+
+                  {isResultsFullscreen && totalPages === 1 && (
+                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                      Mostrando todos los {totalItems} resultados
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
         </div>
       )}
 
@@ -924,111 +914,65 @@ const TextToSQLPage = () => {
       {showSchemaModal && (
         <div className="fixed inset-0 z-50 gap-4 flex items-start justify-center p-6">
           <div className="bg-black bg-opacity-40 absolute inset-0" onClick={handleToggleSchemaModal} />
-          <div className="bg-white rounded-lg shadow-lg z-50 max-w-6xl w-full max-h-[80vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-lg shadow-lg z-50 max-w-7xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold">Esquema de Base de Datos: {selectedDatabase?.name}</h3>
-              <button onClick={handleToggleSchemaModal} className="px-3 py-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded">
-                Cerrar
-              </button>
+              <div className="flex items-center space-x-3">
+                <div className="text-sm text-green-600">{schemaData?.schema ? Object.keys(schemaData.schema.tables).length : 0} tablas</div>
+                <button onClick={handleToggleSchemaModal} className="px-3 py-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded hover:opacity-90 transition-colors">
+                  Cerrar
+                </button>
+              </div>
             </div>
-            
+
             {isLoadingSchema ? (
               <div className="flex items-center justify-center py-8">
                 <Loader className="w-8 h-8 animate-spin text-green-500" />
                 <span className="ml-2 text-gray-600">Cargando esquema...</span>
               </div>
             ) : schemaData && schemaData.schema ? (
-              <div>
-                {/* Información de la base de datos */}
+              <div className="space-y-4">
+                {/* Información general */}
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                   <h4 className="font-semibold text-green-800 mb-2">Base de Datos: {schemaData.database_id}</h4>
-                  <p className="text-sm text-green-600">
-                    {Object.keys(schemaData.schema.tables).length} tablas encontradas
-                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-green-700">Tablas:</span>
+                      <div className="text-green-600">{Object.keys(schemaData.schema.tables).length}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-700">Relaciones:</span>
+                      <div className="text-green-600">{schemaData.schema.relationships?.length || 0}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-700">Columnas totales:</span>
+                      <div className="text-green-600">{Object.values(schemaData.schema.tables).reduce((total, table) => total + table.columns.length, 0)}</div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Tablas */}
-                {Object.entries(schemaData.schema.tables).map(([tableName, tableInfo]) => {
-                  // Buscar claves primarias para esta tabla
-                  const primaryKeys = schemaData.schema.primary_keys[tableName] || [];
-                  
-                  // Buscar relaciones de esta tabla
-                  const tableRelations = schemaData.schema.relationships.filter(
-                    rel => rel.table === tableName
-                  );
-
-                  return (
-                    <div key={tableName} className="bg-gray-50 p-4 my-4 rounded-lg border border-gray-100">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-semibold text-green-700 text-lg">{tableName}</h4>
-                        <div className="text-sm text-green-600">
-                          {tableInfo.columns.length} columnas
-                        </div>
-                      </div>
-                      
-                      {/* Columnas */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-                        {tableInfo.columns.map((column, index) => {
-                          const isPrimaryKey = primaryKeys.includes(column.name);
-                          const isForeignKey = tableRelations.some(rel => rel.column === column.name);
-                          const isRequired = column.nullable === "NO";
-                          
-                          return (
-                            <div key={index} className="text-sm text-gray-700 bg-white p-2 rounded border shadow-sm">
-                              <div className="font-medium text-gray-800">{column.name}</div>
-                              <div className="text-gray-500 text-xs">
-                                {column.type}
-                                {column.max_length && ` (${column.max_length})`}
-                                {column.precision && ` (${column.precision}${column.scale ? `,${column.scale}` : ''})`}
-                              </div>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {isPrimaryKey && (
-                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-medium">PK</span>
-                                )}
-                                {isForeignKey && (
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-medium">FK</span>
-                                )}
-                                {isRequired && (
-                                  <span className="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded font-medium">NOT NULL</span>
-                                )}
-                                {column.default && (
-                                  <span className="text-xs bg-gray-100 text-gray-700 px-1 py-0.5 rounded">DEFAULT</span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Relaciones */}
-                      {tableRelations.length > 0 && (
-                        <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
-                          <strong>Relaciones:</strong> {tableRelations.map(rel => 
-                            `${rel.column} → ${rel.references_table}.${rel.references_column}`
-                          ).join(', ')}
-                        </div>
-                      )}
-
-                      {/* Datos de muestra */}
-                      {schemaData.schema.sample_data && schemaData.schema.sample_data[tableName] && (
-                        <div className="mt-2 text-xs text-green-600">
-                          <strong>Datos de muestra:</strong> {schemaData.schema.sample_data[tableName].length} registros disponibles
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {/* Vista interactiva con ReactFlow */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Vista Interactiva del Esquema</h4>
+                  <DatabaseSchemaFlow schemaData={schemaData} />
+                  <div className="mt-3 text-sm text-gray-600">
+                    💡 <strong>Tip:</strong> Usa los controles en la esquina superior izquierda para hacer zoom y ajustar la vista. Las líneas verdes muestran las relaciones entre tablas.
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                No se pudo cargar el esquema de la base de datos
-              </div>
+              <div className="text-center py-8 text-gray-500">No se pudo cargar el esquema de la base de datos</div>
             )}
           </div>
         </div>
       )}
     </div>
   );
+};
+
+// Componente principal simplificado - sin preloader complejo
+const TextToSQLPage = () => {
+  return <TextToSQLPageContent />;
 };
 
 export default TextToSQLPage;

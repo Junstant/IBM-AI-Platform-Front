@@ -7,20 +7,27 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
+import SimpleStatus from "../components/SimpleStatus";
 
-const ChatbotPage = () => {
-  const [selectedModel, setSelectedModel] = useState();
+const ChatbotPageContent = () => {
+  const [selectedModel, setSelectedModel] = useState({
+    id: "gemma-2b",
+    name: "Gemma 2B", 
+    port: "8085",
+    description: "Modelo ligero y rápido (seleccionado por defecto)"
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState("connected"); // 'connected', 'error', 'loading'
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "¡Hola! Soy tu asistente de IA con memoria contextual alimentado por modelos llama.cpp. Puedo recordar nuestra conversación completa y responder de manera coherente. Selecciona un modelo y comencemos a chatear.",
+      text: "¡Hola! Soy tu asistente de IA con memoria contextual alimentado por modelos llama.cpp. Puedo recordar nuestra conversación completa y responder de manera coherente. **Gemma 2B** está seleccionado por defecto y listo para chatear. ¡Pregúntame lo que quieras!",
       sender: "bot",
       timestamp: new Date(),
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
+
+  // Conectividad simple manejada por SimpleStatus
 
   // Función para limpiar el historial de conversación
   const clearConversation = () => {
@@ -152,7 +159,6 @@ const ChatbotPage = () => {
     setMessages(currentMessages);
     setInputMessage("");
     setIsLoading(true);
-    setConnectionStatus("loading");
 
     try {
       // Enviar mensaje a llama.cpp server con historial completo
@@ -167,7 +173,6 @@ const ChatbotPage = () => {
       };
 
       setMessages((prev) => [...prev, botResponse]);
-      setConnectionStatus("connected");
     } catch (error) {
       console.error("Error enviando mensaje a llama.cpp:", error);
 
@@ -180,7 +185,6 @@ const ChatbotPage = () => {
       };
 
       setMessages((prev) => [...prev, errorResponse]);
-      setConnectionStatus("error");
     } finally {
       setIsLoading(false);
     }
@@ -213,10 +217,10 @@ const ChatbotPage = () => {
             </button>
 
             {/* Status indicator */}
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${connectionStatus === "connected" ? "bg-green-500" : connectionStatus === "error" ? "bg-red-500" : "bg-yellow-500 animate-pulse"}`}></div>
-              <span className="text-sm text-ibm-gray-70">{connectionStatus === "connected" ? "Conectado" : connectionStatus === "error" ? "Error de conexión" : "Conectando..."}</span>
-            </div>
+            <SimpleStatus 
+              url="http://localhost:11434/api/tags"
+              name="Ollama"
+            />
           </div>
         </div>
       </div>
@@ -524,6 +528,11 @@ const ChatbotPage = () => {
       </div>
     </div>
   );
+};
+
+// Componente principal simplificado - sin preloader complejo
+const ChatbotPage = () => {
+  return <ChatbotPageContent />;
 };
 
 export default ChatbotPage;

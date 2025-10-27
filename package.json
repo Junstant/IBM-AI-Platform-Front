@@ -15,6 +15,7 @@
     "demo": "docker-compose up -d --build"
   },
   "dependencies": {
+    "@xyflow/react": "^12.9.0",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.19.2",
     "lucide-react": "^0.524.0",
