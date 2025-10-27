@@ -221,7 +221,7 @@ const FraudDetectionPageContent = () => {
         {/* Connection Status */}
         <div className="flex items-center space-x-4 p-3 bg-ibm-gray-10 rounded-lg">
           <SimpleStatus 
-            url="http://localhost:8001/api/fraude/health"
+            url="/api/fraude/health"
             name="FastAPI"
           />
           <div className="flex items-center space-x-2">

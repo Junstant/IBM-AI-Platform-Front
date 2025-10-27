@@ -218,8 +218,8 @@ const ChatbotPageContent = () => {
 
             {/* Status indicator */}
             <SimpleStatus 
-              url="http://localhost:11434/api/tags"
-              name="Ollama"
+              url={selectedModel ? `/proxy/${selectedModel.port}/health` : null}
+              name={selectedModel ? selectedModel.name : "Selecciona modelo"}
             />
           </div>
         </div>

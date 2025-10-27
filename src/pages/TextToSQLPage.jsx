@@ -399,7 +399,7 @@ const TextToSQLPageContent = () => {
           
           {/* Indicador de conectividad simple */}
           <SimpleStatus 
-            url="http://localhost:8000/api/textosql/health"
+            url="/api/textosql/health"
             name="FastAPI"
           />
         </div>
