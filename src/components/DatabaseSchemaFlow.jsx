@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, Position } from "@xyflow/react";
+import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, Position, Handle } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 // Componente para nodo de tabla personalizado
 const TableNode = ({ data }) => {
   return (
-    <div className="bg-white border-2 border-green-300 rounded-lg shadow-lg min-w-[250px]">
+    <div className="bg-white border-2 border-green-300 rounded-lg shadow-lg min-w-[250px] relative">
       {/* Header de la tabla */}
       <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-t-lg">
         <h3 className="font-bold text-sm">{data.tableName}</h3>
@@ -21,8 +21,40 @@ const TableNode = ({ data }) => {
           return (
             <div
               key={column.name}
-              className={`px-3 py-2 text-xs border-b border-gray-100 last:border-b-0 hover:bg-green-50 transition-colors ${isPrimaryKey ? "bg-yellow-50" : ""} ${isForeignKey ? "bg-blue-50" : ""}`}
+              className={`relative px-3 py-2 text-xs border-b border-gray-100 last:border-b-0 hover:bg-green-50 transition-colors ${isPrimaryKey ? "bg-yellow-50" : ""} ${isForeignKey ? "bg-blue-50" : ""}`}
             >
+              {/* Handle de salida para Foreign Keys */}
+              {isForeignKey && (
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={`${column.name}-source`}
+                  style={{
+                    background: '#3b82f6',
+                    width: 8,
+                    height: 8,
+                    border: '2px solid white',
+                    right: -4
+                  }}
+                />
+              )}
+              
+              {/* Handle de entrada para Primary Keys */}
+              {isPrimaryKey && (
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  id={`${column.name}-target`}
+                  style={{
+                    background: '#eab308',
+                    width: 8,
+                    height: 8,
+                    border: '2px solid white',
+                    left: -4
+                  }}
+                />
+              )}
+
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2">
                   <span className={`font-medium ${isPrimaryKey ? "text-yellow-700" : isForeignKey ? "text-blue-700" : "text-gray-800"}`}>{column.name}</span>
@@ -59,8 +91,9 @@ const DatabaseSchemaFlow = ({ schemaData }) => {
     if (!schemaData || !schemaData.schema) return [];
 
     const tables = Object.entries(schemaData.schema.tables);
-    const nodeSpacing = 350;
-    const nodesPerRow = 3;
+    const nodeSpacingX = 400;
+    const nodeSpacingY = 200;
+    const nodesPerRow = Math.ceil(Math.sqrt(tables.length)); // Layout más cuadrado
 
     return tables.map(([tableName, tableInfo], index) => {
       const row = Math.floor(index / nodesPerRow);
@@ -74,8 +107,8 @@ const DatabaseSchemaFlow = ({ schemaData }) => {
         id: tableName,
         type: "tableNode",
         position: {
-          x: col * nodeSpacing,
-          y: row * (tableInfo.columns.length * 30 + 100), // Altura dinámica basada en número de columnas
+          x: col * nodeSpacingX + (row % 2) * 100, // Offset alternado para mejor distribución
+          y: row * nodeSpacingY,
         },
         data: {
           tableName,
@@ -97,26 +130,35 @@ const DatabaseSchemaFlow = ({ schemaData }) => {
       id: `edge-${index}`,
       source: rel.table,
       target: rel.references_table,
-      sourceHandle: rel.column,
-      targetHandle: rel.references_column,
+      sourceHandle: `${rel.column}-source`,
+      targetHandle: `${rel.references_column}-target`,
       type: "smoothstep",
+      animated: true,
       style: {
-        stroke: "#10B981", // Color verde
-        strokeWidth: 2,
+        stroke: "#3b82f6", // Color azul para FK
+        strokeWidth: 3,
+        strokeDasharray: "5,5",
       },
       markerEnd: {
         type: "arrowclosed",
-        color: "#10B981",
+        color: "#3b82f6",
+        width: 20,
+        height: 20,
       },
       label: `${rel.column} → ${rel.references_column}`,
       labelStyle: {
-        fontSize: "12px",
-        fontWeight: "bold",
-        fill: "#059669",
+        fontSize: "11px",
+        fontWeight: "600",
+        fill: "#1e40af",
+        backgroundColor: "white",
+        padding: "2px 6px",
+        borderRadius: "4px",
       },
       labelBgStyle: {
-        fill: "#ECFDF5",
-        fillOpacity: 0.8,
+        fill: "white",
+        fillOpacity: 0.9,
+        rx: 4,
+        ry: 4,
       },
     }));
   }, [schemaData]);
@@ -144,36 +186,80 @@ const DatabaseSchemaFlow = ({ schemaData }) => {
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{
-          padding: 0.1,
+          padding: 0.15,
         }}
-        minZoom={0.2}
-        maxZoom={1.5}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        minZoom={0.1}
+        maxZoom={2}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+        connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
+        snapToGrid={true}
+        snapGrid={[15, 15]}
       >
-        <Background color="#E5E7EB" gap={20} size={1} variant="dots" />
-        <Controls position="top-left" showZoom={true} showFitView={true} showInteractive={false} />
-        <MiniMap position="bottom-right" nodeColor="#10B981" maskColor="rgba(0, 0, 0, 0.1)" pannable zoomable />
+        <Background 
+          color="#f1f5f9" 
+          gap={20} 
+          size={1} 
+          variant="dots" 
+        />
+        <Controls 
+          position="top-left" 
+          showZoom={true} 
+          showFitView={true} 
+          showInteractive={false}
+        />
+        <MiniMap 
+          position="bottom-right" 
+          nodeColor={(node) => {
+            // Color diferente según el tipo de tabla
+            if (node.id.includes('user')) return '#8b5cf6';
+            if (node.id.includes('product')) return '#06b6d4';
+            if (node.id.includes('order')) return '#f59e0b';
+            return '#10b981';
+          }}
+          maskColor="rgba(0, 0, 0, 0.1)" 
+          pannable 
+          zoomable 
+        />
       </ReactFlow>
 
       {/* Leyenda */}
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 border border-gray-200">
+      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 border border-gray-200 max-w-xs">
         <h4 className="font-semibold text-sm mb-2 text-gray-800">Leyenda</h4>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center space-x-2">
-            <span className="bg-yellow-200 text-yellow-800 px-1 py-0.5 rounded font-medium">PK</span>
-            <span>Clave Primaria</span>
+        <div className="space-y-2 text-xs">
+          {/* Tipos de campos */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full border border-white shadow-sm"></div>
+              <span className="bg-yellow-200 text-yellow-800 px-1 py-0.5 rounded font-medium">PK</span>
+              <span>Clave Primaria</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full border border-white shadow-sm"></div>
+              <span className="bg-blue-200 text-blue-800 px-1 py-0.5 rounded font-medium">FK</span>
+              <span>Clave Foránea</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="bg-red-200 text-red-800 px-1 py-0.5 rounded font-medium">NOT NULL</span>
+              <span>Campo Requerido</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="bg-blue-200 text-blue-800 px-1 py-0.5 rounded font-medium">FK</span>
-            <span>Clave Foránea</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="bg-red-200 text-red-800 px-1 py-0.5 rounded font-medium">NOT NULL</span>
-            <span>Campo Requerido</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-green-500"></div>
-            <span>Relaciones</span>
+          
+          {/* Separador */}
+          <hr className="border-gray-200" />
+          
+          {/* Conexiones */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center">
+                <div className="w-4 h-0.5 bg-blue-500" style={{strokeDasharray: "2,2"}}></div>
+                <div className="w-0 h-0 border-l-4 border-l-blue-500 border-t-2 border-b-2 border-t-transparent border-b-transparent"></div>
+              </div>
+              <span>Relación FK → PK</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span>Conexiones animadas</span>
+            </div>
           </div>
         </div>
       </div>
