@@ -78,7 +78,7 @@ const SimpleStatus = ({ url, name, interval = 10000 }) => {
   const StatusIcon = config.icon;
 
   return (
-    <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition-all duration-200 ${config.bgColor} ${config.borderColor}`}>
+    <div className={`flex items-center space-x-2 px-3 py-2 border transition-all duration-200 ${config.bgColor} ${config.borderColor}`}>
       <StatusIcon className={`w-4 h-4 ${config.color} ${isChecking ? 'animate-pulse' : ''}`} />
       <div className="flex flex-col">
         <span className="text-sm font-medium text-gray-900">
