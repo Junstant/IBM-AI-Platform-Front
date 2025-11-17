@@ -268,7 +268,7 @@ const ChatbotPageContent = () => {
 
                               if (!inline && match) {
                                 return (
-                                  <div className="my-4 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                                  <div className="my-4 overflow-hidden border border-gray-300 shadow-sm">
                                     <div className="bg-gray-100 text-gray-700 px-4 py-2 text-xs font-medium border-b border-gray-300 flex items-center justify-between">
                                       <span className="uppercase tracking-wide">{language}</span>
                                       <span className="text-gray-500">código</span>
@@ -297,7 +297,7 @@ const ChatbotPageContent = () => {
 
                               // Código inline
                               return (
-                                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono break-all inline-block max-w-full text-gray-800" {...props}>
+                                <code className="bg-gray-100 px-1.5 py-0.5 text-xs font-mono break-all inline-block max-w-full text-gray-800" {...props}>
                                   {children}
                                 </code>
                               );
@@ -310,7 +310,7 @@ const ChatbotPageContent = () => {
                             h6: ({ children }) => <h6 className="text-sm font-medium mb-1 mt-2 text-gray-700 break-words">{children}</h6>,
                             // Estilos para tablas mejoradas y más legibles
                             table: ({ children }) => (
-                              <div className="overflow-x-auto my-6 rounded-lg border border-gray-300 shadow-sm bg-white">
+                              <div className="overflow-x-auto my-6 border border-gray-300 shadow-sm bg-white">
                                 <table className="min-w-full table-auto">{children}</table>
                               </div>
                             ),
@@ -327,7 +327,7 @@ const ChatbotPageContent = () => {
                               </td>
                             ),
                             // Estilos para listas de tareas
-                            input: ({ checked, ...props }) => <input type="checkbox" checked={checked} readOnly className="mr-2 rounded" {...props} />,
+                            input: ({ checked, ...props }) => <input type="checkbox" checked={checked} readOnly className="mr-2" {...props} />,
                             // Estilos para enlaces
                             a: ({ children, href }) => (
                               <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline break-all">
@@ -338,7 +338,7 @@ const ChatbotPageContent = () => {
                             del: ({ children }) => <del className="line-through text-gray-500 break-words">{children}</del>,
                             // Estilos para blockquotes mejorados
                             blockquote: ({ children }) => (
-                              <blockquote className="border-l-4 border-blue-500 pl-4 py-3 my-4 bg-blue-50 italic break-words rounded-r-md">
+                              <blockquote className="border-l-4 border-blue-500 pl-4 py-3 my-4 bg-blue-50 italic break-words">
                                 <div className="text-gray-700">{children}</div>
                               </blockquote>
                             ),
@@ -367,7 +367,7 @@ const ChatbotPageContent = () => {
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex flex-row space-x-2 max-w-3xl lg:max-w-4xl w-full">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-carbon-gray-80">
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-carbon-gray-80">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div className="px-4 py-3 bg-ui-02 border border-ui-03 text-primary ml-3 min-w-0 flex-1">

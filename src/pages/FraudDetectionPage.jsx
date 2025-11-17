@@ -187,7 +187,7 @@ const FraudDetectionPageContent = () => {
       case "LOW":
         return "text-success bg-green-50";
       default:
-        return "text-ibm-gray-70 bg-ibm-gray-10";
+        return "text-text-secondary bg-ui-01";
     }
   };
 
@@ -370,12 +370,12 @@ const FraudDetectionPageContent = () => {
                         : results.prediction}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-ibm-gray-90 mt-2">
+                  <p className="text-productive-heading-04 font-bold text-text-primary mt-2">
                     {results.fraudProbability !== undefined && !isNaN(results.fraudProbability)
                       ? `${(results.fraudProbability * 100).toFixed(1)}% probabilidad de fraude`
                       : "Probabilidad no disponible"}
                   </p>
-                  <p className="text-sm text-ibm-gray-60 mt-1">
+                  <p className="text-caption text-text-secondary mt-1">
                     {results.fraudProbability !== undefined && !isNaN(results.fraudProbability) ? getProbabilityInterpretation(results.fraudProbability) : "No se pudo determinar el nivel de riesgo"}
                   </p>
                 </div>
@@ -398,14 +398,14 @@ const FraudDetectionPageContent = () => {
                     </div>
                     <div className="flex items-center justify-between p-03 bg-ui-01 border border-ui-03">
                       <span className="text-label text-text-secondary">Tipo de Tarjeta</span>
-                      <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.tipo_tarjeta}</span>
+                      <span className="text-caption font-semibold text-text-primary">{results.originalData?.tipo_tarjeta}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Metadata */}
-                <div className="bg-ibm-gray-10 rounded-lg p-4">
-                  <div className="flex items-center justify-between text-sm text-ibm-gray-70">
+                <div className="bg-ui-01 p-4">
+                  <div className="flex items-center justify-between text-sm text-text-secondary">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4" />
                       <span>Tiempo de procesamiento: {results.processingTime}</span>
@@ -418,28 +418,28 @@ const FraudDetectionPageContent = () => {
           </div>
 
           {/* Database Results */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-            <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Análisis de Base de Datos</h2>
+          <div className="bg-white p-6 shadow-sm border border-ui-03">
+            <h2 className="text-productive-heading-03 font-bold text-text-primary mb-4">Análisis de Base de Datos</h2>
 
             {!databaseResults && !isAnalyzingDatabase && (
               <div className="text-center py-12">
-                <Database className="w-16 h-16 text-ibm-gray-40 mx-auto mb-4" />
-                <p className="text-ibm-gray-60">Analice la base de datos para ver las transacciones fraudulentas</p>
+                <Database className="w-16 h-16 text-text-placeholder mx-auto mb-4" />
+                <p className="text-text-secondary">Analice la base de datos para ver las transacciones fraudulentas</p>
               </div>
             )}
 
             {isAnalyzingDatabase && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 border-4 border-ibm-gray-20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-ibm-gray-70">Analizando base de datos...</p>
-                <p className="text-sm text-ibm-gray-60 mt-2">Procesando transacciones con ML</p>
+                <div className="w-16 h-16 border-4 border-ui-03 border-t-danger animate-spin mx-auto mb-04"></div>
+                <p className="text-text-primary">Analizando base de datos...</p>
+                <p className="text-caption text-text-secondary mt-02">Procesando transacciones con ML</p>
               </div>
             )}
 
             {databaseResults && (
               <div className="space-y-6">
                 {/* Summary */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-red-50 border border-red-200 p-4">
                   <div className="flex items-center space-x-2">
                     <AlertTriangle className="w-5 h-5 text-danger" />
                     <span className="font-semibold text-danger">{databaseResults.totalFraudulent} transacciones fraudulentas detectadas</span>
@@ -449,34 +449,34 @@ const FraudDetectionPageContent = () => {
                 {/* Sample Results Table */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-ibm-gray-90">Transacciones Fraudulentas:</h4>
+                    <h4 className="font-medium text-text-primary">Transacciones Fraudulentas:</h4>
                     <div className="flex space-x-2">
-                      <button onClick={handleDownloadExcel} className="px-3 py-2 bg-primary text-white rounded-lg shadow hover:bg-primary-dark transition-colors text-sm">
+                      <button onClick={handleDownloadExcel} className="h-8 px-04 py-02 bg-danger text-white hover:bg-[#ba1b23] transition-colors text-label">
                         Descargar Excel
                       </button>
                       <button
                         onClick={() => setShowFullscreenTable(true)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-ibm-gray-20 text-ibm-gray-90 rounded-lg hover:bg-ibm-gray-30 transition-colors"
+                        className="flex items-center space-x-02 h-8 px-04 py-02 bg-carbon-gray-70 text-white hover:bg-carbon-gray-80 transition-colors"
                       >
                         <Maximize2 className="w-4 h-4" />
-                        <span className="text-sm">Ver en pantalla completa</span>
+                        <span className="text-label">Ver en pantalla completa</span>
                       </button>
                     </div>
                   </div>
-                  <div className="max-h-96 overflow-y-auto border border-ibm-gray-20 rounded-lg">
+                  <div className="max-h-96 overflow-y-auto border border-ui-03">
                     <table className="w-full text-sm">
-                      <thead className="bg-ibm-gray-10 sticky top-0">
+                      <thead className="bg-ui-01 sticky top-0">
                         <tr>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">ID</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Origen</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Destino</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Monto</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Comerciante</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Ubicación</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Tarjeta</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Fecha</th>
-                          <th className="px-3 py-3 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Hora</th>
-                          <th className="px-3 py-3 text-center font-medium text-ibm-gray-90 border-b border-ibm-gray-20">Probabilidad</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">ID</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Origen</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Destino</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Monto</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Comerciante</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Ubicación</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Tarjeta</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Fecha</th>
+                          <th className="px-3 py-3 text-left font-medium text-text-primary border-b border-ui-03">Hora</th>
+                          <th className="px-3 py-3 text-center font-medium text-text-primary border-b border-ui-03">Probabilidad</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -489,19 +489,19 @@ const FraudDetectionPageContent = () => {
                               setShowModal(true);
                             }}
                           >
-                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 font-mono text-xs">{transaction.id}</td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_origen_id}</td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_destino_id}</td>
-                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 font-semibold">${transaction.monto?.toFixed(2)}</td>
-                            <td className="px-3 py-3 text-ibm-gray-90 border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.comerciante}>
+                            <td className="px-3 py-3 text-text-primary border-b border-ibm-gray-10 font-mono text-xs">{transaction.id}</td>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_origen_id}</td>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 font-mono text-xs">{transaction.cuenta_destino_id}</td>
+                            <td className="px-3 py-3 text-text-primary border-b border-ibm-gray-10 font-semibold">${transaction.monto?.toFixed(2)}</td>
+                            <td className="px-3 py-3 text-text-primary border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.comerciante}>
                               {transaction.comerciante}
                             </td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.ubicacion}>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 max-w-32 truncate" title={transaction.ubicacion}>
                               {transaction.ubicacion}
                             </td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs">{transaction.tipo_tarjeta}</td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs">{transaction.fecha_transaccion}</td>
-                            <td className="px-3 py-3 text-ibm-gray-70 border-b border-ibm-gray-10 text-xs font-mono">{transaction.horario_transaccion?.slice(0, 8)}</td>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 text-xs">{transaction.tipo_tarjeta}</td>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 text-xs">{transaction.fecha_transaccion}</td>
+                            <td className="px-3 py-3 text-text-secondary border-b border-ibm-gray-10 text-xs font-mono">{transaction.horario_transaccion?.slice(0, 8)}</td>
                             <td className="px-3 py-3 border-b border-ibm-gray-10">
                               <div className="flex items-center justify-center gap-2">
                                 {(() => {
@@ -527,7 +527,7 @@ const FraudDetectionPageContent = () => {
 
                   {/* Timestamp */}
                   <div className="mt-4 text-right">
-                    <span className="text-xs text-ibm-gray-60">Análisis realizado: {databaseResults.timestamp}</span>
+                    <span className="text-xs text-text-secondary">Análisis realizado: {databaseResults.timestamp}</span>
                   </div>
                 </div>
               </div>
@@ -539,11 +539,11 @@ const FraudDetectionPageContent = () => {
       {/* Modal para detalles de transacción */}
       {showModal && selectedTransaction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full relative">
-            <button className="absolute top-2 right-2 text-ibm-gray-60 hover:text-danger text-xl font-bold" onClick={() => setShowModal(false)}>
+          <div className="bg-white shadow-lg p-8 max-w-lg w-full relative">
+            <button className="absolute top-2 right-2 text-text-secondary hover:text-danger text-xl font-bold" onClick={() => setShowModal(false)}>
               ×
             </button>
-            <h3 className="text-lg font-semibold text-ibm-gray-90 mb-4">Detalle de Transacción</h3>
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Detalle de Transacción</h3>
             <div className="space-y-2">
               <div>
                 <span className="font-medium">ID:</span> {selectedTransaction.id}
@@ -601,17 +601,17 @@ const FraudDetectionPageContent = () => {
         <div className="fixed inset-0 z-50 bg-white mt-0">
           <div className="h-screen flex flex-col">
             {/* Header del modal */}
-            <div className="bg-white border-b border-ibm-gray-20 p-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-white border-b border-ui-03 p-4 flex items-center justify-between flex-shrink-0">
               <div>
-                <h2 className="text-xl font-bold text-ibm-gray-90">Transacciones Fraudulentas - Vista Completa</h2>
-                <p className="text-sm text-ibm-gray-70">{databaseResults.totalFraudulent} transacciones fraudulentas detectadas</p>
+                <h2 className="text-productive-heading-03 text-text-primary">Transacciones Fraudulentas - Vista Completa</h2>
+                <p className="text-caption text-text-secondary">{databaseResults.totalFraudulent} transacciones fraudulentas detectadas</p>
               </div>
-              <div className="flex items-center space-x-3">
-                <button onClick={handleDownloadExcel} className="px-4 py-2 bg-primary text-white rounded-lg shadow hover:bg-primary-dark transition-colors flex items-center space-x-2">
+              <div className="flex items-center space-x-03">
+                <button onClick={handleDownloadExcel} className="h-8 px-04 py-02 bg-danger text-white hover:bg-[#ba1b23] transition-colors flex items-center space-x-02 text-label">
                   <BarChart3 className="w-4 h-4" />
                   <span>Descargar Excel</span>
                 </button>
-                <button onClick={() => setShowFullscreenTable(false)} className="px-4 py-2 bg-ibm-gray-20 text-ibm-gray-90 rounded-lg hover:bg-ibm-gray-30 transition-colors">
+                <button onClick={() => setShowFullscreenTable(false)} className="h-8 px-04 py-02 bg-carbon-gray-70 text-white hover:bg-carbon-gray-80 transition-colors text-label">
                   Cerrar
                 </button>
               </div>
@@ -621,36 +621,36 @@ const FraudDetectionPageContent = () => {
             <div className="flex-1 overflow-hidden">
               <div className="h-full overflow-auto pb-20">
                 <table className="w-full text-sm">
-                  <thead className="bg-ibm-gray-10 sticky top-0 z-10">
+                  <thead className="bg-ui-01 sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">ID</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Cuenta Origen</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Cuenta Destino</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Monto</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Comerciante</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Ubicación</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Tipo de Tarjeta</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Fecha</th>
-                      <th className="px-4 py-4 text-left font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Hora</th>
-                      <th className="px-4 py-4 text-center font-medium text-ibm-gray-90 border-b border-ibm-gray-20 bg-ibm-gray-10">Probabilidad</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">ID</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Cuenta Origen</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Cuenta Destino</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Monto</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Comerciante</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Ubicación</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Tipo de Tarjeta</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Fecha</th>
+                      <th className="px-4 py-4 text-left font-medium text-text-primary border-b border-ui-03 bg-ui-01">Hora</th>
+                      <th className="px-4 py-4 text-center font-medium text-text-primary border-b border-ui-03 bg-ui-01">Probabilidad</th>
                     </tr>
                   </thead>
                   <tbody>
                     {databaseResults.results.map((transaction, index) => (
                       <tr key={index} className={`${index % 2 === 0 ? "bg-white" : "bg-red-50"} hover:bg-red-100 transition-colors`}>
-                        <td className="px-4 py-4 text-ibm-gray-90 border-b border-ibm-gray-10 font-mono">{transaction.id}</td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono">{transaction.cuenta_origen_id}</td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono">{transaction.cuenta_destino_id}</td>
-                        <td className="px-4 py-4 text-ibm-gray-90 border-b border-ibm-gray-10 font-semibold">${transaction.monto?.toFixed(2)}</td>
-                        <td className="px-4 py-4 text-ibm-gray-90 border-b border-ibm-gray-10" title={transaction.comerciante}>
+                        <td className="px-4 py-4 text-text-primary border-b border-ibm-gray-10 font-mono">{transaction.id}</td>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10 font-mono">{transaction.cuenta_origen_id}</td>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10 font-mono">{transaction.cuenta_destino_id}</td>
+                        <td className="px-4 py-4 text-text-primary border-b border-ibm-gray-10 font-semibold">${transaction.monto?.toFixed(2)}</td>
+                        <td className="px-4 py-4 text-text-primary border-b border-ibm-gray-10" title={transaction.comerciante}>
                           {transaction.comerciante}
                         </td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10" title={transaction.ubicacion}>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10" title={transaction.ubicacion}>
                           {transaction.ubicacion}
                         </td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10">{transaction.tipo_tarjeta}</td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10">{transaction.fecha_transaccion}</td>
-                        <td className="px-4 py-4 text-ibm-gray-70 border-b border-ibm-gray-10 font-mono">{transaction.horario_transaccion?.slice(0, 8)}</td>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10">{transaction.tipo_tarjeta}</td>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10">{transaction.fecha_transaccion}</td>
+                        <td className="px-4 py-4 text-text-secondary border-b border-ibm-gray-10 font-mono">{transaction.horario_transaccion?.slice(0, 8)}</td>
                         <td className="px-4 py-4 border-b border-ibm-gray-10">
                           <div className="flex items-center justify-center gap-2">
                             {(() => {
@@ -687,3 +687,4 @@ const FraudDetectionPage = () => {
 };
 
 export default FraudDetectionPage;
+
