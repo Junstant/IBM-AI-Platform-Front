@@ -92,7 +92,7 @@ const ChatbotPageContent = () => {
   };
 
   // Función para enviar mensaje a llama.cpp server con historial completo
-  const sendToLlamaServer = async (newMessage, model, conversationHistory) => {
+  const sendToLlamaServer = async (newMessage, model, conversationHistory, onStreamUpdate) => {
     if (!model) {
       throw new Error("No se ha seleccionado un modelo");
     }
@@ -115,7 +115,7 @@ const ChatbotPageContent = () => {
         presence_penalty: 1.1,
         frequency_penalty: 0.8,
         stop: ["</s>", "<|user|>", "<|system|>", "Human:", "User:"],
-        stream: false,
+        stream: true,
       }),
     });
 
@@ -123,17 +123,49 @@ const ChatbotPageContent = () => {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    let responseText = data.content || data.text || "Sin respuesta del modelo";
+    // Procesar el stream
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const jsonStr = line.slice(6); // Remover "data: "
+            if (jsonStr === '[DONE]') continue;
+            
+            const data = JSON.parse(jsonStr);
+            const content = data.content || data.text || "";
+            
+            if (content) {
+              fullText += content;
+              // Llamar al callback para actualizar el UI
+              if (onStreamUpdate) {
+                onStreamUpdate(fullText);
+              }
+            }
+          } catch {
+            // Ignorar errores de parsing
+          }
+        }
+      }
+    }
 
     // Limpiar la respuesta de posibles tokens especiales
-    responseText = responseText
+    fullText = fullText
       .replace(/<\|assistant\|>/g, "")
       .replace(/<\|user\|>/g, "")
       .replace(/<\|system\|>/g, "")
       .trim();
 
-    return responseText;
+    return fullText;
   };
 
   const handleSendMessage = async (e) => {
@@ -160,33 +192,58 @@ const ChatbotPageContent = () => {
     setInputMessage("");
     setIsLoading(true);
 
+    // Crear el mensaje del bot vacío que se irá llenando
+    const botMessageId = messages.length + 2;
+    const botResponse = {
+      id: botMessageId,
+      text: "",
+      sender: "bot",
+      timestamp: new Date(),
+      model: selectedModel.name,
+      isStreaming: true,
+    };
+
+    // Agregar el mensaje del bot vacío
+    setMessages((prev) => [...prev, botResponse]);
+    setIsLoading(false);
+
     try {
-      // Enviar mensaje a llama.cpp server con historial completo
-      const response = await sendToLlamaServer(currentMessage, selectedModel, messages);
+      // Enviar mensaje a llama.cpp server con historial completo y streaming
+      await sendToLlamaServer(currentMessage, selectedModel, messages, (streamedText) => {
+        // Actualizar el mensaje del bot con el texto que va llegando
+        setMessages((prev) => 
+          prev.map((msg) => 
+            msg.id === botMessageId 
+              ? { ...msg, text: streamedText }
+              : msg
+          )
+        );
+      });
 
-      const botResponse = {
-        id: messages.length + 2,
-        text: response,
-        sender: "bot",
-        timestamp: new Date(),
-        model: selectedModel.name,
-      };
-
-      setMessages((prev) => [...prev, botResponse]);
+      // Marcar como completado
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === botMessageId 
+            ? { ...msg, isStreaming: false }
+            : msg
+        )
+      );
     } catch (error) {
       console.error("Error enviando mensaje a llama.cpp:", error);
 
-      const errorResponse = {
-        id: messages.length + 2,
-        text: `Error al conectar con ${selectedModel.name}: ${error.message}. Verifica que el modelo esté ejecutándose en el puerto ${selectedModel.port}.`,
-        sender: "bot",
-        timestamp: new Date(),
-        isError: true,
-      };
-
-      setMessages((prev) => [...prev, errorResponse]);
-    } finally {
-      setIsLoading(false);
+      // Reemplazar el mensaje vacío con el error
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === botMessageId 
+            ? {
+                ...msg,
+                text: `Error al conectar con ${selectedModel.name}: ${error.message}. Verifica que el modelo esté ejecutándose en el puerto ${selectedModel.port}.`,
+                isError: true,
+                isStreaming: false,
+              }
+            : msg
+        )
+      );
     }
   };
 
@@ -353,9 +410,15 @@ const ChatbotPageContent = () => {
                       <p className="text-sm break-words overflow-wrap-anywhere">{message.text}</p>
                     )}
 
+                    {/* Cursor parpadeante cuando está haciendo streaming */}
+                    {message.isStreaming && (
+                      <span className="inline-block w-2 h-4 bg-interactive ml-1 animate-pulse"></span>
+                    )}
+
                     <div className="flex items-center text-xs mt-2">
                       <p className={`text-xs ${message.sender === "user" ? "text-white opacity-80" : message.isError ? "text-danger" : "text-secondary"}`}>{message.timestamp.toLocaleTimeString()}</p>
                       {message.model && <p className="text-xs text-white bg-interactive ml-2 px-2 py-1">{message.model}</p>}
+                      {message.isStreaming && <span className="text-xs text-text-secondary ml-2 italic">escribiendo...</span>}
                     </div>
                   </div>
                 </div>
