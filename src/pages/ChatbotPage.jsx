@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeRaw from "rehype-raw";
 import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
@@ -310,7 +311,7 @@ const ChatbotPageContent = () => {
                       <div className="text-sm prose prose-sm max-w-none overflow-hidden markdown-content">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkBreaks]}
-                          rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]}
+                          rehypePlugins={[rehypeRaw, rehypeSlug, rehypeAutolinkHeadings]}
                           components={{
                             // Estilos personalizados para elementos Markdown
                             p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,

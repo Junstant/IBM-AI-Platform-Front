@@ -586,24 +586,14 @@ const TextToSQLPageContent = () => {
           {/* Loader global cuando está procesando */}
           {isLoading && (
             <div className="absolute inset-0 bg-ui-02 bg-opacity-95 flex items-center justify-center z-10">
-              <div className="text-center space-y-4">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-success border-t-green-500 rounded-full animate-spin mx-auto"></div>
-                  <div
-                    className="w-12 h-12 border-4 border-success border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
-                    style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-                  ></div>
+              <div className="text-center space-y-6">
+                {/* Spinner circular simple estilo IBM Carbon */}
+                <div className="relative flex items-center justify-center">
+                  <div className="w-16 h-16 border-4 border-ui-03 border-t-success rounded-full animate-spin"></div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-semibold text-success animate-pulse">🤖 Procesando tu consulta</p>
-                  <p className="text-caption text-success">El modelo {selectedModel.name} está analizando tu pregunta...</p>
-                  <div className="flex justify-center space-x-1 mt-2">
-                    <div className="w-2 h-2 bg-ui-010 animate-pulse" style={{ animationDelay: "0s" }}></div>
-                    <div className="w-2 h-2 bg-success animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-                    <div className="w-2 h-2 bg-teal-500 animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-                    <div className="w-2 h-2 bg-ui-010 animate-pulse" style={{ animationDelay: "0.6s" }}></div>
-                    <div className="w-2 h-2 bg-success animate-pulse" style={{ animationDelay: "0.8s" }}></div>
-                  </div>
+                  <p className="text-productive-heading-03 text-text-primary">Procesando tu consulta</p>
+                  <p className="text-caption text-text-secondary">El modelo {selectedModel.name} está analizando tu pregunta...</p>
                 </div>
               </div>
             </div>
@@ -682,28 +672,14 @@ const TextToSQLPageContent = () => {
       {/* Loader para pantalla completa */}
       {isLoadingFullscreen && (
         <div className="fixed inset-0 z-50 bg-ui-02 flex items-center justify-center">
-          <div className="text-center">
-            <div className="relative">
-              <div className="w-20 h-20 border-4 border-success border-t-green-500 rounded-full animate-spin mx-auto"></div>
-              <div
-                className="w-16 h-16 border-4 border-success border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
-                style={{ animationDirection: "reverse", animationDuration: "1.2s" }}
-              ></div>
-              <div
-                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
-                style={{ animationDuration: "0.8s" }}
-              ></div>
+          <div className="text-center space-y-6">
+            {/* Spinner circular simple estilo IBM Carbon */}
+            <div className="relative flex items-center justify-center">
+              <div className="w-20 h-20 border-4 border-ui-03 border-t-success rounded-full animate-spin"></div>
             </div>
             <div className="space-y-3">
-              <p className="text-2xl font-bold text-success animate-pulse">🚀 Activando Modo Pantalla Completa</p>
-              <p className="text-lg text-success">Preparando la vista optimizada para tus datos...</p>
-              <div className="flex justify-center space-x-2 mt-4">
-                <div className="w-3 h-3 bg-ui-010 animate-bounce" style={{ animationDelay: "0s" }}></div>
-                <div className="w-3 h-3 bg-success animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-3 h-3 bg-teal-500 animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                <div className="w-3 h-3 bg-ui-010 animate-bounce" style={{ animationDelay: "0.3s" }}></div>
-                <div className="w-3 h-3 bg-success animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-              </div>
+              <p className="text-productive-heading-04 text-text-primary">Activando Modo Pantalla Completa</p>
+              <p className="text-body-long text-text-secondary">Preparando la vista optimizada para tus datos...</p>
             </div>
           </div>
         </div>
