@@ -9,6 +9,7 @@ import rehypeRaw from "rehype-raw";
 import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
+import { encode as encodeTOON } from "../utils/toon";
 
 const ChatbotPageContent = () => {
   const [selectedModel, setSelectedModel] = useState({
@@ -42,16 +43,9 @@ const ChatbotPageContent = () => {
     ]);
   };
 
-  // Función para construir el prompt con historial completo
+  // Función para construir el prompt con historial completo usando TOON para eficiencia
   const buildConversationPrompt = (messages, newMessage) => {
-    // Mensaje del sistema para definir el comportamiento del asistente
-    const conversation = [
-      {
-        role: "system",
-        content:
-          "Eres un asistente de IA amigable y útil. Responde siempre en el mismo idioma que el usuario. Mantén un tono profesional pero cercano. Si el usuario cambia de idioma, adapta tu respuesta al nuevo idioma.",
-      },
-    ];
+    const conversation = [];
 
     // Agregar mensajes del historial (excluyendo los mensajes iniciales del bot)
     messages.forEach((msg) => {
@@ -67,29 +61,36 @@ const ChatbotPageContent = () => {
     conversation.push({ role: "user", content: newMessage });
 
     // Limitar el historial para evitar exceder el límite de tokens (últimos 10 intercambios)
-    const maxMessages = 21; // sistema + 20 mensajes (10 intercambios)
+    const maxMessages = 20;
     if (conversation.length > maxMessages) {
-      // Mantener siempre el mensaje del sistema y los últimos mensajes
-      const systemMessage = conversation[0];
-      const recentMessages = conversation.slice(-(maxMessages - 1));
-      conversation.splice(0, conversation.length, systemMessage, ...recentMessages);
+      conversation.splice(0, conversation.length - maxMessages);
     }
 
-    // Construir el prompt en formato ChatML
-    const prompt = conversation
-      .map((m) => {
-        if (m.role === "system") {
-          return `<|system|>\n${m.content}`;
-        } else if (m.role === "user") {
-          return `<|user|>\n${m.content}`;
-        } else {
-          return `<|assistant|>\n${m.content}`;
-        }
-      })
-      .join("\n");
+    // Si hay más de 3 mensajes, usar TOON para optimizar tokens
+    if (conversation.length > 3) {
+      const toonHistory = encodeTOON({ conversation });
+      const systemPrompt = `Eres un asistente IA amigable. Historial en TOON (Token-Optimized Object Notation):
+
+${toonHistory}
+
+Responde al último mensaje coherentemente basándote en todo el contexto. Mantén el idioma del usuario.`;
+      return systemPrompt;
+    }
+
+    // Para conversaciones cortas, usar formato ChatML tradicional
+    const systemMsg = "Eres un asistente de IA amigable y útil. Responde en el mismo idioma que el usuario.";
+    const prompt = [`<|system|>\n${systemMsg}`];
+    
+    conversation.forEach((m) => {
+      if (m.role === "user") {
+        prompt.push(`<|user|>\n${m.content}`);
+      } else {
+        prompt.push(`<|assistant|>\n${m.content}`);
+      }
+    });
 
     // Agregar el inicio de la respuesta del asistente
-    return prompt + "\n<|assistant|>\n";
+    return prompt.join("\n") + "\n<|assistant|>\n";
   };
 
   // Función para enviar mensaje a llama.cpp server con historial completo
@@ -279,11 +280,17 @@ const ChatbotPageContent = () => {
         <div className="max-w-4xl mx-auto space-y-05 flex flex-col">
           {/* Context indicator */}
           {messages.length > 1 && (
-            <div className="text-center">
+            <div className="text-center space-y-2">
               <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-xs">
                 <Bot className="w-3 h-3" />
                 <span>Conversación con memoria contextual activa ({messages.filter((m) => m.sender === "user").length} mensajes del usuario)</span>
               </div>
+              {messages.filter((m) => m.sender === "user").length > 2 && (
+                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-success text-white text-xs ml-2">
+                  <span className="font-semibold">TOON</span>
+                  <span>Formato optimizado para tokens</span>
+                </div>
+              )}
             </div>
           )}
 

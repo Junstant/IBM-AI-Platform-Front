@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock, Maximize2 } from "lucide-react";
 import SimpleStatus from "../components/SimpleStatus";
+// import { encode as encodeTOON } from "../utils/toon"; // TOON disponible para optimización futura
 
 const FraudDetectionPageContent = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -75,6 +76,10 @@ const FraudDetectionPageContent = () => {
     setIsAnalyzing(true);
 
     try {
+      // Nota: Para transacciones individuales, JSON es eficiente
+      // TOON sería útil para análisis batch de múltiples transacciones:
+      // const toonData = encodeTOON({ transactions: [transactionData, ...] });
+      
       const response = await fetch(`/predict_single_transaction`, {
         method: "POST",
         headers: {
