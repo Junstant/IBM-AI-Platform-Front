@@ -4,7 +4,6 @@ import config from "../config/environment";
 import ExcelJS from "exceljs";
 import DatabaseSchemaFlow from "../components/DatabaseSchemaFlow";
 import SimpleStatus from "../components/SimpleStatus";
-// import { encode as encodeTOON } from "../utils/toon"; // TOON disponible para optimización futura
 
 const TextToSQLPageContent = () => {
   // Estados principales
@@ -101,10 +100,6 @@ const TextToSQLPageContent = () => {
     setRawLLMResponse("");
 
     try {
-      // Nota: Para queries simples, JSON es eficiente
-      // TOON sería útil si enviáramos schema completo o múltiples queries:
-      // const toonData = encodeTOON({ queries: [{ question, database, model }, ...] });
-      
       // Usar el nuevo endpoint dinámico
       const response = await fetch("/api/textosql/query/ask-dynamic", {
         method: "POST",
