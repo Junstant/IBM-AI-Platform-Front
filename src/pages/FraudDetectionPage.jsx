@@ -430,7 +430,7 @@ const FraudDetectionPageContent = () => {
 
             {isAnalyzingDatabase && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 border-4 border-ui-03 border-t-danger animate-spin mx-auto mb-04"></div>
+                <div className="w-16 h-16 border-4 border-ui-03 border-t-danger rounded-full animate-spin mx-auto mb-04"></div>
                 <p className="text-text-primary">Analizando base de datos...</p>
                 <p className="text-caption text-text-secondary mt-02">Procesando transacciones con ML</p>
               </div>

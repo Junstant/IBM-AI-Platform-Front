@@ -588,9 +588,9 @@ const TextToSQLPageContent = () => {
             <div className="absolute inset-0 bg-ui-02 bg-opacity-95 flex items-center justify-center z-10">
               <div className="text-center space-y-4">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-success border-t-green-500 animate-spin mx-auto"></div>
+                  <div className="w-16 h-16 border-4 border-success border-t-green-500 rounded-full animate-spin mx-auto"></div>
                   <div
-                    className="w-12 h-12 border-4 border-success border-t-emerald-500 animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                    className="w-12 h-12 border-4 border-success border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
                     style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
                   ></div>
                 </div>
@@ -684,13 +684,13 @@ const TextToSQLPageContent = () => {
         <div className="fixed inset-0 z-50 bg-ui-02 flex items-center justify-center">
           <div className="text-center">
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-success border-t-green-500 animate-spin mx-auto"></div>
+              <div className="w-20 h-20 border-4 border-success border-t-green-500 rounded-full animate-spin mx-auto"></div>
               <div
-                className="w-16 h-16 border-4 border-success border-t-emerald-500 animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                className="w-16 h-16 border-4 border-success border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
                 style={{ animationDirection: "reverse", animationDuration: "1.2s" }}
               ></div>
               <div
-                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
+                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
                 style={{ animationDuration: "0.8s" }}
               ></div>
             </div>
