@@ -203,80 +203,80 @@ const FraudDetectionPageContent = () => {
   };
 
   return (
-    <div className="p-6 bg-ibm-gray-10 min-h-screen">
+    <div className="space-y-05">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-r from-ibm-orange via-ibm-red to-danger rounded-lg flex items-center justify-center">
+      <div className="bg-ui-02 border border-ui-03 p-06">
+        <div className="flex items-center space-x-04 mb-04">
+          <div className="w-10 h-10 bg-danger flex items-center justify-center">
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ibm-gray-90">Detección de fraude financiero</h1>
-            <p className="text-ibm-gray-70">
+            <h1 className="text-productive-heading-04 text-text-primary">Detección de fraude financiero</h1>
+            <p className="text-body-long text-text-secondary">
               Análisis de transacciones con Machine Learning - aprende de los comportamientos de tu base de datos para detectar cosas fuera de lo usual, tanto patrones como anomalías.
             </p>
           </div>
         </div>
 
         {/* Connection Status */}
-        <div className="flex items-center space-x-4 p-3 bg-ibm-gray-10 rounded-lg">
+        <div className="flex items-center space-x-04 p-03 bg-ui-01 border border-ui-03">
           <SimpleStatus 
             url="/api/fraude/health"
             name="FastAPI"
           />
-          <div className="flex items-center space-x-2">
-            <Database className="w-4 h-4 text-info" />
-            <span className="text-sm text-ibm-gray-90">Base de datos SQL activa</span>
+          <div className="flex items-center space-x-02">
+            <Database className="w-4 h-4 text-interactive" />
+            <span className="text-label text-text-primary">Base de datos SQL activa</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 mt-5">
+      <div className="space-y-05">
         {/* Input Form - Ahora ocupa todo el ancho */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Datos de Transacción</h2>
+        <div className="bg-ui-02 border border-ui-03 p-06">
+          <h2 className="text-productive-heading-03 text-text-primary mb-05">Datos de Transacción</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Monto de la transacción</label>
+              <label className="block text-label text-text-primary mb-02">Monto de la transacción</label>
               <input
                 type="number"
                 step="0.01"
                 value={transactionData.monto}
                 onChange={(e) => setTransactionData({ ...transactionData, monto: e.target.value })}
                 placeholder="Ej: 1250.00"
-                className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Comerciante</label>
+              <label className="block text-label text-text-primary mb-02">Comerciante</label>
               <input
                 type="text"
                 value={transactionData.comerciante}
                 onChange={(e) => setTransactionData({ ...transactionData, comerciante: e.target.value })}
                 placeholder="Ej: Amazon, Walmart, etc."
-                className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Ubicación</label>
+              <label className="block text-label text-text-primary mb-02">Ubicación</label>
               <input
                 type="text"
                 value={transactionData.ubicacion}
                 onChange={(e) => setTransactionData({ ...transactionData, ubicacion: e.target.value })}
                 placeholder="Ej: Nueva York, USA"
-                className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Tipo de tarjeta</label>
+              <label className="block text-label text-text-primary mb-02">Tipo de tarjeta</label>
               <select
                 value={transactionData.tipo_tarjeta}
                 onChange={(e) => setTransactionData({ ...transactionData, tipo_tarjeta: e.target.value })}
-                className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
               >
                 <option value="Visa">Visa</option>
                 <option value="Mastercard">Mastercard</option>
@@ -285,21 +285,21 @@ const FraudDetectionPageContent = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Horario de transacción</label>
+              <label className="block text-label text-text-primary mb-02">Horario de transacción</label>
               <input
                 type="time"
                 value={transactionData.horario_transaccion?.slice(0, 5)} // Solo mostrar HH:MM en el input
                 onChange={(e) => setTransactionData({ ...transactionData, horario_transaccion: e.target.value + ":00.000000" })}
-                className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
               />
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col md:flex-row gap-4">
+          <div className="mt-05 flex flex-col md:flex-row gap-4">
             <button
               onClick={handleAnalyzeTransaction}
               disabled={isAnalyzing || !transactionData.monto}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-ibm-orange via-ibm-red to-danger text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="flex-1 px-06 py-03 bg-danger text-white hover:bg-[#ba1b23] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-02"
             >
               {isAnalyzing ? (
                 <>
@@ -317,7 +317,7 @@ const FraudDetectionPageContent = () => {
             <button
               onClick={handleAnalyzeDatabase}
               disabled={isAnalyzing || isAnalyzingDatabase}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-ibm-orange via-ibm-red to-danger text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="flex-1 px-06 py-03 bg-danger text-white hover:bg-[#ba1b23] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-02"
             >
               {isAnalyzingDatabase ? (
                 <>
@@ -337,21 +337,21 @@ const FraudDetectionPageContent = () => {
         {/* Results Section - Ahora abajo de los inputs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Single Transaction Results */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-            <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Resultado del Análisis Individual</h2>
+          <div className="bg-ui-02 border border-ui-03 p-06">
+            <h2 className="text-productive-heading-03 text-text-primary mb-05">Resultado del Análisis Individual</h2>
 
             {!results && !isAnalyzing && (
               <div className="text-center py-12">
-                <BarChart3 className="w-16 h-16 text-ibm-gray-40 mx-auto mb-4" />
-                <p className="text-ibm-gray-60">Complete los datos y analice para ver los resultados</p>
+                <BarChart3 className="w-16 h-16 text-text-placeholder mx-auto mb-04" />
+                <p className="text-text-secondary">Complete los datos y analice para ver los resultados</p>
               </div>
             )}
 
             {isAnalyzing && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 border-4 border-ibm-gray-20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-ibm-gray-70">Ejecutando modelo de ML...</p>
-                <p className="text-sm text-ibm-gray-60 mt-2">Consultando base de datos SQL</p>
+                <div className="w-16 h-16 border-4 border-ui-03 border-t-interactive rounded-full animate-spin mx-auto mb-04"></div>
+                <p className="text-text-primary">Ejecutando modelo de ML...</p>
+                <p className="text-label text-text-secondary mt-02">Consultando base de datos SQL</p>
               </div>
             )}
 
@@ -382,22 +382,22 @@ const FraudDetectionPageContent = () => {
 
                 {/* Transaction Details */}
                 <div>
-                  <h3 className="text-lg font-semibold text-ibm-gray-90 mb-3">Detalles de la Transacción</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
-                      <span className="text-sm text-ibm-gray-70">Monto</span>
-                      <span className="text-sm font-semibold text-ibm-gray-90">${results.originalData?.monto}</span>
+                  <h3 className="text-productive-heading-03 text-text-primary mb-04">Detalles de la Transacción</h3>
+                  <div className="space-y-02">
+                    <div className="flex items-center justify-between p-03 bg-ui-01 border border-ui-03">
+                      <span className="text-label text-text-secondary">Monto</span>
+                      <span className="text-label font-medium text-text-primary">${results.originalData?.monto}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
-                      <span className="text-sm text-ibm-gray-70">Comerciante</span>
-                      <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.comerciante}</span>
+                    <div className="flex items-center justify-between p-03 bg-ui-01 border border-ui-03">
+                      <span className="text-label text-text-secondary">Comerciante</span>
+                      <span className="text-label font-medium text-text-primary">{results.originalData?.comerciante}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
-                      <span className="text-sm text-ibm-gray-70">Ubicación</span>
-                      <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.ubicacion}</span>
+                    <div className="flex items-center justify-between p-03 bg-ui-01 border border-ui-03">
+                      <span className="text-label text-text-secondary">Ubicación</span>
+                      <span className="text-label font-medium text-text-primary">{results.originalData?.ubicacion}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-ibm-gray-10 rounded-lg">
-                      <span className="text-sm text-ibm-gray-70">Tipo de Tarjeta</span>
+                    <div className="flex items-center justify-between p-03 bg-ui-01 border border-ui-03">
+                      <span className="text-label text-text-secondary">Tipo de Tarjeta</span>
                       <span className="text-sm font-semibold text-ibm-gray-90">{results.originalData?.tipo_tarjeta}</span>
                     </div>
                   </div>

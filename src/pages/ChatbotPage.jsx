@@ -12,9 +12,9 @@ import SimpleStatus from "../components/SimpleStatus";
 const ChatbotPageContent = () => {
   const [selectedModel, setSelectedModel] = useState({
     id: "gemma-2b",
-    name: "Gemma 2B", 
+    name: "Gemma 2B",
     port: "8085",
-    description: "Modelo ligero y rápido (seleccionado por defecto)"
+    description: "Modelo ligero y rápido (seleccionado por defecto)",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
@@ -191,43 +191,34 @@ const ChatbotPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-ibm-gray-10">
-      {/* Header */}
-      <div className="bg-white border-b border-ibm-gray-20 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-ibm rounded-full flex items-center justify-center">
+    <div className="flex flex-col -m-06" style={{ height: 'calc(97vh - 2.5rem)' }}>
+      {/* Header compacto */}
+      <div className="bg-ui-02 border-b border-ui-03 px-06 py-05 flex-shrink-0">
+        <div className="flex items-center justify-between gap-04">
+          <div className="flex items-center space-x-04">
+            <div className="w-10 h-10 bg-interactive flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-ibm-gray-90">Chatbot con llama.cpp</h1>
-              <p className="text-ibm-gray-70">{selectedModel ? `Modelo activo: ${selectedModel.name} (Puerto: ${selectedModel.port})` : "Selecciona un modelo para comenzar"}</p>
+              <h1 className="text-productive-heading-03 text-text-primary">Chatbot con llama.cpp</h1>
+              <p className="text-caption text-text-secondary">{selectedModel ? `${selectedModel.name} (Puerto: ${selectedModel.port})` : "Selecciona un modelo"}</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Clear conversation button */}
-            <button
-              onClick={clearConversation}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-ibm-gray-70 hover:text-ibm-gray-90 hover:bg-ibm-gray-10 rounded-lg transition-colors"
-              title="Limpiar conversación"
-            >
+          <div className="flex items-center space-x-03">
+            <button onClick={clearConversation} className="flex items-center space-x-02 px-04 py-02 bg-danger text-white hover:bg-[#ba1b23] transition-colors text-label h-8" title="Limpiar conversación">
               <Trash2 className="w-4 h-4" />
               <span>Limpiar</span>
             </button>
 
-            {/* Status indicator */}
-            <SimpleStatus 
-              url={selectedModel ? `/proxy/${selectedModel.port}/health` : null}
-              name={selectedModel ? selectedModel.name : "Selecciona modelo"}
-            />
+            <SimpleStatus url={selectedModel ? `/proxy/${selectedModel.port}/health` : null} name={selectedModel ? selectedModel.name : "Modelo"} />
           </div>
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      {/* Chat Messages con flex-1 para ocupar espacio disponible */}
+      <div className="flex-1 overflow-y-auto px-06 py-06 bg-ui-background" style={{ minHeight: 0 }}>
+        <div className="max-w-4xl mx-auto space-y-05 flex flex-col">
           {/* Context indicator */}
           {messages.length > 1 && (
             <div className="text-center">
@@ -241,20 +232,20 @@ const ChatbotPageContent = () => {
           {messages.map((message) => {
             // Determinar el ancho máximo basado en el tipo de mensaje
             const maxWidth = message.sender === "user" ? "max-w-xs lg:max-w-md" : "max-w-3xl lg:max-w-4xl";
-            
+
             return (
               <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`flex ${maxWidth} w-full ${message.sender === "user" ? "flex-row-reverse" : "flex-row"} space-x-2 gap-1`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.sender === "user" ? "bg-primary" : "bg-gradient-ibm"}`}>
+                  <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 ${message.sender === "user" ? "bg-carbon-gray-70" : "bg-interactive"}`}>
                     {message.sender === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                   </div>
                   <div
-                    className={`px-4 py-3 rounded-lg min-w-0 flex-1 break-words ${
+                    className={`px-4 py-3 min-w-0 flex-1 break-words ${
                       message.sender === "user"
-                        ? "bg-primary text-white mx-3"
+                        ? "bg-interactive text-white mx-3"
                         : message.isError
-                        ? "bg-red-50 border border-red-200 text-red-800 ml-3"
-                        : "bg-white border border-ibm-gray-20 text-ibm-gray-90 ml-3"
+                        ? "bg-carbon-red-10 border border-danger text-danger ml-3"
+                        : "bg-ui-02 border border-ui-03 text-primary ml-3"
                     }`}
                   >
                     {/* Renderizar con Markdown para mensajes del bot, texto plano para mensajes del usuario */}
@@ -266,27 +257,15 @@ const ChatbotPageContent = () => {
                           components={{
                             // Estilos personalizados para elementos Markdown
                             p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
-                            ul: ({ children }) => (
-                              <ul className="mb-4 ml-6 list-disc space-y-1 break-words">
-                                {children}
-                              </ul>
-                            ),
-                            ol: ({ children }) => (
-                              <ol className="mb-4 ml-6 list-decimal space-y-1 break-words">
-                                {children}
-                              </ol>
-                            ),
-                            li: ({ children }) => (
-                              <li className="break-words leading-relaxed">
-                                {children}
-                              </li>
-                            ),
+                            ul: ({ children }) => <ul className="mb-4 ml-6 list-disc space-y-1 break-words">{children}</ul>,
+                            ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal space-y-1 break-words">{children}</ol>,
+                            li: ({ children }) => <li className="break-words leading-relaxed">{children}</li>,
                             strong: ({ children }) => <strong className="font-semibold break-words">{children}</strong>,
                             em: ({ children }) => <em className="italic break-words">{children}</em>,
                             code: ({ inline, className, children, ...props }) => {
-                              const match = /language-(\w+)/.exec(className || '');
-                              const language = match ? match[1].toLowerCase() : 'text';
-                              
+                              const match = /language-(\w+)/.exec(className || "");
+                              const language = match ? match[1].toLowerCase() : "text";
+
                               if (!inline && match) {
                                 return (
                                   <div className="my-4 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
@@ -294,16 +273,9 @@ const ChatbotPageContent = () => {
                                       <span className="uppercase tracking-wide">{language}</span>
                                       <span className="text-gray-500">código</span>
                                     </div>
-                                    <Highlight
-                                      theme={themes.github}
-                                      code={String(children).replace(/\n$/, '')}
-                                      language={language}
-                                    >
+                                    <Highlight theme={themes.github} code={String(children).replace(/\n$/, "")} language={language}>
                                       {({ className, style, tokens, getLineProps, getTokenProps }) => (
-                                        <pre 
-                                          className={`${className} p-0 overflow-x-auto text-sm bg-white`} 
-                                          style={{...style, backgroundColor: '#ffffff'}}
-                                        >
+                                        <pre className={`${className} p-0 overflow-x-auto text-sm bg-white`} style={{ ...style, backgroundColor: "#ffffff" }}>
                                           {tokens.map((line, i) => (
                                             <div key={i} {...getLineProps({ line })} className="flex hover:bg-gray-50">
                                               <span className="inline-block w-12 text-gray-400 text-right pr-4 pl-4 py-1 bg-gray-50 border-r border-gray-200 select-none text-xs leading-5">
@@ -322,112 +294,48 @@ const ChatbotPageContent = () => {
                                   </div>
                                 );
                               }
-                              
+
                               // Código inline
                               return (
-                                <code 
-                                  className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono break-all inline-block max-w-full text-gray-800"
-                                  {...props}
-                                >
+                                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono break-all inline-block max-w-full text-gray-800" {...props}>
                                   {children}
                                 </code>
                               );
                             },
-                            h1: ({ children }) => (
-                              <h1 className="text-2xl font-bold mb-4 mt-6 pb-2 border-b border-gray-200 text-gray-900 break-words first:mt-0">
-                                {children}
-                              </h1>
-                            ),
-                            h2: ({ children }) => (
-                              <h2 className="text-xl font-bold mb-3 mt-5 text-gray-900 break-words">
-                                {children}
-                              </h2>
-                            ),
-                            h3: ({ children }) => (
-                              <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-900 break-words">
-                                {children}
-                              </h3>
-                            ),
-                            h4: ({ children }) => (
-                              <h4 className="text-base font-semibold mb-2 mt-3 text-gray-800 break-words">
-                                {children}
-                              </h4>
-                            ),
-                            h5: ({ children }) => (
-                              <h5 className="text-sm font-semibold mb-1 mt-2 text-gray-800 break-words">
-                                {children}
-                              </h5>
-                            ),
-                            h6: ({ children }) => (
-                              <h6 className="text-sm font-medium mb-1 mt-2 text-gray-700 break-words">
-                                {children}
-                              </h6>
-                            ),
+                            h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6 pb-2 border-b border-gray-200 text-gray-900 break-words first:mt-0">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5 text-gray-900 break-words">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-900 break-words">{children}</h3>,
+                            h4: ({ children }) => <h4 className="text-base font-semibold mb-2 mt-3 text-gray-800 break-words">{children}</h4>,
+                            h5: ({ children }) => <h5 className="text-sm font-semibold mb-1 mt-2 text-gray-800 break-words">{children}</h5>,
+                            h6: ({ children }) => <h6 className="text-sm font-medium mb-1 mt-2 text-gray-700 break-words">{children}</h6>,
                             // Estilos para tablas mejoradas y más legibles
                             table: ({ children }) => (
                               <div className="overflow-x-auto my-6 rounded-lg border border-gray-300 shadow-sm bg-white">
-                                <table className="min-w-full table-auto">
-                                  {children}
-                                </table>
+                                <table className="min-w-full table-auto">{children}</table>
                               </div>
                             ),
-                            thead: ({ children }) => (
-                              <thead>
-                                {children}
-                              </thead>
-                            ),
-                            tbody: ({ children }) => (
-                              <tbody>
-                                {children}
-                              </tbody>
-                            ),
+                            thead: ({ children }) => <thead>{children}</thead>,
+                            tbody: ({ children }) => <tbody>{children}</tbody>,
                             tr: ({ children, ...props }) => {
                               const isHeader = props.isHeader;
-                              return (
-                                <tr className={`border-b border-gray-200 ${isHeader ? 'bg-gray-100' : 'hover:bg-gray-50'} transition-colors`}>
-                                  {children}
-                                </tr>
-                              );
+                              return <tr className={`border-b border-gray-200 ${isHeader ? "bg-gray-100" : "hover:bg-gray-50"} transition-colors`}>{children}</tr>;
                             },
-                            th: ({ children }) => (
-                              <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 bg-gray-100 border-b-2 border-gray-300 break-words">
-                                {children}
-                              </th>
-                            ),
+                            th: ({ children }) => <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 bg-gray-100 border-b-2 border-gray-300 break-words">{children}</th>,
                             td: ({ children }) => (
                               <td className="px-6 py-4 text-sm text-gray-700 break-words border-b border-gray-200">
-                                <div className="max-w-xs overflow-hidden">
-                                  {children}
-                                </div>
+                                <div className="max-w-xs overflow-hidden">{children}</div>
                               </td>
                             ),
                             // Estilos para listas de tareas
-                            input: ({ checked, ...props }) => (
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                readOnly
-                                className="mr-2 rounded"
-                                {...props}
-                              />
-                            ),
+                            input: ({ checked, ...props }) => <input type="checkbox" checked={checked} readOnly className="mr-2 rounded" {...props} />,
                             // Estilos para enlaces
                             a: ({ children, href }) => (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 underline break-all"
-                              >
+                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline break-all">
                                 {children}
                               </a>
                             ),
                             // Estilos para texto tachado
-                            del: ({ children }) => (
-                              <del className="line-through text-gray-500 break-words">
-                                {children}
-                              </del>
-                            ),
+                            del: ({ children }) => <del className="line-through text-gray-500 break-words">{children}</del>,
                             // Estilos para blockquotes mejorados
                             blockquote: ({ children }) => (
                               <blockquote className="border-l-4 border-blue-500 pl-4 py-3 my-4 bg-blue-50 italic break-words rounded-r-md">
@@ -435,10 +343,7 @@ const ChatbotPageContent = () => {
                               </blockquote>
                             ),
                             // Estilos para divisores
-                            hr: () => (
-                              <hr className="my-6 border-gray-300" />
-                            ),
-
+                            hr: () => <hr className="my-6 border-gray-300" />,
                           }}
                         >
                           {message.text}
@@ -447,16 +352,10 @@ const ChatbotPageContent = () => {
                     ) : (
                       <p className="text-sm break-words overflow-wrap-anywhere">{message.text}</p>
                     )}
-                    
-                    <div className="flex justify-between items-center mt-1">
-                      <p className={`text-xs ${message.sender === "user" ? "text-blue-100" : message.isError ? "text-red-600" : "text-ibm-gray-60"}`}>
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
-                      {message.model && (
-                        <p className="text-xs text-white bg-primary ml-2 px-2 py-1 rounded">
-                          {message.model}
-                        </p>
-                      )}
+
+                    <div className="flex items-center text-xs mt-2">
+                      <p className={`text-xs ${message.sender === "user" ? "text-white opacity-80" : message.isError ? "text-danger" : "text-secondary"}`}>{message.timestamp.toLocaleTimeString()}</p>
+                      {message.model && <p className="text-xs text-white bg-interactive ml-2 px-2 py-1">{message.model}</p>}
                     </div>
                   </div>
                 </div>
@@ -468,10 +367,10 @@ const ChatbotPageContent = () => {
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex flex-row space-x-2 max-w-3xl lg:max-w-4xl w-full">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-ibm">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-carbon-gray-80">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="px-4 py-3 rounded-lg bg-white border border-ibm-gray-20 text-ibm-gray-90 ml-3 min-w-0 flex-1">
+                <div className="px-4 py-3 bg-ui-02 border border-ui-03 text-primary ml-3 min-w-0 flex-1">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <p className="text-sm break-words">{selectedModel?.name} está pensando...</p>
@@ -483,33 +382,35 @@ const ChatbotPageContent = () => {
         </div>
       </div>
 
-      {/* Input Form */}
-      <div className="bg-white border-t border-ibm-gray-20 p-6 relative">
-        {/* Selector de modelo fijo en la esquina inferior izquierda */}
-        <div className="absolute left-0 bottom-0 mb-6 ml-6 z-10">
-          <ModelSelector value={selectedModel?.name} onChange={setSelectedModel} showPort={true} hideLabel={true} />
-        </div>
-
-        {/* Warning cuando no hay modelo seleccionado */}
-        {!selectedModel && (
-          <div className="absolute left-1/2 transform -translate-x-1/2 bottom-20 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-lg flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-sm">Selecciona un modelo para comenzar a chatear</span>
+      {/* Input Form fijo abajo */}
+      <div className="bg-ui-02 border-t border-ui-03 px-06 py-05 flex-shrink-0">
+        <div className="flex items-center gap-03 max-w-6xl mx-auto">
+          {/* Selector de modelo */}
+          <div className="flex-shrink-0 min-w-[280px]">
+            <ModelSelector value={selectedModel?.name} onChange={setSelectedModel} showPort={true} hideLabel={true} />
           </div>
-        )}
-        <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
-          <div className="flex justify-center items-end space-x-4">
+
+          {/* Warning cuando no hay modelo */}
+          {!selectedModel && (
+            <div className="flex items-center space-x-02 bg-carbon-yellow-20 border border-carbon-yellow-30 text-carbon-gray-100 px-03 py-02 text-caption h-8">
+              <AlertCircle className="w-4 h-4" />
+              <span>Selecciona un modelo</span>
+            </div>
+          )}
+
+          {/* Input y botón */}
+          <form onSubmit={handleSendMessage} className="flex-1 flex gap-02">
             <input
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Escribe tu mensaje aquí..."
-              className="flex-1 h-12 px-4 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-ibm-gray-90 text-sm shadow-sm"
+              className="flex-1 h-8 px-04 py-01 border border-ui-04 bg-ui-01 text-text-primary text-body-short focus:outline-none focus:border-interactive transition-colors duration-fast"
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || isLoading || !selectedModel}
-              className="px-6 py-3 bg-gradient-ibm text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-04 h-8 bg-interactive text-white hover:bg-carbon-blue-70 transition-colors duration-fast disabled:bg-carbon-gray-30 disabled:cursor-not-allowed flex items-center space-x-02 text-label"
             >
               {isLoading ? (
                 <>
@@ -523,8 +424,8 @@ const ChatbotPageContent = () => {
                 </>
               )}
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

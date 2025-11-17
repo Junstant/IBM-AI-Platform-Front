@@ -203,36 +203,36 @@ const NLPAnalysisPage = () => {
   };
 
   return (
-    <div className="p-6 bg-ibm-gray-10 min-h-screen">
+    <div className="space-y-05">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+      <div className="bg-ui-02 border border-ui-03 p-06 mb-05">
+        <div className="flex items-center space-x-04 mb-04">
+          <div className="w-10 h-10 bg-carbon-blue-60 flex items-center justify-center">
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ibm-gray-90">Procesamiento de Lenguaje Natural</h1>
-            <p className="text-ibm-gray-70">Análisis de sentimientos, entidades y categorización de texto con IA</p>
+            <h1 className="text-productive-heading-04 text-text-primary">Procesamiento de Lenguaje Natural</h1>
+            <p className="text-body-long text-text-secondary">Análisis de sentimientos, entidades y categorización de texto con IA</p>
           </div>
         </div>
 
         {/* Connection Status */}
-        <div className="flex items-center space-x-4 p-3 bg-ibm-gray-10 rounded-lg">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-04 p-03 bg-ui-01 border border-ui-03">
+          <div className="flex items-center space-x-02">
             <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-            <span className="text-sm text-ibm-gray-90">API NLP Conectada</span>
+            <span className="text-label text-text-primary">API NLP Conectada</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <FileText className="w-4 h-4 text-info" />
-            <span className="text-sm text-ibm-gray-90">Motor de análisis activo</span>
+          <div className="flex items-center space-x-02">
+            <FileText className="w-4 h-4 text-interactive" />
+            <span className="text-label text-text-primary">Motor de análisis activo</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 mt-5">
+      <div className="space-y-05">
         {/* Input Form */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Análisis de Texto</h2>
+        <div className="bg-ui-02 border border-ui-03 p-06">
+          <h2 className="text-productive-heading-03 text-text-primary mb-05">Análisis de Texto</h2>
 
           <div className="grid grid-cols-1 gap-4">
             {/* Selector de modelo */}
@@ -247,23 +247,23 @@ const NLPAnalysisPage = () => {
 
             {/* Área de texto */}
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Texto a analizar</label>
+              <label className="block text-label text-text-primary mb-02">Texto a analizar</label>
               <textarea
                 value={textData.texto}
                 onChange={(e) => setTextData({ ...textData, texto: e.target.value })}
                 placeholder="Ingrese el texto que desea analizar..."
-                className="w-full h-32 px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-ibm-gray-90 text-sm shadow-sm resize-none"
+                className="w-full h-32 px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive resize-none"
               />
             </div>
 
             {/* Configuraciones */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Idioma</label>
+                <label className="block text-label text-text-primary mb-02">Idioma</label>
                 <select
                   value={textData.idioma}
                   onChange={(e) => setTextData({ ...textData, idioma: e.target.value })}
-                  className="w-full h-12 px-4 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-ibm-gray-90 text-sm shadow-sm"
+                  className="w-full h-12 px-05 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
                 >
                   <option value="es">Español</option>
                   <option value="en">Inglés</option>
@@ -272,11 +272,11 @@ const NLPAnalysisPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-ibm-gray-90 mb-2">Tipo de análisis</label>
+                <label className="block text-label text-text-primary mb-02">Tipo de análisis</label>
                 <select
                   value={textData.tipo_analisis}
                   onChange={(e) => setTextData({ ...textData, tipo_analisis: e.target.value })}
-                  className="w-full h-12 px-4 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-ibm-gray-90 text-sm shadow-sm"
+                  className="w-full h-12 px-05 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive"
                 >
                   <option value="sentiment">Análisis de sentimientos</option>
                   <option value="entities">Extracción de entidades</option>
@@ -287,11 +287,11 @@ const NLPAnalysisPage = () => {
             </div>
 
             {/* Botones */}
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center mt-05">
               <button
                 onClick={handleAnalyzeText}
                 disabled={isAnalyzing || !textData.texto.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="px-06 py-03 bg-carbon-blue-60 text-white hover:bg-carbon-blue-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-02"
               >
                 {isAnalyzing ? (
                   <>
@@ -309,7 +309,7 @@ const NLPAnalysisPage = () => {
               <button
                 onClick={handleAnalyzeDatabase}
                 disabled={isAnalyzingDatabase}
-                className="px-6 py-3 bg-ibm-gray-90 text-white rounded-lg hover:bg-ibm-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="px-06 py-03 bg-carbon-gray-80 text-white hover:bg-carbon-gray-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-02"
               >
                 {isAnalyzingDatabase ? (
                   <>
@@ -641,3 +641,4 @@ const NLPAnalysisPage = () => {
 };
 
 export default NLPAnalysisPage;
+

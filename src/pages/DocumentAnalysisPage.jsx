@@ -74,25 +74,25 @@ const DocumentAnalysisPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-ibm-gray-10 min-h-screen">
+    <div className="space-y-05">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-r from-ibm-teal to-ibm-cyan rounded-lg flex items-center justify-center">
+      <div className="bg-ui-02 border border-ui-03 p-06">
+        <div className="flex items-center space-x-04 mb-04">
+          <div className="w-10 h-10 bg-carbon-gray-70 flex items-center justify-center">
             <FileText className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ibm-gray-90">Análisis de Documentos</h1>
-            <p className="text-ibm-gray-70">Extrae información y analiza contenido con IA</p>
+            <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos</h1>
+            <p className="text-body-long text-text-secondary">Extrae información y analiza contenido con IA</p>
           </div>
         </div>
 
         {/* Upload Area */}
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          className={`border-2 border-dashed p-07 text-center transition-colors ${
             dragActive 
-              ? 'border-primary bg-ibm-blue-10' 
-              : 'border-ibm-gray-30 hover:border-ibm-gray-40'
+              ? 'border-interactive bg-carbon-blue-10' 
+              : 'border-ui-04 hover:border-ui-05'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -116,7 +116,7 @@ const DocumentAnalysisPage = () => {
           />
           <label
             htmlFor="file-upload"
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-ibm-teal to-ibm-cyan text-white rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+            className="inline-flex items-center space-x-02 px-05 py-03 bg-carbon-gray-70 text-white hover:bg-carbon-gray-60 transition-colors cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             <span>Seleccionar Archivos</span>
@@ -126,17 +126,17 @@ const DocumentAnalysisPage = () => {
 
       {/* Documents List */}
       {documents.length > 0 && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Documentos Procesados</h2>
-          <div className="space-y-4">
+        <div className="bg-ui-02 border border-ui-03 p-06">
+          <h2 className="text-productive-heading-03 text-text-primary mb-05">Documentos Procesados</h2>
+          <div className="space-y-04">
             {documents.map((doc) => (
-              <div key={doc.id} className="border border-ibm-gray-20 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-5 h-5 text-ibm-gray-60" />
+              <div key={doc.id} className="border border-ui-03 p-04">
+                <div className="flex items-center justify-between mb-03">
+                  <div className="flex items-center space-x-03">
+                    <FileText className="w-5 h-5 text-text-secondary" />
                     <div>
-                      <h3 className="font-medium text-ibm-gray-90">{doc.name}</h3>
-                      <p className="text-sm text-ibm-gray-70">
+                      <h3 className="text-label font-medium text-text-primary">{doc.name}</h3>
+                      <p className="text-caption text-text-secondary">
                         {formatFileSize(doc.size)} • {doc.uploadTime.toLocaleString()}
                       </p>
                     </div>
@@ -155,29 +155,29 @@ const DocumentAnalysisPage = () => {
                 </div>
 
                 {doc.analysis && (
-                  <div className="bg-ibm-gray-10 rounded-lg p-4 space-y-3">
+                  <div className="bg-ui-01 border border-ui-03 p-04 space-y-03">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <h4 className="text-sm font-semibold text-ibm-gray-90 mb-1">Idioma</h4>
-                        <p className="text-sm text-ibm-gray-70">{doc.analysis.language}</p>
+                        <h4 className="text-label font-medium text-text-primary mb-01">Idioma</h4>
+                        <p className="text-label text-text-secondary">{doc.analysis.language}</p>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-ibm-gray-90 mb-1">Palabras</h4>
-                        <p className="text-sm text-ibm-gray-70">{doc.analysis.wordCount.toLocaleString()}</p>
+                        <h4 className="text-label font-medium text-text-primary mb-01">Palabras</h4>
+                        <p className="text-label text-text-secondary">{doc.analysis.wordCount.toLocaleString()}</p>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-ibm-gray-90 mb-1">Confianza</h4>
-                        <p className="text-sm text-ibm-gray-70">{(doc.analysis.confidence * 100).toFixed(1)}%</p>
+                        <h4 className="text-label font-medium text-text-primary mb-01">Confianza</h4>
+                        <p className="text-label text-text-secondary">{(doc.analysis.confidence * 100).toFixed(1)}%</p>
                       </div>
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-semibold text-ibm-gray-90 mb-2">Entidades Encontradas</h4>
+                      <h4 className="text-label font-medium text-text-primary mb-02">Entidades Encontradas</h4>
                       <div className="flex flex-wrap gap-2">
                         {doc.analysis.entities.map((entity, index) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-primary text-white text-xs rounded-md"
+                            className="px-02 py-01 bg-interactive text-white text-caption"
                           >
                             {entity}
                           </span>
@@ -185,12 +185,12 @@ const DocumentAnalysisPage = () => {
                       </div>
                     </div>
 
-                    <div className="flex space-x-3">
-                      <button className="flex items-center space-x-2 px-4 py-2 bg-ibm-gray-20 hover:bg-ibm-gray-30 rounded-lg transition-colors text-sm">
+                    <div className="flex space-x-03">
+                      <button className="flex items-center space-x-02 px-05 py-02 bg-ui-01 hover:bg-ui-03 border border-ui-04 transition-colors text-label">
                         <Eye className="w-4 h-4" />
                         <span>Ver Análisis</span>
                       </button>
-                      <button className="flex items-center space-x-2 px-4 py-2 bg-primary hover:bg-ibm-blue-70 text-white rounded-lg transition-colors text-sm">
+                      <button className="flex items-center space-x-02 px-05 py-02 bg-interactive hover:bg-[#0050e6] text-white transition-colors text-label">
                         <Download className="w-4 h-4" />
                         <span>Descargar Reporte</span>
                       </button>
@@ -205,14 +205,14 @@ const DocumentAnalysisPage = () => {
 
       {/* Empty State */}
       {documents.length === 0 && (
-        <div className="bg-white rounded-lg p-12 shadow-sm border border-ibm-gray-20 text-center">
-          <div className="w-16 h-16 bg-ibm-gray-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-ibm-gray-60" />
+        <div className="bg-ui-02 border border-ui-03 p-12 text-center">
+          <div className="w-16 h-16 bg-ui-01 border border-ui-03 flex items-center justify-center mx-auto mb-04">
+            <FileText className="w-8 h-8 text-text-placeholder" />
           </div>
-          <h3 className="text-lg font-semibold text-ibm-gray-90 mb-2">
+          <h3 className="text-productive-heading-03 text-text-primary mb-02">
             No hay documentos para analizar
           </h3>
-          <p className="text-ibm-gray-70 mb-4">
+          <p className="text-body-long text-text-secondary mb-04">
             Sube tus documentos para comenzar el análisis con IA
           </p>
         </div>
@@ -222,3 +222,4 @@ const DocumentAnalysisPage = () => {
 };
 
 export default DocumentAnalysisPage;
+

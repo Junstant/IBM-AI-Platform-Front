@@ -2,7 +2,8 @@ import React from 'react';
 import { Cpu, MemoryStick, HardDrive, Activity } from 'lucide-react';
 
 const ResourcesGauge = ({ data }) => {
-  const GaugeComponent = ({ title, value, icon: Icon, color, unit = '%' }) => {
+  // eslint-disable-next-line no-unused-vars
+  const GaugeComponent = ({ title, value, icon: IconComponent, color, unit = '%' }) => {
     const percentage = Math.min(Math.max(value || 0, 0), 100);
     
     const getColorClass = () => {
@@ -24,7 +25,7 @@ const ResourcesGauge = ({ data }) => {
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Icon className={`w-5 h-5 ${getColorClass().split(' ')[0]}`} />
+            <IconComponent className={`w-5 h-5 ${getColorClass().split(' ')[0]}`} />
             <span className="text-sm font-medium text-gray-900">{title}</span>
           </div>
           <span className={`text-xs font-medium ${getColorClass().split(' ')[0]}`}>

@@ -27,23 +27,23 @@ const ImageGeneratorPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-ibm-gray-10 min-h-screen">
+    <div className="space-y-05">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-r from-ibm-purple to-ibm-magenta rounded-lg flex items-center justify-center">
+      <div className="bg-ui-02 border border-ui-03 p-06">
+        <div className="flex items-center space-x-04 mb-04">
+          <div className="w-10 h-10 bg-carbon-blue-70 flex items-center justify-center">
             <ImageIcon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ibm-gray-90">Generador de Imágenes IA</h1>
-            <p className="text-ibm-gray-70">Crea imágenes únicas usando inteligencia artificial</p>
+            <h1 className="text-productive-heading-04 text-text-primary">Generador de Imágenes IA</h1>
+            <p className="text-body-long text-text-secondary">Crea imágenes únicas usando inteligencia artificial</p>
           </div>
         </div>
 
         {/* Generation Form */}
-        <form onSubmit={handleGenerateImage} className="space-y-4">
+        <form onSubmit={handleGenerateImage} className="space-y-04">
           <div>
-            <label htmlFor="prompt" className="block text-sm font-medium text-ibm-gray-90 mb-2">
+            <label htmlFor="prompt" className="block text-label text-text-primary mb-02">
               Descripción de la imagen
             </label>
             <textarea
@@ -52,18 +52,18 @@ const ImageGeneratorPage = () => {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe la imagen que quieres generar... (ej: Un paisaje futurista con edificios cristalinos bajo un cielo púrpura)"
               rows={3}
-              className="w-full px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+              className="w-full px-05 py-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive resize-none"
             />
           </div>
           
           <div className="flex justify-between items-center">
-            <div className="flex space-x-4">
-              <select className="px-4 py-2 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <div className="flex space-x-04">
+              <select className="px-05 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive">
                 <option>512x512</option>
                 <option>768x768</option>
                 <option>1024x1024</option>
               </select>
-              <select className="px-4 py-2 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+              <select className="px-05 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive">
                 <option>Estilo Realista</option>
                 <option>Estilo Artístico</option>
                 <option>Estilo Cartoon</option>
@@ -74,7 +74,7 @@ const ImageGeneratorPage = () => {
             <button
               type="submit"
               disabled={!prompt.trim() || isGenerating}
-              className="px-6 py-3 bg-gradient-to-r from-ibm-purple to-ibm-magenta text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-06 py-03 bg-carbon-blue-70 text-white hover:bg-carbon-blue-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-02"
             >
               {isGenerating ? (
                 <>
@@ -94,11 +94,11 @@ const ImageGeneratorPage = () => {
 
       {/* Generated Images Grid */}
       {generatedImages.length > 0 && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Imágenes Generadas</h2>
+        <div className="bg-ui-02 border border-ui-03 p-06">
+          <h2 className="text-productive-heading-03 text-text-primary mb-05">Imágenes Generadas</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {generatedImages.map((image) => (
-              <div key={image.id} className="group relative bg-ibm-gray-10 rounded-lg overflow-hidden">
+              <div key={image.id} className="group relative bg-ui-01 border border-ui-03 overflow-hidden">
                 <img
                   src={image.url}
                   alt={image.prompt}
@@ -134,14 +134,14 @@ const ImageGeneratorPage = () => {
 
       {/* Empty State */}
       {generatedImages.length === 0 && !isGenerating && (
-        <div className="bg-white rounded-lg p-12 shadow-sm border border-ibm-gray-20 text-center">
-          <div className="w-16 h-16 bg-ibm-gray-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ImageIcon className="w-8 h-8 text-ibm-gray-60" />
+        <div className="bg-ui-02 border border-ui-03 p-12 text-center">
+          <div className="w-16 h-16 bg-ui-01 border border-ui-03 flex items-center justify-center mx-auto mb-04">
+            <ImageIcon className="w-8 h-8 text-text-placeholder" />
           </div>
-          <h3 className="text-lg font-semibold text-ibm-gray-90 mb-2">
+          <h3 className="text-productive-heading-03 text-text-primary mb-02">
             No hay imágenes generadas aún
           </h3>
-          <p className="text-ibm-gray-70 mb-4">
+          <p className="text-body-long text-text-secondary mb-04">
             Escribe una descripción y genera tu primera imagen con IA
           </p>
         </div>
@@ -151,3 +151,4 @@ const ImageGeneratorPage = () => {
 };
 
 export default ImageGeneratorPage;
+

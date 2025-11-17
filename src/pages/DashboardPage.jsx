@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Brain, Zap, TrendingUp, Users, Activity, ArrowUpRight, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield } from "lucide-react";
+import { Brain, Zap, TrendingUp, Activity, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield, Database, ArrowUpRight } from "lucide-react";
+import { Card } from "../components/carbon";
 import { useStatsAPI } from "../hooks/useStatsAPI";
 import ModelStatusCard from "../components/stats/ModelStatusCard";
 import PerformanceChart from "../components/stats/PerformanceChart";
@@ -29,9 +30,7 @@ const DashboardPage = () => {
     {
       title: "Consultas Procesadas",
       value: summary?.daily_queries ? summary.daily_queries.toLocaleString() : "0",
-      change: summary?.daily_successful_queries ? 
-        `${Math.round((summary.daily_successful_queries / summary.daily_queries) * 100)}% éxito` : 
-        "Sin datos",
+      change: summary?.daily_successful_queries ? `${Math.round((summary.daily_successful_queries / summary.daily_queries) * 100)}% éxito` : "Sin datos",
       icon: Activity,
       color: "text-success",
       bgColor: "bg-green-50",
@@ -39,36 +38,18 @@ const DashboardPage = () => {
     {
       title: "Tiempo de Respuesta",
       value: summary?.avg_response_time ? `${summary.avg_response_time.toFixed(2)}s` : "N/A",
-      change: summary?.avg_response_time ? 
-        (summary.avg_response_time < 1 ? "Excelente" : 
-         summary.avg_response_time < 3 ? "Bueno" : "Lento") : 
-        "Sin datos",
+      change: summary?.avg_response_time ? (summary.avg_response_time < 1 ? "Excelente" : summary.avg_response_time < 3 ? "Bueno" : "Lento") : "Sin datos",
       icon: Zap,
-      color: summary?.avg_response_time ? 
-        (summary.avg_response_time < 1 ? "text-success" : 
-         summary.avg_response_time < 3 ? "text-yellow-500" : "text-red-500") : 
-        "text-gray-500",
-      bgColor: summary?.avg_response_time ? 
-        (summary.avg_response_time < 1 ? "bg-green-50" : 
-         summary.avg_response_time < 3 ? "bg-yellow-50" : "bg-red-50") : 
-        "bg-gray-50",
+      color: summary?.avg_response_time ? (summary.avg_response_time < 1 ? "text-success" : summary.avg_response_time < 3 ? "text-yellow-500" : "text-red-500") : "text-gray-500",
+      bgColor: summary?.avg_response_time ? (summary.avg_response_time < 1 ? "bg-green-50" : summary.avg_response_time < 3 ? "bg-yellow-50" : "bg-red-50") : "bg-gray-50",
     },
     {
       title: "Precisión Global",
       value: summary?.global_accuracy ? `${summary.global_accuracy.toFixed(1)}%` : "N/A",
-      change: summary?.global_accuracy ? 
-        (summary.global_accuracy >= 95 ? "Excelente" : 
-         summary.global_accuracy >= 90 ? "Bueno" : "Necesita mejora") : 
-        "Sin datos",
+      change: summary?.global_accuracy ? (summary.global_accuracy >= 95 ? "Excelente" : summary.global_accuracy >= 90 ? "Bueno" : "Necesita mejora") : "Sin datos",
       icon: TrendingUp,
-      color: summary?.global_accuracy ? 
-        (summary.global_accuracy >= 95 ? "text-success" : 
-         summary.global_accuracy >= 90 ? "text-yellow-500" : "text-red-500") : 
-        "text-gray-500",
-      bgColor: summary?.global_accuracy ? 
-        (summary.global_accuracy >= 95 ? "bg-green-50" : 
-         summary.global_accuracy >= 90 ? "bg-yellow-50" : "bg-red-50") : 
-        "bg-gray-50",
+      color: summary?.global_accuracy ? (summary.global_accuracy >= 95 ? "text-success" : summary.global_accuracy >= 90 ? "text-yellow-500" : "text-red-500") : "text-gray-500",
+      bgColor: summary?.global_accuracy ? (summary.global_accuracy >= 95 ? "bg-green-50" : summary.global_accuracy >= 90 ? "bg-yellow-50" : "bg-red-50") : "bg-gray-50",
     },
   ];
 
@@ -77,76 +58,62 @@ const DashboardPage = () => {
       title: "Chatbot Inteligente",
       description: "Asistente virtual con IA conversacional",
       icon: Bot,
-      color: "bg-gradient-ibm",
+      color: "interactive",
       path: "/chatbot",
+    },
+    {
+      title: "Detección de Fraude",
+      description: "Machine Learning para prevención de fraude",
+      icon: Shield,
+      color: "danger",
+      path: "/fraud-detection",
+    },
+    {
+      title: "Text-to-SQL",
+      description: "Convierte lenguaje natural en consultas SQL",
+      icon: Database,
+      color: "success",
+      path: "/text-to-sql",
     },
     {
       title: "Generador de Imágenes",
       description: "Crea contenido visual con IA generativa",
       icon: Image,
-      color: "bg-gradient-to-r from-ibm-purple to-ibm-magenta",
+      color: "carbon-blue-70",
       path: "/image-generator",
     },
     {
       title: "Análisis de Documentos",
       description: "Extrae información de documentos con IA",
       icon: FileText,
-      color: "bg-gradient-to-r from-ibm-teal to-ibm-cyan",
+      color: "carbon-gray-70",
       path: "/document-analysis",
-    },
-    {
-      title: "Analytics Avanzado",
-      description: "Métricas y análisis con machine learning",
-      icon: BarChart3,
-      color: "bg-gradient-to-r from-ibm-orange to-ibm-yellow",
-      path: "/analytics",
     },
     {
       title: "Procesamiento NLP",
       description: "Análisis de lenguaje natural avanzado",
       icon: MessageSquare,
-      color: "bg-gradient-to-r from-ibm-blue-60 via-ibm-purple to-ibm-magenta",
-      path: "/nlp-models",
-    },
-    {
-      title: "Modelos ML",
-      description: "Entrenar y desplegar modelos de ML",
-      icon: Cpu,
-      color: "bg-gradient-to-r from-ibm-orange via-ibm-red to-danger",
-      path: "/ml-models",
-    },
-    {
-      title: "Automatización IA",
-      description: "Workflows automáticos con inteligencia",
-      icon: Zap,
-      color: "bg-gradient-to-r from-ibm-cyan via-ibm-blue-60 to-primary",
-      path: "/automation",
-    },
-    {
-      title: "Configuración",
-      description: "Ajustes y personalización del sistema",
-      icon: Settings,
-      color: "bg-gradient-to-r from-ibm-gray-70 to-ibm-gray-90",
-      path: "/settings",
+      color: "interactive",
+      path: "/nlp-analysis",
     },
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-06">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-ibm-gray-90 mb-2">Dashboard de IA</h1>
-        <p className="text-ibm-gray-70">Bienvenido a la plataforma de inteligencia artificial de IBM, haga click en la demo que desea utilizar</p>
+      <div className="my-5">
+        <h1 className="text-3xl font-semibold text-primary mb-03">Dashboard de IA</h1>
+        <p className="text-secondary">Bienvenido a la plataforma de inteligencia artificial de IBM, haga click en la demo que desea utilizar</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-05">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+            <Card key={index} padding="md" interactive>
+              <div className="flex items-center justify-between mb-05">
+                <div className={`p-03 rounded ${stat.bgColor}`}>
                   <Icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
                 <span className="text-sm text-success font-medium flex items-center">
@@ -154,57 +121,54 @@ const DashboardPage = () => {
                   <ArrowUpRight className="w-3 h-3 ml-1" />
                 </span>
               </div>
-              <h3 className="text-2xl font-bold text-ibm-gray-90 mb-1">{stat.value}</h3>
-              <p className="text-sm text-ibm-gray-70">{stat.title}</p>
-            </div>
+              <h3 className="text-2xl font-bold text-primary mb-02">{stat.value}</h3>
+              <p className="text-sm text-secondary">{stat.title}</p>
+            </Card>
           );
         })}
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Demos Disponibles</h2>
-        <div className="overflow-y-auto max-h-[400px] p-3 scrollbar-hide">
-          <div className="grid grid-cols-4 gap-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  key={index}
-                  to={action.path}
-                  className="group cursor-pointer rounded-lg p-6 text-white relative overflow-hidden transition-transform duration-200 hover:scale-105 block"
-                  style={{ background: action.color.includes("gradient") ? "" : action.color }}
-                >
-                  {action.color.includes("gradient") && <div className={`absolute inset-0 ${action.color}`} />}
-                  <div className="relative z-10">
-                    <Icon className="w-8 h-8 mb-3" />
-                    <h3 className="font-semibold mb-2 text-sm">{action.title}</h3>
-                    <p className="text-xs opacity-90">{action.description}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+      <Card padding="lg">
+        <h2 className="text-xl font-semibold text-primary mb-06">Demos Disponibles</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-05">
+          {quickActions.map((action, index) => {
+            const Icon = action.icon;
+            // Map color names to both border and text colors
+            const colorStyles = {
+              interactive: { border: "border-t-interactive", text: "text-interactive" },
+              danger: { border: "border-t-danger", text: "text-danger" },
+              success: { border: "border-t-success", text: "text-success" },
+              "carbon-blue-70": { border: "border-t-carbon-blue-70", text: "text-carbon-blue-70" },
+              "carbon-gray-70": { border: "border-t-carbon-gray-70", text: "text-carbon-gray-70" },
+            };
+            const colors = colorStyles[action.color] || colorStyles.interactive;
+
+            return (
+              <Link
+                key={index}
+                to={action.path}
+                className={`group cursor-pointer bg-ui-02 border border-ui-03 p-05 transition-all duration-moderate hover:shadow-md block border-t-4 ${colors.border}`}
+              >
+                <Icon className={`w-8 h-8 mb-04 ${colors.text}`} />
+                <h3 className="font-semibold mb-02 text-sm text-primary">{action.title}</h3>
+                <p className="text-xs text-secondary">{action.description}</p>
+              </Link>
+            );
+          })}
         </div>
-        <div className="mt-4 text-center">
-          <p className="text-sm text-ibm-gray-60">↑ Desplázate verticalmente para ver todos los demos ↓</p>
-        </div>
-      </div>
+      </Card>
 
       {/* Stats en tiempo real y alertas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-05">
         {/* Modelos activos */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-ibm-gray-90">Estado de Modelos IA</h2>
-              <LastUpdated 
-                timestamp={lastUpdated} 
-                onRefresh={refreshSummary}
-                loading={summaryLoading}
-              />
+          <Card padding="lg">
+            <div className="flex items-center justify-between mb-05">
+              <h2 className="text-xl font-semibold text-primary">Estado de Modelos IA</h2>
+              <LastUpdated timestamp={lastUpdated} onRefresh={refreshSummary} loading={summaryLoading} />
             </div>
-            
+
             {modelsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
@@ -226,73 +190,56 @@ const DashboardPage = () => {
                 <p className="text-sm">Los modelos aparecerán aquí cuando estén activos</p>
               </div>
             )}
-            
+
             {models && models.length > 4 && (
-              <div className="mt-4 text-center">
-                <Link 
-                  to="/analytics" 
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
+              <div className="mt-05 text-center">
+                <Link to="/analytics" className="text-interactive hover:text-carbon-blue-70 text-sm font-medium">
                   Ver todos los modelos ({models.length}) →
                 </Link>
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Panel de alertas */}
         <div className="lg:col-span-1">
-          <AlertsPanel 
-            alerts={alerts}
-            onResolveAlert={resolveAlert}
-            maxAlerts={6}
-          />
+          <AlertsPanel alerts={alerts} onResolveAlert={resolveAlert} maxAlerts={6} />
         </div>
       </div>
 
       {/* Recursos del sistema */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Recursos del Sistema</h2>
+      <Card padding="lg">
+        <h2 className="text-xl font-semibold text-primary mb-06">Recursos del Sistema</h2>
         <ResourcesGauge />
-      </div>
+      </Card>
 
       {/* Actividad reciente y errores */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-05">
         {/* Errores recientes */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Errores Recientes</h2>
+        <Card padding="lg">
+          <h2 className="text-xl font-semibold text-primary mb-06">Errores Recientes</h2>
           <ErrorsTable maxErrors={5} />
-        </div>
+        </Card>
 
         {/* Métricas por funcionalidad */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Rendimiento por Funcionalidad</h2>
+        <Card padding="lg">
+          <h2 className="text-xl font-semibold text-primary mb-06">Rendimiento por Funcionalidad</h2>
           <FunctionalityMetrics />
-        </div>
+        </Card>
       </div>
 
       {/* Performance charts */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Tendencias de Rendimiento</h2>
+      <Card padding="lg">
+        <h2 className="text-xl font-semibold text-primary mb-06">Tendencias de Rendimiento</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PerformanceChart 
-            title="Tiempo de Respuesta" 
-            dataKey="response_time" 
-            type="line"
-            color="#8884d8"
-          />
-          <PerformanceChart 
-            title="Consultas por Hora" 
-            dataKey="requests_count" 
-            type="area"
-            color="#82ca9d"
-          />
+          <PerformanceChart title="Tiempo de Respuesta" dataKey="response_time" type="line" color="#8884d8" />
+          <PerformanceChart title="Consultas por Hora" dataKey="requests_count" type="area" color="#82ca9d" />
         </div>
-      </div>
+      </Card>
 
       {/* Actividad reciente */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-        <h2 className="text-xl font-bold text-ibm-gray-90 mb-6">Actividad Reciente</h2>
+      <Card padding="lg">
+        <h2 className="text-xl font-semibold text-primary mb-06">Actividad Reciente</h2>
         <div className="space-y-4">
           {[
             { time: "Hace 2 minutos", action: "Nuevo modelo de ML entrenado", type: "success" },
@@ -300,18 +247,20 @@ const DashboardPage = () => {
             { time: "Hace 1 hora", action: "Chatbot Watson actualizado", type: "warning" },
             { time: "Hace 3 horas", action: "Backup de datos completado", type: "success" },
           ].map((activity, index) => (
-            <div key={index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-ibm-gray-10 transition-colors">
+            <div key={index} className="flex items-center space-x-04 p-04 rounded hover:bg-ui-03 transition-colors duration-fast">
               <div
-                className={`w-2 h-2 rounded-full ${activity.type === "success" ? "bg-green-500" : activity.type === "info" ? "bg-blue-500" : activity.type === "warning" ? "bg-yellow-500" : "bg-ibm-gray-40"}`}
+                className={`w-2 h-2 rounded-full ${
+                  activity.type === "success" ? "bg-success" : activity.type === "info" ? "bg-interactive" : activity.type === "warning" ? "bg-carbon-yellow-30" : "bg-carbon-gray-50"
+                }`}
               />
               <div className="flex-1">
-                <p className="text-sm text-ibm-gray-90">{activity.action}</p>
-                <p className="text-xs text-ibm-gray-60">{activity.time}</p>
+                <p className="text-sm text-primary">{activity.action}</p>
+                <p className="text-xs text-secondary">{activity.time}</p>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

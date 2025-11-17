@@ -33,15 +33,15 @@ export default function ModelSelector({ value, onChange, showPort = true, hideLa
   return (
     <div className="w-full">
       {!hideLabel && (
-        <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
+        <label className="block text-label text-text-primary mb-02">
           Selecciona el modelo de Machine Learning
         </label>
       )}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-03">
         <select
           value={selected.name}
           onChange={handleChange}
-          className="h-12 px-4 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-ibm-gray-90 text-sm min-w-[170px] shadow-sm"
+          className="h-8 px-04 py-01 border border-ui-04 focus:outline-none focus:border-interactive bg-ui-01 text-text-primary text-sm min-w-[170px] transition-colors duration-fast"
         >
           {MODELS.map((model) => (
             <option key={model.name} value={model.name}>
@@ -50,8 +50,8 @@ export default function ModelSelector({ value, onChange, showPort = true, hideLa
           ))}
         </select>
         {showPort && (
-          <span className="text-xs text-ibm-gray-70 whitespace-nowrap">
-            Puerto: <span className="font-semibold text-ibm-gray-90">{selected.port}</span>
+          <span className="text-caption text-text-secondary whitespace-nowrap">
+            Puerto: <span className="font-medium text-text-primary">{selected.port}</span>
           </span>
         )}
       </div>

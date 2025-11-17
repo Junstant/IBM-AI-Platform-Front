@@ -288,23 +288,23 @@ const TextToSQLPageContent = () => {
   };
 
   return (
-    <div className="p-6 bg-ibm-gray-10 min-h-screen">
+    <div className="space-y-05">
       {/* Header */}
-      <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+      <div className="bg-ui-02 border border-ui-03 mb-05 p-06">
+        <div className="flex items-center justify-between mb-05">
+          <div className="flex items-center space-x-04">
+            <div className="w-10 h-10 bg-success flex items-center justify-center">
               <Database className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-ibm-gray-90">Texto a SQL - Multi-Modelo</h1>
-              <p className="text-ibm-gray-70">Convierte preguntas en lenguaje natural a consultas SQL usando diferentes modelos y bases de datos</p>
+              <h1 className="text-productive-heading-04 text-text-primary">Texto a SQL - Multi-Modelo</h1>
+              <p className="text-body-long text-text-secondary">Convierte preguntas en lenguaje natural a consultas SQL usando diferentes modelos y bases de datos</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-03">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition-colors"
+              className="flex items-center space-x-02 h-8 px-04 py-02 bg-success text-white hover:bg-[#198038] transition-colors text-label"
             >
               <Settings className="w-4 h-4" />
               <span>Configuración</span>
@@ -315,58 +315,58 @@ const TextToSQLPageContent = () => {
 
       {/* Configuración */}
       {showSettings && (
-        <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
+        <div className="bg-ui-02 border border-ui-03 mb-05 p-06">
           <h3 className="text-lg font-semibold mb-4">Configuración de Runtime</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-semibold mb-3">Configuración de Base de Datos</h4>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Host</label>
+                  <label className="block text-label text-text-primary mb-1">Host</label>
                   <input
                     type="text"
                     value={dbConfig.host}
                     onChange={(e) => setDbConfig((prev) => ({ ...prev, host: e.target.value }))}
-                    className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                    className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Port</label>
+                    <label className="block text-label text-text-primary mb-1">Port</label>
                     <input
                       type="text"
                       value={dbConfig.port}
                       onChange={(e) => setDbConfig((prev) => ({ ...prev, port: e.target.value }))}
-                      className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                      className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Database</label>
+                    <label className="block text-label text-text-primary mb-1">Database</label>
                     <input
                       type="text"
                       value={dbConfig.database}
                       onChange={(e) => setDbConfig((prev) => ({ ...prev, database: e.target.value }))}
-                      className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                      className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Username</label>
+                    <label className="block text-label text-text-primary mb-1">Username</label>
                     <input
                       type="text"
                       value={dbConfig.username}
                       onChange={(e) => setDbConfig((prev) => ({ ...prev, username: e.target.value }))}
-                      className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                      className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Password</label>
+                    <label className="block text-label text-text-primary mb-1">Password</label>
                     <input
                       type="password"
                       value={dbConfig.password}
                       onChange={(e) => setDbConfig((prev) => ({ ...prev, password: e.target.value }))}
-                      className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                      className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                     />
                   </div>
                 </div>
@@ -375,15 +375,15 @@ const TextToSQLPageContent = () => {
             <div>
               <h4 className="font-semibold mb-3">Información de Recursos</h4>
               <div className="space-y-3">
-                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                  <div className="text-sm font-medium text-green-800">Modelos Disponibles</div>
-                  <div className="text-sm text-green-600">{availableModels.length} modelos encontrados</div>
+                <div className="p-3 bg-ui-01 border border-success">
+                  <div className="text-label text-success">Modelos Disponibles</div>
+                  <div className="text-caption text-success">{availableModels.length} modelos encontrados</div>
                 </div>
-                <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
-                  <div className="text-sm font-medium text-emerald-800">Bases de Datos</div>
-                  <div className="text-sm text-emerald-600">
+                <div className="p-3 bg-ui-01 border border-success">
+                  <div className="text-label text-success">Bases de Datos</div>
+                  <div className="text-caption text-success">
                     {availableDatabases.length} bases de datos encontradas
-                    {availableDatabases.length > 0 && <div className="mt-1 text-xs">{availableDatabases.reduce((total, db) => total + (db.tables || 0), 0)} tablas en total</div>}
+                    {availableDatabases.length > 0 && <div className="mt-1 text-caption text-text-secondary">{availableDatabases.reduce((total, db) => total + (db.tables || 0), 0)} tablas en total</div>}
                   </div>
                 </div>
               </div>
@@ -393,9 +393,9 @@ const TextToSQLPageContent = () => {
       )}
 
       {/* Discovery y Configuración Principal */}
-      <div className="bg-white rounded-lg mb-4 p-6 shadow-sm border border-ibm-gray-20">
+      <div className="bg-ui-02 mb-4 p-6 border border-ui-03">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-ibm-gray-90">Configuración Principal</h2>
+          <h2 className="text-productive-heading-03 text-text-primary">Configuración Principal</h2>
           
           {/* Indicador de conectividad simple */}
           <SimpleStatus 
@@ -412,7 +412,7 @@ const TextToSQLPageContent = () => {
               <button
                 onClick={handleDiscoverResources}
                 disabled={isDiscovering}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+                className="flex items-center space-x-02 h-10 px-06 py-03 bg-success text-white hover:opacity-90 disabled:opacity-50 transition-colors"
               >
                 {isDiscovering ? (
                   <>
@@ -426,7 +426,7 @@ const TextToSQLPageContent = () => {
                   </>
                 )}
               </button>
-              <span className="text-sm text-ibm-gray-70">Descubre qué bases de datos y modelos LLM están disponibles</span>
+              <span className="text-caption text-text-secondary">Descubre qué bases de datos y modelos LLM están disponibles</span>
             </div>
           </div>
         )}
@@ -437,7 +437,7 @@ const TextToSQLPageContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Selección de Base de Datos */}
               <div>
-                <label className="block text-sm font-medium mb-2">Base de Datos</label>
+                <label className="block text-label text-text-primary mb-2">Base de Datos</label>
                 <select
                   value={selectedDatabase?.id || ""}
                   onChange={(e) => {
@@ -446,7 +446,7 @@ const TextToSQLPageContent = () => {
                     // Limpiar esquema cuando cambie la BD
                     setSchemaData(null);
                   }}
-                  className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                  className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                 >
                   <option value="">-- Selecciona una base de datos --</option>
                   {availableDatabases.map((db) => (
@@ -460,14 +460,14 @@ const TextToSQLPageContent = () => {
 
               {/* Selección de Modelo LLM */}
               <div>
-                <label className="block text-sm font-medium mb-2">Modelo LLM</label>
+                <label className="block text-label text-text-primary mb-2">Modelo LLM</label>
                 <select
                   value={selectedModel?.id || ""}
                   onChange={(e) => {
                     const model = availableModels.find((m) => m.id === e.target.value);
                     setSelectedModel(model);
                   }}
-                  className="w-full px-3 py-2 border border-ibm-gray-30 rounded-lg"
+                  className="w-full h-10 px-04 py-02 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive transition-colors duration-fast"
                 >
                   <option value="">-- Selecciona un modelo --</option>
                   {availableModels.map((model) => (
@@ -482,26 +482,26 @@ const TextToSQLPageContent = () => {
 
             {/* Información detallada de la base de datos seleccionada */}
             {selectedDatabase && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">Base de Datos Seleccionada</h4>
+              <div className="mt-4 p-4 bg-ui-01 border border-success">
+                <h4 className="font-semibold text-success mb-2">Base de Datos Seleccionada</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                   <div>
-                    <span className="font-medium text-green-700">Nombre:</span>
-                    <div className="text-green-600">{selectedDatabase.name}</div>
+                    <span className="font-medium text-success">Nombre:</span>
+                    <div className="text-success">{selectedDatabase.name}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-green-700">Tamaño:</span>
-                    <div className="text-green-600">{selectedDatabase.size || "No disponible"}</div>
+                    <span className="font-medium text-success">Tamaño:</span>
+                    <div className="text-success">{selectedDatabase.size || "No disponible"}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-green-700">Tablas:</span>
-                    <div className="text-green-600">{selectedDatabase.tables || 0} tablas</div>
+                    <span className="font-medium text-success">Tablas:</span>
+                    <div className="text-success">{selectedDatabase.tables || 0} tablas</div>
                   </div>
                 </div>
                 {selectedDatabase.description && (
                   <div className="mt-2 text-sm">
-                    <span className="font-medium text-green-700">Descripción:</span>
-                    <div className="text-green-600">{selectedDatabase.description}</div>
+                    <span className="font-medium text-success">Descripción:</span>
+                    <div className="text-success">{selectedDatabase.description}</div>
                   </div>
                 )}
               </div>
@@ -523,7 +523,7 @@ const TextToSQLPageContent = () => {
                 setError(null);
                 setSchemaData(null);
               }}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="flex items-center space-x-02 h-8 px-04 py-02 bg-carbon-gray-70 text-white hover:bg-carbon-gray-80 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Nuevo Discovery</span>
@@ -534,7 +534,7 @@ const TextToSQLPageContent = () => {
               <button
                 onClick={handleToggleSchemaModal}
                 disabled={isLoadingSchema}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-success text-white hover:opacity-90 disabled:opacity-50 transition-colors"
               >
                 {isLoadingSchema ? (
                   <>
@@ -568,9 +568,9 @@ const TextToSQLPageContent = () => {
                   onClick={() => {
                     setQuestion(q);
                   }}
-                  className="text-left px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-colors"
+                  className="text-left px-4 py-3 bg-ui-01 border border-success hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-colors"
                 >
-                  <div className="text-sm text-green-800 font-medium">{q}</div>
+                  <div className="text-sm text-success font-medium">{q}</div>
                 </button>
               ))}
             </div>
@@ -580,29 +580,29 @@ const TextToSQLPageContent = () => {
 
       {/* Input principal para preguntas */}
       {selectedDatabase && selectedModel && (
-        <div className="relative bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
-          <h2 className="text-xl font-bold text-ibm-gray-90 mb-4">Haz tu Pregunta</h2>
+        <div className="relative bg-ui-02 p-6 border border-ui-03">
+          <h2 className="text-productive-heading-03 text-text-primary mb-4">Haz tu Pregunta</h2>
 
           {/* Loader global cuando está procesando */}
           {isLoading && (
-            <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-ui-02 bg-opacity-95 flex items-center justify-center z-10">
               <div className="text-center space-y-4">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
+                  <div className="w-16 h-16 border-4 border-success border-t-green-500 animate-spin mx-auto"></div>
                   <div
-                    className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                    className="w-12 h-12 border-4 border-success border-t-emerald-500 animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
                     style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
                   ></div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-semibold text-green-700 animate-pulse">🤖 Procesando tu consulta</p>
-                  <p className="text-sm text-green-600">El modelo {selectedModel.name} está analizando tu pregunta...</p>
+                  <p className="text-lg font-semibold text-success animate-pulse">🤖 Procesando tu consulta</p>
+                  <p className="text-caption text-success">El modelo {selectedModel.name} está analizando tu pregunta...</p>
                   <div className="flex justify-center space-x-1 mt-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: "0s" }}></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: "0.8s" }}></div>
+                    <div className="w-2 h-2 bg-ui-010 animate-pulse" style={{ animationDelay: "0s" }}></div>
+                    <div className="w-2 h-2 bg-success animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="w-2 h-2 bg-teal-500 animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+                    <div className="w-2 h-2 bg-ui-010 animate-pulse" style={{ animationDelay: "0.6s" }}></div>
+                    <div className="w-2 h-2 bg-success animate-pulse" style={{ animationDelay: "0.8s" }}></div>
                   </div>
                 </div>
               </div>
@@ -611,7 +611,7 @@ const TextToSQLPageContent = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-ibm-gray-90 mb-2">
+              <label className="block text-label text-text-primary text-text-primary mb-2">
                 Escribe tu pregunta en español sobre la base de datos "{selectedDatabase.name}" usando el modelo "{selectedModel.name}"
               </label>
               <div className="flex space-x-3">
@@ -620,20 +620,20 @@ const TextToSQLPageContent = () => {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="Ej: ¿Cuántos clientes tenemos con saldo mayor a 50,000?"
-                  className="flex-1 px-4 py-3 border border-ibm-gray-30 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="flex-1 px-4 py-3 border border-ui-04 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   onKeyPress={(e) => e.key === "Enter" && handleAskQuestion()}
                 />
                 <button
                   onClick={handleAskQuestion}
                   disabled={!question.trim() || isLoading}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                  className="flex items-center space-x-02 h-10 px-06 py-03 bg-success text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                        <div className="w-2 h-2 bg-ui-02 animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                        <div className="w-2 h-2 bg-ui-02 animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                        <div className="w-2 h-2 bg-ui-02 animate-bounce" style={{ animationDelay: "300ms" }}></div>
                       </div>
                     </div>
                   ) : (
@@ -646,7 +646,7 @@ const TextToSQLPageContent = () => {
 
             {/* Error */}
             {error && (
-              <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                 <div className="flex-1">
                   <h4 className="font-semibold text-red-800">Error en la consulta</h4>
@@ -660,18 +660,18 @@ const TextToSQLPageContent = () => {
 
       {/* Mensaje cuando no está todo configurado */}
       {discoveryComplete && (!selectedDatabase || !selectedModel) && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-ibm-gray-20">
+        <div className="bg-ui-02 p-6 border border-ui-03">
           <div className="text-center py-8">
             <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-ibm-gray-90 mb-2">Configuración Incompleta</h3>
-            <p className="text-ibm-gray-70 mb-4">Para comenzar a hacer preguntas, completa estos pasos:</p>
+            <h3 className="text-lg font-semibold text-text-primary mb-2">Configuración Incompleta</h3>
+            <p className="text-text-secondary mb-4">Para comenzar a hacer preguntas, completa estos pasos:</p>
             <div className="space-y-2 text-left max-w-md mx-auto">
-              <div className={`flex items-center space-x-2 ${selectedDatabase ? "text-green-600" : "text-gray-500"}`}>
-                <div className={`w-2 h-2 rounded-full ${selectedDatabase ? "bg-green-500" : "bg-gray-300"}`}></div>
+              <div className={`flex items-center space-x-2 ${selectedDatabase ? "text-success" : "text-gray-500"}`}>
+                <div className={`w-2 h-2 ${selectedDatabase ? "bg-ui-010" : "bg-gray-300"}`}></div>
                 <span>Seleccionar una base de datos ({availableDatabases.length} disponibles)</span>
               </div>
-              <div className={`flex items-center space-x-2 ${selectedModel ? "text-green-600" : "text-gray-500"}`}>
-                <div className={`w-2 h-2 rounded-full ${selectedModel ? "bg-green-500" : "bg-gray-300"}`}></div>
+              <div className={`flex items-center space-x-2 ${selectedModel ? "text-success" : "text-gray-500"}`}>
+                <div className={`w-2 h-2 ${selectedModel ? "bg-ui-010" : "bg-gray-300"}`}></div>
                 <span>Seleccionar un modelo LLM ({availableModels.length} disponibles)</span>
               </div>
             </div>
@@ -681,28 +681,28 @@ const TextToSQLPageContent = () => {
 
       {/* Loader para pantalla completa */}
       {isLoadingFullscreen && (
-        <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-ui-02 flex items-center justify-center">
           <div className="text-center">
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto"></div>
+              <div className="w-20 h-20 border-4 border-success border-t-green-500 animate-spin mx-auto"></div>
               <div
-                className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
+                className="w-16 h-16 border-4 border-success border-t-emerald-500 animate-spin absolute top-2 left-1/2 transform -translate-x-1/2"
                 style={{ animationDirection: "reverse", animationDuration: "1.2s" }}
               ></div>
               <div
-                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
+                className="w-12 h-12 border-4 border-teal-200 border-t-teal-500 animate-spin absolute top-4 left-1/2 transform -translate-x-1/2"
                 style={{ animationDuration: "0.8s" }}
               ></div>
             </div>
             <div className="space-y-3">
-              <p className="text-2xl font-bold text-green-600 animate-pulse">🚀 Activando Modo Pantalla Completa</p>
-              <p className="text-lg text-green-600">Preparando la vista optimizada para tus datos...</p>
+              <p className="text-2xl font-bold text-success animate-pulse">🚀 Activando Modo Pantalla Completa</p>
+              <p className="text-lg text-success">Preparando la vista optimizada para tus datos...</p>
               <div className="flex justify-center space-x-2 mt-4">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
-                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-3 h-3 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></div>
-                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+                <div className="w-3 h-3 bg-ui-010 animate-bounce" style={{ animationDelay: "0s" }}></div>
+                <div className="w-3 h-3 bg-success animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-teal-500 animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-3 h-3 bg-ui-010 animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+                <div className="w-3 h-3 bg-success animate-bounce" style={{ animationDelay: "0.4s" }}></div>
               </div>
             </div>
           </div>
@@ -711,19 +711,19 @@ const TextToSQLPageContent = () => {
 
       {/* Resultados de la consulta */}
       {results && (
-        <div className={`bg-white rounded-lg mt-4 p-6 shadow-sm border border-ibm-gray-20 ${isResultsFullscreen ? "fixed inset-0 z-50 overflow-auto bg-white" : ""}`}>
+        <div className={`bg-ui-02 mt-4 p-6 border border-ui-03 ${isResultsFullscreen ? "fixed inset-0 z-50 overflow-auto bg-ui-02" : ""}`}>
           {!isResultsFullscreen && (
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-ibm-gray-90">Resultados</h2>
+              <h2 className="text-productive-heading-03 text-text-primary">Resultados</h2>
             </div>
           )}
 
           {isResultsFullscreen && (
-            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 border-b border-gray-200 pb-4">
-              <h2 className="text-xl font-bold text-ibm-gray-90">Resultados - Pantalla Completa</h2>
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-ui-02 z-10 border-b border-gray-200 pb-4">
+              <h2 className="text-productive-heading-03 text-text-primary">Resultados - Pantalla Completa</h2>
               <button
                 onClick={() => setIsResultsFullscreen(false)}
-                className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:opacity-90 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90 transition-colors"
               >
                 <EyeOff className="w-4 h-4" />
                 <span>Cerrar Pantalla Completa</span>
@@ -734,15 +734,15 @@ const TextToSQLPageContent = () => {
           {/* Información de la consulta - Solo en modo normal */}
           {!isResultsFullscreen && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                <div className="text-sm font-medium text-green-800">Base de Datos</div>
-                <div className="text-sm text-green-600">{results.database_used}</div>
+              <div className="p-3 bg-ui-01 border border-success">
+                <div className="text-label text-success">Base de Datos</div>
+                <div className="text-caption text-success">{results.database_used}</div>
               </div>
-              <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
-                <div className="text-sm font-medium text-emerald-800">Modelo LLM</div>
-                <div className="text-sm text-emerald-600">{results.model_used}</div>
+              <div className="p-3 bg-ui-01 border border-success">
+                <div className="text-label text-success">Modelo LLM</div>
+                <div className="text-caption text-success">{results.model_used}</div>
               </div>
-              <div className="p-3 bg-gradient-to-r from-teal-50 to-green-50 border border-teal-200 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-teal-50 to-green-50 border border-teal-200">
                 <div className="text-sm font-medium text-teal-800">Timestamp</div>
                 <div className="text-sm text-teal-600">{results.timestamp}</div>
               </div>
@@ -751,28 +751,28 @@ const TextToSQLPageContent = () => {
 
           {/* Respuesta cruda del LLM - Solo en modo normal */}
           {!isResultsFullscreen && rawLLMResponse && (
-            <div className="p-4 bg-gray-50 rounded-lg mb-4">
+            <div className="p-4 bg-gray-50 mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-gray-800">Query SQL Generada</h4>
                 <button
                   onClick={() => copyToClipboard(rawLLMResponse)}
-                  className="flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded hover:opacity-90 transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1 bg-success text-white hover:opacity-90 transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                   <span className="text-sm">Copiar</span>
                 </button>
               </div>
-              <pre className="text-sm bg-white p-3 rounded border overflow-x-auto">{rawLLMResponse}</pre>
+              <pre className="text-sm bg-ui-02 p-3 rounded border overflow-x-auto">{rawLLMResponse}</pre>
             </div>
           )}
 
           {/* Explicación - Solo en modo normal */}
           {!isResultsFullscreen && (
-            <div className="flex items-center space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+            <div className="flex items-center space-x-3 p-4 bg-ui-01 border border-success mb-4">
               <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
               <div className="flex-1">
-                <h4 className="font-semibold text-green-800">Explicación</h4>
-                <p className="text-green-700 mt-1">{results.explanation}</p>
+                <h4 className="font-semibold text-success">Explicación</h4>
+                <p className="text-success mt-1">{results.explanation}</p>
               </div>
             </div>
           )}
@@ -783,7 +783,7 @@ const TextToSQLPageContent = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={() => downloadToExcel(results, "sql_query_results")}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-success text-white hover:opacity-90 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   <span>Descargar Excel</span>
@@ -797,7 +797,7 @@ const TextToSQLPageContent = () => {
                     }, 300);
                   }}
                   disabled={isLoadingFullscreen}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
+                  className="flex items-center space-x-02 h-8 px-04 py-02 bg-carbon-gray-70 text-white hover:opacity-90 disabled:opacity-50 transition-colors"
                 >
                   {isLoadingFullscreen ? (
                     <>
@@ -827,27 +827,27 @@ const TextToSQLPageContent = () => {
               const showingCount = isResultsFullscreen ? currentItems.length : Math.min(15, totalItems);
 
               return (
-                <div className={`border border-gray-200 rounded-lg ${isResultsFullscreen ? "h-full overflow-auto" : "overflow-x-auto"}`}>
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-green-50 to-emerald-50 sticky top-0">
+                <div className={`border border-ui-03 ${isResultsFullscreen ? "h-full overflow-auto" : "overflow-x-auto"}`}>
+                  <table className="min-w-full divide-y divide-ui-03">
+                    <thead className="bg-ui-01 sticky top-0">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">#ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-success uppercase tracking-wider border-b border-success">#ID</th>
                         {Object.keys(results.results[0]).map((key) => (
-                          <th key={key} className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider border-b border-green-200">
+                          <th key={key} className="px-6 py-3 text-left text-xs font-medium text-success uppercase tracking-wider border-b border-success">
                             {key}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-ui-02 divide-y divide-ui-03">
                       {currentItems.map((row, index) => {
                         const globalIndex = isResultsFullscreen ? startIndex + index + 1 : index + 1;
                         return (
-                          <tr key={globalIndex} className="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">{globalIndex}</td>
+                          <tr key={globalIndex} className="hover:bg-ui-background transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success">{globalIndex}</td>
                             {Object.values(row).map((value, cellIndex) => (
-                              <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {value !== null ? String(value) : <span className="text-gray-400 italic">NULL</span>}
+                              <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
+                                {value !== null ? String(value) : <span className="text-text-secondary italic">NULL</span>}
                               </td>
                             ))}
                           </tr>
@@ -858,39 +858,39 @@ const TextToSQLPageContent = () => {
 
                   {/* Paginación y controles */}
                   {!isResultsFullscreen && results.results.length > 15 && (
-                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-success text-center border-t border-success">
                       Mostrando {showingCount} de {totalItems} resultados - Usa pantalla completa para ver todos
                     </div>
                   )}
 
                   {isResultsFullscreen && totalPages > 1 && (
-                    <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
+                    <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-success">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm text-green-700">
+                        <div className="text-sm text-success">
                           Mostrando {startIndex + 1} - {endIndex} de {totalItems} resultados (Página {currentPage} de {totalPages})
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-3 py-2 text-sm bg-ui-02 border border-green-300 text-success hover:bg-ui-01 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             Anterior
                           </button>
-                          <span className="px-3 py-2 text-sm text-green-700 bg-white border border-green-300 rounded-lg">
+                          <span className="px-3 py-2 text-sm text-success bg-ui-02 border border-green-300">
                             {currentPage} / {totalPages}
                           </span>
                           <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-3 py-2 text-sm bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-3 py-2 text-sm bg-ui-02 border border-green-300 text-success hover:bg-ui-01 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             Siguiente
                           </button>
                           <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-2 text-sm bg-success text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             Cargar Próximos 10,000
                           </button>
@@ -900,7 +900,7 @@ const TextToSQLPageContent = () => {
                   )}
 
                   {isResultsFullscreen && totalPages === 1 && (
-                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-green-700 text-center border-t border-green-200">
+                    <div className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-sm text-success text-center border-t border-success">
                       Mostrando todos los {totalItems} resultados
                     </div>
                   )}
@@ -914,12 +914,12 @@ const TextToSQLPageContent = () => {
       {showSchemaModal && (
         <div className="fixed inset-0 z-50 gap-4 flex items-start justify-center p-6">
           <div className="bg-black bg-opacity-40 absolute inset-0" onClick={handleToggleSchemaModal} />
-          <div className="bg-white rounded-lg shadow-lg z-50 max-w-7xl w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-ui-02 shadow-lg z-50 max-w-7xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold">Esquema de Base de Datos: {selectedDatabase?.name}</h3>
               <div className="flex items-center space-x-3">
-                <div className="text-sm text-green-600">{schemaData?.schema ? Object.keys(schemaData.schema.tables).length : 0} tablas</div>
-                <button onClick={handleToggleSchemaModal} className="px-3 py-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded hover:opacity-90 transition-colors">
+                <div className="text-caption text-success">{schemaData?.schema ? Object.keys(schemaData.schema.tables).length : 0} tablas</div>
+                <button onClick={handleToggleSchemaModal} className="h-8 px-04 py-02 bg-success text-white hover:opacity-90 transition-colors">
                   Cerrar
                 </button>
               </div>
@@ -933,26 +933,26 @@ const TextToSQLPageContent = () => {
             ) : schemaData && schemaData.schema ? (
               <div className="space-y-4">
                 {/* Información general */}
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">Base de Datos: {schemaData.database_id}</h4>
+                <div className="bg-ui-01 p-4 border border-success">
+                  <h4 className="font-semibold text-success mb-2">Base de Datos: {schemaData.database_id}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-green-700">Tablas:</span>
-                      <div className="text-green-600">{Object.keys(schemaData.schema.tables).length}</div>
+                      <span className="font-medium text-success">Tablas:</span>
+                      <div className="text-success">{Object.keys(schemaData.schema.tables).length}</div>
                     </div>
                     <div>
-                      <span className="font-medium text-green-700">Relaciones:</span>
-                      <div className="text-green-600">{schemaData.schema.relationships?.length || 0}</div>
+                      <span className="font-medium text-success">Relaciones:</span>
+                      <div className="text-success">{schemaData.schema.relationships?.length || 0}</div>
                     </div>
                     <div>
-                      <span className="font-medium text-green-700">Columnas totales:</span>
-                      <div className="text-green-600">{Object.values(schemaData.schema.tables).reduce((total, table) => total + table.columns.length, 0)}</div>
+                      <span className="font-medium text-success">Columnas totales:</span>
+                      <div className="text-success">{Object.values(schemaData.schema.tables).reduce((total, table) => total + table.columns.length, 0)}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Vista interactiva con ReactFlow */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="bg-gray-50 p-4 border border-ui-03">
                   <h4 className="font-semibold text-gray-800 mb-3">Vista Interactiva del Esquema</h4>
                   <DatabaseSchemaFlow schemaData={schemaData} />
                   <div className="mt-3 text-sm text-gray-600">
@@ -976,3 +976,10 @@ const TextToSQLPage = () => {
 };
 
 export default TextToSQLPage;
+
+
+
+
+
+
+
