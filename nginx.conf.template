@@ -74,11 +74,6 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    location /proxy/${DEEPSEEK_14B_PORT}/ {
-        proxy_pass http://deepseek-14b:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
 
     # --- REGLA PARA LA APLICACIÓN SPA ---
     location / {
