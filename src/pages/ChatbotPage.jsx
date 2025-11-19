@@ -125,10 +125,13 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
-    // Procesar el stream
+    // Procesar el stream con medición de tokens/segundo
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullText = "";
+    let tokenCount = 0;
+    const startTime = performance.now();
+    let firstTokenTime = null;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -148,9 +151,21 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
             
             if (content) {
               fullText += content;
-              // Llamar al callback para actualizar el UI
+              tokenCount++;
+              
+              // Marcar tiempo del primer token
+              if (!firstTokenTime) {
+                firstTokenTime = performance.now();
+              }
+              
+              // Calcular tokens/segundo
+              const currentTime = performance.now();
+              const elapsedSeconds = (currentTime - (firstTokenTime || startTime)) / 1000;
+              const tokensPerSecond = elapsedSeconds > 0 ? (tokenCount / elapsedSeconds).toFixed(1) : 0;
+              
+              // Llamar al callback para actualizar el UI con tokens/s
               if (onStreamUpdate) {
-                onStreamUpdate(fullText);
+                onStreamUpdate(fullText, tokensPerSecond, tokenCount);
               }
             }
           } catch {
@@ -203,6 +218,8 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
       timestamp: new Date(),
       model: selectedModel.name,
       isStreaming: true,
+      tokensPerSecond: 0,
+      totalTokens: 0,
     };
 
     // Agregar el mensaje del bot vacío
@@ -211,12 +228,12 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
 
     try {
       // Enviar mensaje a llama.cpp server con historial completo y streaming
-      await sendToLlamaServer(currentMessage, selectedModel, messages, (streamedText) => {
-        // Actualizar el mensaje del bot con el texto que va llegando
+      await sendToLlamaServer(currentMessage, selectedModel, messages, (streamedText, tokensPerSecond, totalTokens) => {
+        // Actualizar el mensaje del bot con el texto que va llegando y métricas
         setMessages((prev) => 
           prev.map((msg) => 
             msg.id === botMessageId 
-              ? { ...msg, text: streamedText }
+              ? { ...msg, text: streamedText, tokensPerSecond, totalTokens }
               : msg
           )
         );
@@ -423,10 +440,20 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
                       <span className="inline-block w-2 h-4 bg-interactive ml-1 animate-pulse"></span>
                     )}
 
-                    <div className="flex items-center text-xs mt-2">
+                    <div className="flex items-center flex-wrap text-xs mt-2 gap-2">
                       <p className={`text-xs ${message.sender === "user" ? "text-white opacity-80" : message.isError ? "text-danger" : "text-secondary"}`}>{message.timestamp.toLocaleTimeString()}</p>
-                      {message.model && <p className="text-xs text-white bg-interactive ml-2 px-2 py-1">{message.model}</p>}
-                      {message.isStreaming && <span className="text-xs text-text-secondary ml-2 italic">escribiendo...</span>}
+                      {message.model && <p className="text-xs text-white bg-interactive px-2 py-1">{message.model}</p>}
+                      {message.isStreaming && <span className="text-xs text-text-secondary italic">escribiendo...</span>}
+                      {message.sender === "bot" && message.tokensPerSecond > 0 && (
+                        <span className="text-xs bg-success text-white px-2 py-1 font-semibold">
+                          {message.tokensPerSecond} tok/s
+                        </span>
+                      )}
+                      {message.sender === "bot" && message.totalTokens > 0 && !message.isStreaming && (
+                        <span className="text-xs bg-ui-03 text-text-secondary px-2 py-1">
+                          {message.totalTokens} tokens
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
