@@ -69,8 +69,6 @@ const TextToSQLPageContent = () => {
         { id: "gemma-12b", name: "Gemma 12B", port: "8087", description: "Modelo de alta capacidad" },
         { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
         { id: "deepseek-8b", name: "DeepSeek 8B", port: "8089", description: "Equilibrado" },
-        { id: "deepseek-14b", name: "DeepSeek 14B", port: "8090", description: "Alta capacidad" },
-        { id: "granite", name: "IBM Granite", port: "8095", description: "Especializado en código" },
       ];
       setAvailableModels(fallbackModels);
       return fallbackModels;

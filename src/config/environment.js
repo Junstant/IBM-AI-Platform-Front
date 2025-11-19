@@ -32,10 +32,6 @@ const config = {
     gemma12b: import.meta.env.VITE_GEMMA_12B_PORT || "",
     mistral: import.meta.env.VITE_MISTRAL_PORT || "",
     deepseek8b: import.meta.env.VITE_DEEPSEEK_8B_PORT || "",
-    deepseek14b: import.meta.env.VITE_DEEPSEEK_14B_PORT || "",
-    // Puertos legacy para compatibilidad
-    granite: import.meta.env.VITE_GRANITE_PORT || "",
-    deepseek1_5b: import.meta.env.VITE_DEEPSEEK1_5B_PORT || "",
   },
 
   // Configuración de Machine Learning (usa la nueva API de fraude)
