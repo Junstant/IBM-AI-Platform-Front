@@ -37,7 +37,7 @@ const Sidebar = () => {
               <div className="w-8 h-8 bg-gradient-ibm rounded-lg flex items-center justify-center">
                 <img src={imblogo} alt="IBM Logo" className="rounded-sm" />
               </div>
-              <h1 className="text-lg font-semibold text-ibm-gray-10">IBM AI Platform</h1>
+              <h1 className="text-lg font-semibold text-ibm-gray-10">Hola jorge</h1>
             </div>
           )}
           <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1.5 rounded-lg hover:bg-ibm-gray-20 transition-colors">
