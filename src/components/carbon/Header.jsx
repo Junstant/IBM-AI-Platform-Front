@@ -16,7 +16,7 @@ const Header = ({ onMenuClick }) => {
         </button>
 
         <Link to="/" className="flex items-center space-x-02 text-white hover:text-carbon-blue-40 transition-colors duration-fast">
-          <span className="text-productive-heading-02 font-medium">IBM AI Platform</span>
+          <span className="text-productive-heading-02 font-medium">Hola jorge</span>
         </Link>
       </div>
 
