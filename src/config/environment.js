@@ -54,7 +54,7 @@ const config = {
   // ✅ Configuración para RAG API
   rag: {
     apiPort: import.meta.env.VITE_RAG_API_PORT || "8004",
-    baseUrl: "/api/rag" // Ruta relativa al proxy nginx
+    baseUrl: "/api/rag"
   },
 };
 
