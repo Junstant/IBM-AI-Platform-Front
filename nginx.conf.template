@@ -32,13 +32,7 @@ server {
 
     # --- PROXY PARA RAG API ---
     location /api/rag/ {
-        # ✅ Resolver DNS de Docker para resolución dinámica
-        resolver 127.0.0.11 valid=30s ipv6=off;
-        set $rag_backend "http://${RAG_API_HOST}:${RAG_API_PORT}";
-        # ✅ IMPORTANTE: rewrite para eliminar /api/rag/ y dejar solo /health, /upload, etc.
-        rewrite ^/api/rag/(.*) /$1 break;
-        proxy_pass $rag_backend;
-        
+        proxy_pass http://${RAG_API_HOST}:${RAG_API_PORT}/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -49,10 +43,6 @@ server {
         proxy_request_buffering off;
         proxy_http_version 1.1;
         proxy_buffering off;
-        
-        # Manejo de errores cuando RAG no está disponible
-        proxy_intercept_errors on;
-        error_page 502 503 504 = @rag_unavailable;
     }
 
     # --- PROXY PARA STATS API ---
@@ -103,12 +93,6 @@ server {
         proxy_pass http://deepseek-8b:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # --- ERROR HANDLER PARA RAG API ---
-    location @rag_unavailable {
-        default_type application/json;
-        return 503 '{"error": "RAG service temporarily unavailable", "status": 503, "message": "The document analysis service is not running. Please contact the administrator."}';
     }
 
     # --- REGLA PARA LA APLICACIÓN SPA ---
