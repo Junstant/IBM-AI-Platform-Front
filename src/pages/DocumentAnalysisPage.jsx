@@ -128,7 +128,11 @@ const DocumentAnalysisPage = () => {
       const response = await fetch('/api/rag/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: query }),
+        // ✅ FIX: Cambiar "question" por "query" para coincidir con el backend
+        body: JSON.stringify({ 
+          query: query,
+          top_k: 3
+        }),
       });
 
       if (!response.ok) {
@@ -187,7 +191,7 @@ const DocumentAnalysisPage = () => {
             </div>
             <div>
               <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG</h1>
-              <p className="text-body-long text-text-secondary">Retrieval-Augmented Generation con pgvector y Gemma-2B</p>
+              <p className="text-body-long text-text-secondary">Retrieval-Augmented Generation con Búsqueda de Texto y Gemma-2B</p>
             </div>
           </div>
           <SimpleStatus url="/api/rag/health" name="RAG Service" />
@@ -195,7 +199,7 @@ const DocumentAnalysisPage = () => {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-04 mb-04">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-04 mb-04">
             <div className="bg-ui-01 border border-ui-03 p-04">
               <div className="flex items-center space-x-02 mb-02">
                 <FileText className="w-4 h-4 text-interactive" />
@@ -206,23 +210,16 @@ const DocumentAnalysisPage = () => {
             <div className="bg-ui-01 border border-ui-03 p-04">
               <div className="flex items-center space-x-02 mb-02">
                 <Database className="w-4 h-4 text-success" />
-                <p className="text-caption text-text-secondary">Chunks Vectoriales</p>
+                <p className="text-caption text-text-secondary">Chunks</p>
               </div>
               <p className="text-productive-heading-03 text-text-primary">{stats.total_chunks}</p>
             </div>
             <div className="bg-ui-01 border border-ui-03 p-04">
               <div className="flex items-center space-x-02 mb-02">
-                <Zap className="w-4 h-4 text-warning" />
-                <p className="text-caption text-text-secondary">Dimensiones</p>
-              </div>
-              <p className="text-productive-heading-03 text-text-primary">384</p>
-            </div>
-            <div className="bg-ui-01 border border-ui-03 p-04">
-              <div className="flex items-center space-x-02 mb-02">
                 <CheckCircle className="w-4 h-4 text-success" />
-                <p className="text-caption text-text-secondary">Modelo</p>
+                <p className="text-caption text-text-secondary">Modelo LLM</p>
               </div>
-              <p className="text-label text-text-primary">MiniLM-L12-v2</p>
+              <p className="text-label text-text-primary">Gemma-2B</p>
             </div>
           </div>
         )}
@@ -335,11 +332,13 @@ const DocumentAnalysisPage = () => {
                       <div key={idx} className="bg-ui-02 border border-ui-03 p-03">
                         <div className="flex items-center justify-between mb-01">
                           <p className="text-label font-medium text-text-primary">{source.filename}</p>
-                          <span className="text-caption text-text-secondary">
-                            Similitud: {(source.similarity * 100).toFixed(1)}%
-                          </span>
+                          {source.rank !== undefined && (
+                            <span className="text-caption text-text-secondary">
+                              Relevancia: {source.rank.toFixed(2)}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-caption text-text-secondary line-clamp-2">{source.content}</p>
+                        <p className="text-caption text-text-secondary line-clamp-3">{source.content}</p>
                       </div>
                     ))}
                   </div>
@@ -348,9 +347,9 @@ const DocumentAnalysisPage = () => {
 
               {queryResult.query_time && (
                 <div className="flex items-center space-x-04 text-caption text-text-secondary">
-                  <span>Tiempo de consulta: {queryResult.query_time.toFixed(2)}s</span>
-                  {queryResult.chunks_found && (
-                    <span>Chunks encontrados: {queryResult.chunks_found}</span>
+                  <span>⚡ Tiempo: {queryResult.query_time.toFixed(2)}s</span>
+                  {queryResult.sources && (
+                    <span>📚 {queryResult.sources.length} fuentes consultadas</span>
                   )}
                 </div>
               )}
@@ -374,7 +373,7 @@ const DocumentAnalysisPage = () => {
                       <div className="flex items-center space-x-04 text-caption text-text-secondary mt-01">
                         <span>{formatFileSize(doc.file_size)}</span>
                         <span>•</span>
-                        <span>{doc.chunks_count} chunks</span>
+                        <span>{doc.total_chunks} chunks</span>
                         <span>•</span>
                         <span>{new Date(doc.uploaded_at).toLocaleString()}</span>
                       </div>
@@ -404,7 +403,7 @@ const DocumentAnalysisPage = () => {
             Base de conocimiento vacía
           </h3>
           <p className="text-body-long text-text-secondary mb-04">
-            Sube documentos para comenzar búsquedas semánticas con RAG
+            Sube documentos para comenzar a hacer preguntas con RAG
           </p>
         </div>
       )}
