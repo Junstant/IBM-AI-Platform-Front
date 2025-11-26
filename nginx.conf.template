@@ -35,6 +35,8 @@ server {
         # ✅ Resolver DNS de Docker para resolución dinámica
         resolver 127.0.0.11 valid=30s ipv6=off;
         set $rag_backend "http://${RAG_API_HOST}:${RAG_API_PORT}";
+        # ✅ IMPORTANTE: rewrite para eliminar /api/rag/ y dejar solo /health, /upload, etc.
+        rewrite ^/api/rag/(.*) /$1 break;
         proxy_pass $rag_backend;
         
         proxy_set_header Host $host;
