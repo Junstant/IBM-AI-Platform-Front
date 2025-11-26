@@ -83,8 +83,8 @@ const DashboardPage = () => {
       path: "/image-generator",
     },
     {
-      title: "Análisis de Documentos",
-      description: "Extrae información de documentos con IA",
+      title: "Análisis de Documentos RAG",
+      description: "Búsqueda semántica con Milvus + Embeddings vectoriales",
       icon: FileText,
       color: "carbon-gray-70",
       path: "/document-analysis",

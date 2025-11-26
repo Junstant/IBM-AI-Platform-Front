@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu } from 'lucide-react';
+import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu, Brain } from 'lucide-react';
 import SimpleStatus from '../components/SimpleStatus';
 
 const DocumentAnalysisPage = () => {
@@ -12,13 +12,14 @@ const DocumentAnalysisPage = () => {
   const [queryResult, setQueryResult] = useState(null);
   const [stats, setStats] = useState(null);
   
-  // ✨ NUEVO: Estados para modelos de embeddings
-  const [availableModels, setAvailableModels] = useState([]);
-  const [selectedModel, setSelectedModel] = useState(null);
+  // ✨ NUEVO: Estados para modelos de embeddings y LLM
+  const [availableEmbeddingModels, setAvailableEmbeddingModels] = useState([]);
+  const [availableLlmModels, setAvailableLlmModels] = useState([]);
+  const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState(null);
+  const [selectedLlmModel, setSelectedLlmModel] = useState(null);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [embeddingsEnabled, setEmbeddingsEnabled] = useState(false);
   const [healthStatus, setHealthStatus] = useState(null);
-  const [generateEmbeddings, setGenerateEmbeddings] = useState(true);
 
   // Cargar documentos, estadísticas y modelos al iniciar
   useEffect(() => {
@@ -27,16 +28,25 @@ const DocumentAnalysisPage = () => {
     fetchAvailableModels();
     fetchHealthStatus();
     
-    // ✨ Cargar modelo guardado del localStorage
-    const savedModel = localStorage.getItem('rag_selected_model');
-    if (savedModel) {
+    // ✨ Cargar modelos guardados del localStorage
+    const savedEmbedding = localStorage.getItem('rag_embedding_model');
+    const savedLlm = localStorage.getItem('rag_llm_model');
+    
+    if (savedEmbedding) {
       try {
-        setSelectedModel(JSON.parse(savedModel));
+        setSelectedEmbeddingModel(JSON.parse(savedEmbedding));
       } catch (e) {
-        console.error('Error loading saved model:', e);
+        console.error('Error loading saved embedding model:', e);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    if (savedLlm) {
+      try {
+        setSelectedLlmModel(JSON.parse(savedLlm));
+      } catch (e) {
+        console.error('Error loading saved LLM model:', e);
+      }
+    }
   }, []);
 
   const fetchDocuments = async () => {
@@ -63,34 +73,53 @@ const DocumentAnalysisPage = () => {
     }
   };
 
-  // ✨ NUEVO: Obtener modelos de embeddings disponibles
+  // ✨ NUEVO: Obtener modelos de embeddings y LLM disponibles
   const fetchAvailableModels = async () => {
     setIsLoadingModels(true);
     try {
       const response = await fetch('/api/rag/models');
       if (response.ok) {
         const data = await response.json();
-        setAvailableModels(data.available_models || []);
         
-        // Si hay un modelo actual, seleccionarlo
-        if (data.current_model) {
-          const currentModel = data.available_models.find(m => m.name === data.current_model);
-          if (currentModel && !selectedModel) {
-            setSelectedModel(currentModel);
-            localStorage.setItem('rag_selected_model', JSON.stringify(currentModel));
+        // Modelos de embeddings
+        setAvailableEmbeddingModels(data.embedding_models || []);
+        
+        // Modelos LLM
+        setAvailableLlmModels(data.llm_models || []);
+        
+        // Seleccionar modelos actuales
+        if (data.current) {
+          const currentEmbedding = data.embedding_models?.find(m => m.id === data.current.embedding_model);
+          const currentLlm = data.llm_models?.find(m => m.id === data.current.llm_model);
+          
+          if (currentEmbedding) {
+            setSelectedEmbeddingModel(currentEmbedding);
+            localStorage.setItem('rag_embedding_model', JSON.stringify(currentEmbedding));
+          }
+          
+          if (currentLlm) {
+            setSelectedLlmModel(currentLlm);
+            localStorage.setItem('rag_llm_model', JSON.stringify(currentLlm));
           }
         }
         
-        setEmbeddingsEnabled(data.embeddings_enabled || false);
+        // Embeddings están habilitados si hay modelos disponibles
+        setEmbeddingsEnabled(data.embedding_models && data.embedding_models.length > 0);
       } else {
         // Fallback con modelos por defecto
-        const fallbackModels = [
-          { name: "all-MiniLM-L12-v2", dimensions: 384, description: "Modelo ligero y rápido" },
-          { name: "nomic-embed-text", dimensions: 768, description: "Modelo balanceado" },
+        const fallbackEmbedding = [
+          { id: "nomic-embed-text", name: "Nomic Embed Text", dimensions: 768, description: "Modelo de embeddings optimizado" }
         ];
-        setAvailableModels(fallbackModels);
-        setSelectedModel(fallbackModels[0]);
-        setEmbeddingsEnabled(false);
+        const fallbackLlm = [
+          { id: "gemma-2b", name: "Gemma 2B", description: "Modelo ligero y rápido" },
+          { id: "gemma-4b", name: "Gemma 4B", description: "Modelo balanceado" }
+        ];
+        
+        setAvailableEmbeddingModels(fallbackEmbedding);
+        setAvailableLlmModels(fallbackLlm);
+        setSelectedEmbeddingModel(fallbackEmbedding[0]);
+        setSelectedLlmModel(fallbackLlm[0]);
+        setEmbeddingsEnabled(true);
       }
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -115,26 +144,15 @@ const DocumentAnalysisPage = () => {
   };
 
   // ✨ NUEVO: Cambiar modelo de embeddings
-  const handleChangeModel = async (model) => {
-    setSelectedModel(model);
-    localStorage.setItem('rag_selected_model', JSON.stringify(model));
-    
-    // Intentar cambiar el modelo en el backend
-    try {
-      const response = await fetch('/api/rag/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model_name: model.name }),
-      });
-      
-      if (response.ok) {
-        await fetchHealthStatus(); // Actualizar estado
-        alert(`✓ Modelo cambiado a ${model.name} (${model.dimensions} dims)`);
-      }
-    } catch (error) {
-      console.error('Error changing model:', error);
-      alert('⚠️ Modelo seleccionado localmente. El backend usará el modelo por defecto.');
-    }
+  const handleChangeEmbeddingModel = (model) => {
+    setSelectedEmbeddingModel(model);
+    localStorage.setItem('rag_embedding_model', JSON.stringify(model));
+  };
+
+  // ✨ NUEVO: Cambiar modelo LLM
+  const handleChangeLlmModel = (model) => {
+    setSelectedLlmModel(model);
+    localStorage.setItem('rag_llm_model', JSON.stringify(model));
   };
 
   const handleDrag = (e) => {
@@ -184,11 +202,13 @@ const DocumentAnalysisPage = () => {
         const formData = new FormData();
         formData.append('file', file);
         
-        // ✨ NUEVO: Incluir modelo de embeddings seleccionado
-        if (selectedModel) {
-          formData.append('embedding_model', selectedModel.name);
+        // ✨ NUEVO: Incluir modelos seleccionados (API v2.0)
+        if (selectedEmbeddingModel) {
+          formData.append('embedding_model', selectedEmbeddingModel.id);
         }
-        formData.append('generate_embeddings', generateEmbeddings);
+        if (selectedLlmModel) {
+          formData.append('llm_model', selectedLlmModel.id);
+        }
 
         const response = await fetch('/api/rag/upload', {
           method: 'POST',
@@ -205,12 +225,15 @@ const DocumentAnalysisPage = () => {
         await fetchDocuments();
         await fetchStats();
         
-        // ✨ Mensaje mejorado con info de embeddings
-        const embeddingInfo = generateEmbeddings && selectedModel 
-          ? `\nModelo: ${selectedModel.name} (${selectedModel.dimensions} dims)`
-          : '\nModo: Solo texto (sin embeddings)';
+        // ✨ Mensaje mejorado con info de embeddings (API v2.0 response)
+        const embeddingInfo = selectedEmbeddingModel 
+          ? `\nModelo Embedding: ${selectedEmbeddingModel.name} (${selectedEmbeddingModel.dimensions} dims)`
+          : '';
+        const llmInfo = selectedLlmModel 
+          ? `\nModelo LLM: ${selectedLlmModel.name}`
+          : '';
         
-        alert(`✓ ${file.name} procesado correctamente\n${data.chunks_created} chunks creados${embeddingInfo}`);
+        alert(`✓ ${file.name} procesado correctamente\n${data.total_chunks} chunks creados${embeddingInfo}${llmInfo}`);
       } catch (error) {
         console.error('Error uploading file:', error);
         alert(`Error al subir ${file.name}: ${error.message}`);
@@ -296,8 +319,8 @@ const DocumentAnalysisPage = () => {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG</h1>
-              <p className="text-body-long text-text-secondary">Retrieval-Augmented Generation con Búsqueda Semántica y Gemma-2B</p>
+              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG v2.0</h1>
+              <p className="text-body-long text-text-secondary">Retrieval-Augmented Generation con Milvus (HNSW) + Embeddings + LLM</p>
             </div>
           </div>
           <div className="flex items-center space-x-03">
@@ -312,14 +335,14 @@ const DocumentAnalysisPage = () => {
           </div>
         </div>
 
-        {/* ✨ NUEVO: Banner de estado de embeddings */}
+        {/* ✨ NUEVO: Banner de estado de embeddings (API v2.0 con Milvus) */}
         {healthStatus && !embeddingsEnabled && (
           <div className="mb-04 bg-carbon-yellow-10 border border-carbon-yellow-30 p-04 flex items-center space-x-03">
             <AlertCircle className="w-5 h-5 text-carbon-yellow-50 flex-shrink-0" />
             <div>
               <p className="text-label font-semibold text-text-primary">⚠️ Embeddings deshabilitados - Modo básico activo</p>
               <p className="text-caption text-text-secondary">
-                El sistema está funcionando con búsqueda por texto. Para búsqueda semántica, instala pgvector y configura el servicio de embeddings.
+                El sistema está funcionando con búsqueda por texto. Para búsqueda semántica ultra-rápida, configura Milvus y el servicio de embeddings.
               </p>
             </div>
           </div>
@@ -329,79 +352,96 @@ const DocumentAnalysisPage = () => {
           <div className="mb-04 bg-carbon-green-10 border border-success p-04 flex items-center space-x-03">
             <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-label font-semibold text-text-primary">✅ Sistema completo con búsqueda semántica</p>
+              <p className="text-label font-semibold text-text-primary">✅ Sistema RAG v2.0 con Milvus (HNSW ultra-fast search)</p>
               <p className="text-caption text-text-secondary">
-                Los documentos se procesarán con embeddings vectoriales para búsquedas más inteligentes.
+                Los documentos se procesarán con embeddings vectoriales y búsqueda semántica de alta velocidad (&lt;10ms).
               </p>
             </div>
           </div>
         )}
 
-        {/* ✨ NUEVO: Selector de Modelo de Embeddings */}
+        {/* ✨ NUEVO: Selector de Modelos (API v2.0 - Embeddings + LLM) */}
         <div className="mb-04 bg-ui-01 border border-ui-03 p-04">
           <div className="flex items-center justify-between mb-03">
             <div className="flex items-center space-x-02">
-              <Cpu className="w-5 h-5 text-interactive" />
-              <h3 className="text-label font-semibold text-text-primary">Modelo de Embeddings</h3>
+              <Settings className="w-5 h-5 text-interactive" />
+              <h3 className="text-label font-semibold text-text-primary">Configuración de Modelos</h3>
             </div>
-            {selectedModel && (
+            {selectedEmbeddingModel && (
               <span className="px-03 py-01 bg-interactive text-white text-caption font-medium">
-                {selectedModel.dimensions} dimensiones
+                {selectedEmbeddingModel.dimensions} dimensiones
               </span>
             )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-03">
-            {/* Selector de modelo */}
+            {/* Selector de modelo de Embeddings */}
             <div>
-              <label className="block text-caption text-text-secondary mb-02">Seleccionar Modelo</label>
+              <label className="block text-caption text-text-secondary mb-02">
+                <Cpu className="w-3 h-3 inline mr-1" />
+                Modelo de Embeddings
+              </label>
               <select
-                value={selectedModel?.name || ''}
+                value={selectedEmbeddingModel?.id || ''}
                 onChange={(e) => {
-                  const model = availableModels.find(m => m.name === e.target.value);
-                  if (model) handleChangeModel(model);
+                  const model = availableEmbeddingModels.find(m => m.id === e.target.value);
+                  if (model) handleChangeEmbeddingModel(model);
                 }}
                 disabled={isLoadingModels || isUploading}
                 className="w-full h-10 px-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive disabled:bg-ui-03 disabled:text-text-disabled"
               >
                 {isLoadingModels && <option>Cargando modelos...</option>}
-                {!isLoadingModels && availableModels.length === 0 && <option>No hay modelos disponibles</option>}
-                {availableModels.map((model) => (
-                  <option key={model.name} value={model.name}>
-                    {model.name} ({model.dimensions} dims) - {model.description}
+                {!isLoadingModels && availableEmbeddingModels.length === 0 && <option>No hay modelos disponibles</option>}
+                {availableEmbeddingModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} ({model.dimensions}D) - {model.description}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Toggle de embeddings */}
+            {/* Selector de modelo LLM */}
             <div>
-              <label className="block text-caption text-text-secondary mb-02">Generar Embeddings</label>
-              <div className="flex items-center space-x-03 h-10">
-                <button
-                  onClick={() => setGenerateEmbeddings(!generateEmbeddings)}
-                  disabled={!embeddingsEnabled || isUploading}
-                  className={`flex-1 h-10 px-04 border transition-colors flex items-center justify-center space-x-02 ${
-                    generateEmbeddings && embeddingsEnabled
-                      ? 'bg-success border-success text-white'
-                      : 'bg-ui-01 border-ui-04 text-text-secondary'
-                  } disabled:bg-ui-03 disabled:border-ui-03 disabled:text-text-disabled disabled:cursor-not-allowed`}
-                >
-                  {generateEmbeddings ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                  <span className="text-label font-medium">
-                    {generateEmbeddings ? 'Habilitado' : 'Deshabilitado'}
-                  </span>
-                </button>
-              </div>
+              <label className="block text-caption text-text-secondary mb-02">
+                <Brain className="w-3 h-3 inline mr-1" />
+                Modelo LLM
+              </label>
+              <select
+                value={selectedLlmModel?.id || ''}
+                onChange={(e) => {
+                  const model = availableLlmModels.find(m => m.id === e.target.value);
+                  if (model) handleChangeLlmModel(model);
+                }}
+                disabled={isLoadingModels || isUploading}
+                className="w-full h-10 px-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive disabled:bg-ui-03 disabled:text-text-disabled"
+              >
+                {isLoadingModels && <option>Cargando modelos...</option>}
+                {!isLoadingModels && availableLlmModels.length === 0 && <option>No hay modelos disponibles</option>}
+                {availableLlmModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} - {model.description}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {/* Info adicional */}
-          {selectedModel && (
-            <div className="mt-03 text-caption text-text-secondary">
-              <p>📌 <strong>Modelo actual:</strong> {selectedModel.name}</p>
-              <p>📏 <strong>Dimensiones:</strong> {selectedModel.dimensions}</p>
-              <p>📝 <strong>Descripción:</strong> {selectedModel.description}</p>
+          {(selectedEmbeddingModel || selectedLlmModel) && (
+            <div className="mt-03 text-caption text-text-secondary grid grid-cols-1 md:grid-cols-2 gap-03">
+              {selectedEmbeddingModel && (
+                <div className="bg-ui-02 border border-ui-03 p-03">
+                  <p className="font-semibold text-text-primary mb-01">🔹 Embedding: {selectedEmbeddingModel.name}</p>
+                  <p>📏 Dimensiones: {selectedEmbeddingModel.dimensions}</p>
+                  <p>📝 {selectedEmbeddingModel.description}</p>
+                </div>
+              )}
+              {selectedLlmModel && (
+                <div className="bg-ui-02 border border-ui-03 p-03">
+                  <p className="font-semibold text-text-primary mb-01">🤖 LLM: {selectedLlmModel.name}</p>
+                  <p>📝 {selectedLlmModel.description}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -428,14 +468,14 @@ const DocumentAnalysisPage = () => {
                 <Cpu className="w-4 h-4 text-interactive" />
                 <p className="text-caption text-text-secondary">Modelo Embeddings</p>
               </div>
-              <p className="text-label text-text-primary">{selectedModel?.name || 'N/A'}</p>
+              <p className="text-label text-text-primary">{selectedEmbeddingModel?.name || 'N/A'}</p>
             </div>
             <div className="bg-ui-01 border border-ui-03 p-04">
               <div className="flex items-center space-x-02 mb-02">
-                <CheckCircle className="w-4 h-4 text-success" />
+                <Brain className="w-4 h-4 text-success" />
                 <p className="text-caption text-text-secondary">Modelo LLM</p>
               </div>
-              <p className="text-label text-text-primary">Gemma-2B</p>
+              <p className="text-label text-text-primary">{selectedLlmModel?.name || 'N/A'}</p>
             </div>
           </div>
         )}
@@ -548,13 +588,16 @@ const DocumentAnalysisPage = () => {
                       <div key={idx} className="bg-ui-02 border border-ui-03 p-03">
                         <div className="flex items-center justify-between mb-01">
                           <p className="text-label font-medium text-text-primary">{source.filename}</p>
-                          {source.rank !== undefined && (
-                            <span className="text-caption text-text-secondary">
-                              Relevancia: {source.rank.toFixed(2)}
+                          {source.similarity !== undefined && (
+                            <span className="px-02 py-01 bg-interactive text-white text-caption font-medium">
+                              {(source.similarity * 100).toFixed(1)}% similitud
                             </span>
                           )}
                         </div>
                         <p className="text-caption text-text-secondary line-clamp-3">{source.content}</p>
+                        {source.chunk_index !== undefined && (
+                          <p className="text-caption text-text-placeholder mt-01">Chunk #{source.chunk_index}</p>
+                        )}
                       </div>
                     ))}
                   </div>
