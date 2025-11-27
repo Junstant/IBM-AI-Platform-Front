@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu, Brain } from 'lucide-react';
+import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu, Brain, Sparkles } from 'lucide-react';
 import SimpleStatus from '../components/SimpleStatus';
 import ragService, { APIError } from '../services/ragService';
 
@@ -8,10 +8,12 @@ const DocumentAnalysisPage = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingFileName, setUploadingFileName] = useState('');
   const [query, setQuery] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
   const [queryResult, setQueryResult] = useState(null);
   const [stats, setStats] = useState(null);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   
   // ✨ NUEVO: Estados para modelos de embeddings y LLM
   const [availableEmbeddingModels, setAvailableEmbeddingModels] = useState([]);
@@ -187,15 +189,31 @@ const DocumentAnalysisPage = () => {
 
       setIsUploading(true);
       setUploadProgress(0);
+      setUploadingFileName(file.name);
 
       try {
-        // ✨ Upload usando ragService con progreso
+        // ✨ Upload usando ragService con progreso simulado (más suave)
+        let simulatedProgress = 0;
+        const progressInterval = setInterval(() => {
+          simulatedProgress += Math.random() * 15;
+          if (simulatedProgress > 90) simulatedProgress = 90;
+          setUploadProgress(Math.floor(simulatedProgress));
+        }, 200);
+
         const data = await ragService.uploadDocument(file, {
           llm_model: selectedLlmModel?.id,
           onProgress: (progress) => {
+            clearInterval(progressInterval);
             setUploadProgress(progress.percent);
           }
         });
+        
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        
+        // ✨ Animación de éxito
+        setShowSuccessAnimation(true);
+        setTimeout(() => setShowSuccessAnimation(false), 2000);
         
         // Recargar lista de documentos y stats
         await fetchDocuments();
@@ -219,6 +237,7 @@ const DocumentAnalysisPage = () => {
       } finally {
         setIsUploading(false);
         setUploadProgress(0);
+        setUploadingFileName('');
       }
     }
   };
@@ -297,7 +316,7 @@ const DocumentAnalysisPage = () => {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG v3.0</h1>
+              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG</h1>
               <p className="text-body-long text-text-secondary">Nomic Embeddings (768D) + Milvus HNSW + LLM | Búsqueda semántica &lt;10ms</p>
             </div>
           </div>
@@ -315,8 +334,8 @@ const DocumentAnalysisPage = () => {
 
         {/* ✨ Banner de Arquitectura RAG v3.0 */}
         {healthStatus && !embeddingsEnabled && (
-          <div className="mb-04 bg-carbon-yellow-10 border border-carbon-yellow-30 p-04 flex items-center space-x-03">
-            <AlertCircle className="w-5 h-5 text-carbon-yellow-50 flex-shrink-0" />
+          <div className="mb-04 bg-carbon-yellow-10 border border-carbon-yellow-30 p-04 flex items-center space-x-03 animate-slide-in-up rounded-sm">
+            <AlertCircle className="w-5 h-5 text-carbon-yellow-50 flex-shrink-0 animate-pulse" />
             <div>
               <p className="text-label font-semibold text-text-primary">⚠️ Embeddings deshabilitados - Modo básico activo</p>
               <p className="text-caption text-text-secondary">
@@ -327,16 +346,16 @@ const DocumentAnalysisPage = () => {
         )}
 
         {embeddingsEnabled && (
-          <div className="mb-04 bg-carbon-green-10 border border-success p-04">
+          <div className="mb-04 bg-carbon-green-10 border border-success p-04 animate-slide-in-up rounded-sm shadow-sm">
             <div className="flex items-center space-x-03">
-              <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 animate-pulse" />
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-01">
                   <p className="text-label font-semibold text-text-primary">
                     ✅ RAG v3.0: Nomic (768D) + Milvus HNSW + {stats?.llm_model || selectedLlmModel?.name || 'LLM'}
                   </p>
                   {stats?.milvus_connected !== undefined && (
-                    <span className={`px-03 py-01 text-white text-caption font-medium ${stats.milvus_connected ? 'bg-success' : 'bg-danger'}`}>
+                    <span className={`px-03 py-01 text-white text-caption font-medium rounded-sm shadow-sm transition-all duration-300 ${stats.milvus_connected ? 'bg-success animate-pulse-glow' : 'bg-danger'}`}>
                       {stats.milvus_connected ? '🟢 Milvus Conectado' : '🔴 Milvus Desconectado'}
                     </span>
                   )}
@@ -425,88 +444,149 @@ const DocumentAnalysisPage = () => {
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-04 mb-04">
-            <div className="bg-ui-01 border border-ui-03 p-04">
+            <div className="bg-ui-01 border border-ui-03 p-04 transition-all duration-300 hover:border-interactive hover:shadow-lg hover:scale-105 cursor-pointer animate-slide-in-up group" style={{ animationDelay: '0ms' }}>
               <div className="flex items-center space-x-02 mb-02">
-                <FileText className="w-4 h-4 text-interactive" />
-                <p className="text-caption text-text-secondary">Documentos</p>
+                <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
+                  <FileText className="w-4 h-4 text-interactive" />
+                </div>
+                <p className="text-caption text-text-secondary group-hover:text-text-primary transition-colors">Documentos</p>
               </div>
-              <p className="text-productive-heading-03 text-text-primary">{stats.total_documents}</p>
+              <p className="text-productive-heading-03 text-text-primary group-hover:text-interactive transition-colors">{stats.total_documents}</p>
             </div>
-            <div className="bg-ui-01 border border-ui-03 p-04">
+            <div className="bg-ui-01 border border-ui-03 p-04 transition-all duration-300 hover:border-success hover:shadow-lg hover:scale-105 cursor-pointer animate-slide-in-up group" style={{ animationDelay: '50ms' }}>
               <div className="flex items-center space-x-02 mb-02">
-                <Database className="w-4 h-4 text-success" />
-                <p className="text-caption text-text-secondary">Chunks</p>
+                <div className="p-02 bg-success/10 rounded-sm group-hover:bg-success/20 transition-colors">
+                  <Database className="w-4 h-4 text-success" />
+                </div>
+                <p className="text-caption text-text-secondary group-hover:text-text-primary transition-colors">Chunks</p>
               </div>
-              <p className="text-productive-heading-03 text-text-primary">{stats.total_chunks}</p>
+              <p className="text-productive-heading-03 text-text-primary group-hover:text-success transition-colors">{stats.total_chunks}</p>
             </div>
-            <div className="bg-ui-01 border border-ui-03 p-04">
+            <div className="bg-ui-01 border border-ui-03 p-04 transition-all duration-300 hover:border-interactive hover:shadow-lg hover:scale-105 cursor-pointer animate-slide-in-up group" style={{ animationDelay: '100ms' }}>
               <div className="flex items-center space-x-02 mb-02">
-                <Cpu className="w-4 h-4 text-interactive" />
-                <p className="text-caption text-text-secondary">Modelo Embeddings</p>
+                <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
+                  <Cpu className="w-4 h-4 text-interactive" />
+                </div>
+                <p className="text-caption text-text-secondary group-hover:text-text-primary transition-colors">Modelo Embeddings</p>
               </div>
-              <p className="text-label text-text-primary">{stats.embedding_model || 'N/A'}</p>
+              <p className="text-label text-text-primary group-hover:text-interactive transition-colors">{stats.embedding_model || 'N/A'}</p>
               {stats.embedding_dimension && (
                 <p className="text-caption text-text-secondary">{stats.embedding_dimension}D</p>
               )}
             </div>
-            <div className="bg-ui-01 border border-ui-03 p-04">
+            <div className="bg-ui-01 border border-ui-03 p-04 transition-all duration-300 hover:border-success hover:shadow-lg hover:scale-105 cursor-pointer animate-slide-in-up group" style={{ animationDelay: '150ms' }}>
               <div className="flex items-center space-x-02 mb-02">
-                <Brain className="w-4 h-4 text-success" />
-                <p className="text-caption text-text-secondary">Modelo LLM</p>
+                <div className="p-02 bg-success/10 rounded-sm group-hover:bg-success/20 transition-colors">
+                  <Brain className="w-4 h-4 text-success" />
+                </div>
+                <p className="text-caption text-text-secondary group-hover:text-text-primary transition-colors">Modelo LLM</p>
               </div>
-              <p className="text-label text-text-primary">{stats.llm_model || 'N/A'}</p>
+              <p className="text-label text-text-primary group-hover:text-success transition-colors">{stats.llm_model || 'N/A'}</p>
             </div>
           </div>
         )}
 
         {/* Upload Area */}
         <div
-          className={`border-2 border-dashed p-07 text-center transition-colors ${
+          className={`border-2 border-dashed p-07 text-center transition-all duration-300 relative overflow-hidden ${
             dragActive 
-              ? 'border-interactive bg-carbon-blue-10' 
-              : 'border-ui-04 hover:border-ui-05'
+              ? 'border-interactive bg-carbon-blue-10 scale-[1.02]' 
+              : 'border-ui-04 hover:border-ui-05 hover:bg-ui-01'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <Upload className="w-12 h-12 text-text-placeholder mx-auto mb-04" />
-          <h3 className="text-productive-heading-03 text-text-primary mb-02">
-            Arrastra archivos aquí o haz clic para seleccionar
-          </h3>
-          <p className="text-body-long text-text-secondary mb-04">
-            Soporta: PDF, DOCX, TXT, CSV, XLSX, MD • Máximo 50MB
-          </p>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.docx,.txt,.csv,.xlsx,.md,.doc"
-            onChange={handleFileInput}
-            className="hidden"
-            id="file-upload"
-            disabled={isUploading}
-          />
-          <label
-            htmlFor="file-upload"
-            className={`inline-flex items-center space-x-02 px-05 py-03 h-10 text-white transition-colors cursor-pointer ${
-              isUploading 
-                ? 'bg-carbon-gray-50 cursor-not-allowed' 
-                : 'bg-carbon-gray-70 hover:bg-carbon-gray-60'
-            }`}
-          >
-            {isUploading ? (
-              <>
-                <Loader className="w-4 h-4 animate-spin" />
-                <span>Procesando... {uploadProgress}%</span>
-              </>
+          {/* ✨ Barra de progreso animada */}
+          {isUploading && (
+            <div className="absolute top-0 left-0 w-full h-1 bg-ui-03 overflow-hidden">
+              <div 
+                className="h-full bg-interactive transition-all duration-300 ease-out relative"
+                style={{ width: `${uploadProgress}%` }}
+              >
+                <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-r from-transparent to-white opacity-30 animate-pulse"></div>
+              </div>
+            </div>
+          )}
+
+          {/* ✨ Animación de éxito */}
+          {showSuccessAnimation && (
+            <div className="absolute inset-0 bg-success/10 flex items-center justify-center animate-fade-in-out pointer-events-none">
+              <div className="flex items-center space-x-03 bg-success text-white px-06 py-03 rounded-sm shadow-lg animate-bounce-once">
+                <CheckCircle className="w-6 h-6" />
+                <span className="text-label font-semibold">¡Archivo procesado exitosamente!</span>
+              </div>
+            </div>
+          )}
+
+          <div className={`transition-all duration-300 ${isUploading ? 'opacity-70' : 'opacity-100'}`}>
+            {dragActive ? (
+              <Sparkles className="w-12 h-12 text-interactive mx-auto mb-04 animate-pulse" />
             ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                <span>Seleccionar Archivos</span>
-              </>
+              <Upload className={`w-12 h-12 text-text-placeholder mx-auto mb-04 transition-transform ${!isUploading && 'hover:scale-110'}`} />
             )}
-          </label>
+            
+            <h3 className="text-productive-heading-03 text-text-primary mb-02">
+              {dragActive ? '¡Suelta el archivo aquí!' : 'Arrastra archivos aquí o haz clic para seleccionar'}
+            </h3>
+            
+            <p className="text-body-long text-text-secondary mb-04">
+              Soporta: PDF, DOCX, TXT, CSV, XLSX, MD • Máximo 50MB
+            </p>
+
+            {/* ✨ Indicador de progreso con nombre de archivo */}
+            {isUploading && (
+              <div className="mb-04 animate-fade-in">
+                <div className="flex items-center justify-center space-x-02 text-caption text-text-secondary mb-02">
+                  <Loader className="w-4 h-4 animate-spin text-interactive" />
+                  <span>Procesando: <strong className="text-text-primary">{uploadingFileName}</strong></span>
+                </div>
+                <div className="max-w-xs mx-auto">
+                  <div className="flex justify-between text-caption text-text-secondary mb-01">
+                    <span>Progreso</span>
+                    <span className="font-semibold text-interactive">{uploadProgress}%</span>
+                  </div>
+                  <div className="h-2 bg-ui-03 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-interactive to-carbon-blue-40 transition-all duration-300 ease-out rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.docx,.txt,.csv,.xlsx,.md,.doc"
+              onChange={handleFileInput}
+              className="hidden"
+              id="file-upload"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="file-upload"
+              className={`inline-flex items-center space-x-02 px-05 py-03 h-10 text-white transition-all duration-200 cursor-pointer ${
+                isUploading 
+                  ? 'bg-carbon-gray-50 cursor-not-allowed' 
+                  : 'bg-carbon-gray-70 hover:bg-carbon-gray-60 hover:scale-105 hover:shadow-lg'
+              }`}
+            >
+              {isUploading ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>Seleccionar Archivos</span>
+                </>
+              )}
+            </label>
+          </div>
         </div>
       </div>
 
@@ -531,10 +611,10 @@ const DocumentAnalysisPage = () => {
             <button
               onClick={handleQuery}
               disabled={isQuerying || !query.trim() || documents.length === 0}
-              className={`flex items-center space-x-02 px-05 py-02 h-10 text-white transition-colors ${
+              className={`flex items-center space-x-02 px-05 py-02 h-10 text-white transition-all duration-200 ${
                 isQuerying || !query.trim() || documents.length === 0
                   ? 'bg-carbon-gray-50 cursor-not-allowed'
-                  : 'bg-interactive hover:bg-[#0050e6]'
+                  : 'bg-interactive hover:bg-[#0050e6] hover:scale-105 hover:shadow-lg active:scale-95'
               }`}
             >
               {isQuerying ? (
@@ -544,7 +624,7 @@ const DocumentAnalysisPage = () => {
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   <span>Consultar</span>
                 </>
               )}
@@ -553,29 +633,50 @@ const DocumentAnalysisPage = () => {
 
           {/* Query Result */}
           {queryResult && (
-            <div className="bg-ui-01 border border-ui-03 p-05 space-y-04">
-              <div>
-                <h3 className="text-label font-semibold text-text-primary mb-02">Respuesta:</h3>
-                <p className="text-body-long text-text-primary whitespace-pre-wrap">{queryResult.answer}</p>
+            <div className="bg-ui-01 border border-ui-03 p-05 space-y-04 animate-fade-in">
+              <div className="animate-slide-in-up">
+                <div className="flex items-center space-x-02 mb-02">
+                  <Brain className="w-5 h-5 text-success animate-pulse" />
+                  <h3 className="text-label font-semibold text-text-primary">Respuesta:</h3>
+                </div>
+                <div className="bg-ui-02 border-l-4 border-success p-04 rounded-sm">
+                  <p className="text-body-long text-text-primary whitespace-pre-wrap">{queryResult.answer}</p>
+                </div>
               </div>
 
               {queryResult.sources && queryResult.sources.length > 0 && (
-                <div>
-                  <h3 className="text-label font-semibold text-text-primary mb-02">Fuentes Consultadas:</h3>
+                <div className="animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+                  <div className="flex items-center space-x-02 mb-02">
+                    <FileText className="w-5 h-5 text-interactive" />
+                    <h3 className="text-label font-semibold text-text-primary">Fuentes Consultadas:</h3>
+                  </div>
                   <div className="space-y-02">
                     {queryResult.sources.map((source, idx) => (
-                      <div key={idx} className="bg-ui-02 border border-ui-03 p-03">
+                      <div 
+                        key={idx} 
+                        className="bg-ui-02 border border-ui-03 p-03 transition-all duration-300 hover:border-interactive hover:shadow-md hover:scale-[1.01] group animate-slide-in-left"
+                        style={{ animationDelay: `${idx * 80}ms` }}
+                      >
                         <div className="flex items-center justify-between mb-01">
-                          <p className="text-label font-medium text-text-primary">{source.filename}</p>
+                          <div className="flex items-center space-x-02">
+                            <Sparkles className="w-3 h-3 text-interactive opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <p className="text-label font-medium text-text-primary group-hover:text-interactive transition-colors">{source.filename}</p>
+                          </div>
                           {source.similarity !== undefined && (
-                            <span className="px-02 py-01 bg-interactive text-white text-caption font-medium">
+                            <span className="px-02 py-01 bg-interactive text-white text-caption font-medium rounded-sm shadow-sm">
                               {(source.similarity * 100).toFixed(1)}% similitud
                             </span>
                           )}
                         </div>
-                        <p className="text-caption text-text-secondary line-clamp-3">{source.content}</p>
+                        {/* ✅ Usar preview si existe, sino content truncado */}
+                        <p className="text-caption text-text-secondary line-clamp-3 group-hover:text-text-primary transition-colors">
+                          {source.preview || (source.content ? source.content.substring(0, 200) + '...' : '')}
+                        </p>
                         {source.chunk_index !== undefined && (
-                          <p className="text-caption text-text-placeholder mt-01">Chunk #{source.chunk_index}</p>
+                          <div className="flex items-center space-x-01 mt-01">
+                            <Database className="w-3 h-3 text-text-placeholder" />
+                            <p className="text-caption text-text-placeholder">Chunk #{source.chunk_index}</p>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -584,10 +685,16 @@ const DocumentAnalysisPage = () => {
               )}
 
               {(queryResult.query_time !== undefined && queryResult.query_time !== null) && (
-                <div className="flex items-center space-x-04 text-caption text-text-secondary">
-                  <span>⚡ Tiempo: {queryResult.query_time.toFixed(2)}s</span>
+                <div className="flex items-center space-x-04 text-caption text-text-secondary border-t border-ui-03 pt-03 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+                  <div className="flex items-center space-x-02 px-03 py-01 bg-success/10 border border-success/30 rounded-sm">
+                    <Zap className="w-3 h-3 text-success" />
+                    <span className="text-success font-semibold">Tiempo: {queryResult.query_time.toFixed(2)}s</span>
+                  </div>
                   {queryResult.sources && queryResult.sources.length > 0 && (
-                    <span>📚 {queryResult.sources.length} fuentes | Modelo: {stats?.llm_model || selectedLlmModel?.name || 'LLM'}</span>
+                    <div className="flex items-center space-x-02 px-03 py-01 bg-interactive/10 border border-interactive/30 rounded-sm">
+                      <FileText className="w-3 h-3 text-interactive" />
+                      <span className="text-interactive font-semibold">{queryResult.sources.length} fuentes | {stats?.llm_model || selectedLlmModel?.name || 'LLM'}</span>
+                    </div>
                   )}
                 </div>
               )}
@@ -598,20 +705,38 @@ const DocumentAnalysisPage = () => {
 
       {/* Documents List */}
       {documents.length > 0 && (
-        <div className="bg-ui-02 border border-ui-03 p-06">
-          <h2 className="text-productive-heading-03 text-text-primary mb-05">Base de Conocimiento</h2>
+        <div className="bg-ui-02 border border-ui-03 p-06 animate-fade-in">
+          <div className="flex items-center justify-between mb-05">
+            <h2 className="text-productive-heading-03 text-text-primary">Base de Conocimiento</h2>
+            <div className="flex items-center space-x-02 px-03 py-01 bg-interactive/10 border border-interactive/30 rounded-sm">
+              <Database className="w-4 h-4 text-interactive" />
+              <span className="text-caption font-semibold text-interactive">{documents.length} documento{documents.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
           <div className="space-y-03">
-            {documents.map((doc) => (
-              <div key={doc.id} className="border border-ui-03 p-04">
+            {documents.map((doc, index) => (
+              <div 
+                key={doc.id} 
+                className="border border-ui-03 p-04 transition-all duration-300 hover:border-interactive hover:shadow-lg hover:scale-[1.01] group animate-slide-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-03 flex-1">
-                    <FileText className="w-5 h-5 text-interactive" />
+                    <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
+                      <FileText className="w-5 h-5 text-interactive" />
+                    </div>
                     <div className="flex-1">
-                      <h3 className="text-label font-medium text-text-primary">{doc.filename}</h3>
+                      <h3 className="text-label font-medium text-text-primary group-hover:text-interactive transition-colors">{doc.filename}</h3>
                       <div className="flex items-center space-x-04 text-caption text-text-secondary mt-01">
-                        <span>{formatFileSize(doc.file_size)}</span>
+                        <span className="flex items-center space-x-01">
+                          <Zap className="w-3 h-3" />
+                          <span>{formatFileSize(doc.file_size)}</span>
+                        </span>
                         <span>•</span>
-                        <span>{doc.total_chunks} chunks</span>
+                        <span className="flex items-center space-x-01">
+                          <Database className="w-3 h-3" />
+                          <span>{doc.total_chunks} chunks</span>
+                        </span>
                         <span>•</span>
                         <span>{new Date(doc.uploaded_at).toLocaleString()}</span>
                       </div>
@@ -619,10 +744,10 @@ const DocumentAnalysisPage = () => {
                   </div>
                   <button
                     onClick={() => handleDeleteDocument(doc.id)}
-                    className="flex items-center space-x-02 px-03 py-02 h-8 bg-danger hover:bg-[#ba1b23] text-white transition-colors ml-03"
+                    className="flex items-center space-x-02 px-03 py-02 h-8 bg-danger hover:bg-[#ba1b23] text-white transition-all duration-200 ml-03 hover:scale-105 hover:shadow-md group/delete"
                     title="Eliminar documento"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 group-hover/delete:animate-pulse" />
                   </button>
                 </div>
               </div>
@@ -632,17 +757,21 @@ const DocumentAnalysisPage = () => {
       )}
 
       {/* Empty State */}
-      {documents.length === 0 && (
-        <div className="bg-ui-02 border border-ui-03 p-12 text-center">
-          <div className="w-16 h-16 bg-ui-01 border border-ui-03 flex items-center justify-center mx-auto mb-04">
-            <Database className="w-8 h-8 text-text-placeholder" />
+      {documents.length === 0 && !isUploading && (
+        <div className="bg-ui-02 border border-ui-03 p-12 text-center animate-fade-in rounded-sm">
+          <div className="w-16 h-16 bg-ui-01 border border-ui-03 flex items-center justify-center mx-auto mb-04 rounded-sm shadow-sm transition-all duration-300 hover:scale-110 hover:border-interactive hover:shadow-lg group">
+            <Database className="w-8 h-8 text-text-placeholder group-hover:text-interactive transition-colors" />
           </div>
-          <h3 className="text-productive-heading-03 text-text-primary mb-02">
+          <h3 className="text-productive-heading-03 text-text-primary mb-02 animate-slide-in-up">
             Base de conocimiento vacía
           </h3>
-          <p className="text-body-long text-text-secondary mb-04">
+          <p className="text-body-long text-text-secondary mb-04 animate-slide-in-up" style={{ animationDelay: '100ms' }}>
             Sube documentos para comenzar a hacer preguntas con RAG
           </p>
+          <div className="flex items-center justify-center space-x-02 text-caption text-text-placeholder animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+            <Sparkles className="w-4 h-4 animate-pulse" />
+            <span>Arrastra archivos PDF, DOCX, TXT o más arriba</span>
+          </div>
         </div>
       )}
     </div>
