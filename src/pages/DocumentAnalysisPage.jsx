@@ -73,7 +73,7 @@ const DocumentAnalysisPage = () => {
     }
   };
 
-  // ✨ NUEVO: Obtener modelos de embeddings y LLM disponibles
+  // ✨ ARQUITECTURA CORRECTA: Nomic (Embeddings) + Mistral/Gemma (LLM)
   const fetchAvailableModels = async () => {
     setIsLoadingModels(true);
     try {
@@ -81,10 +81,10 @@ const DocumentAnalysisPage = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Modelos de embeddings
+        // Modelos de embeddings (SOLO Nomic - Especializado)
         setAvailableEmbeddingModels(data.embedding_models || []);
         
-        // Modelos LLM
+        // Modelos LLM (Para generación de respuestas)
         setAvailableLlmModels(data.llm_models || []);
         
         // Seleccionar modelos actuales
@@ -106,20 +106,14 @@ const DocumentAnalysisPage = () => {
         // Embeddings están habilitados si hay modelos disponibles
         setEmbeddingsEnabled(data.embedding_models && data.embedding_models.length > 0);
       } else {
-        // Fallback con modelos por defecto
-        const fallbackEmbedding = [
-          { id: "nomic-embed-text", name: "Nomic Embed Text", dimensions: 768, description: "Modelo de embeddings optimizado" }
-        ];
-        const fallbackLlm = [
-          { id: "gemma-2b", name: "Gemma 2B", description: "Modelo ligero y rápido" },
-          { id: "gemma-4b", name: "Gemma 4B", description: "Modelo balanceado" }
-        ];
-        
-        setAvailableEmbeddingModels(fallbackEmbedding);
-        setAvailableLlmModels(fallbackLlm);
-        setSelectedEmbeddingModel(fallbackEmbedding[0]);
-        setSelectedLlmModel(fallbackLlm[0]);
-        setEmbeddingsEnabled(true);
+        // ⚠️ Sin backend disponible: NO usar fallback
+        // Mistral/Gemma NO pueden hacer embeddings correctamente
+        console.error('❌ Backend /api/rag/models no disponible. Sistema RAG deshabilitado.');
+        setAvailableEmbeddingModels([]);
+        setAvailableLlmModels([]);
+        setSelectedEmbeddingModel(null);
+        setSelectedLlmModel(null);
+        setEmbeddingsEnabled(false);
       }
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -335,14 +329,14 @@ const DocumentAnalysisPage = () => {
           </div>
         </div>
 
-        {/* ✨ NUEVO: Banner de estado de embeddings (API v2.0 con Milvus) */}
+        {/* ✨ Banner de Arquitectura RAG v3.0 */}
         {healthStatus && !embeddingsEnabled && (
           <div className="mb-04 bg-carbon-yellow-10 border border-carbon-yellow-30 p-04 flex items-center space-x-03">
             <AlertCircle className="w-5 h-5 text-carbon-yellow-50 flex-shrink-0" />
             <div>
               <p className="text-label font-semibold text-text-primary">⚠️ Embeddings deshabilitados - Modo básico activo</p>
               <p className="text-caption text-text-secondary">
-                El sistema está funcionando con búsqueda por texto. Para búsqueda semántica ultra-rápida, configura Milvus y el servicio de embeddings.
+                El sistema está funcionando con búsqueda por texto. Para búsqueda semántica ultra-rápida, configura Milvus + Nomic Embeddings.
               </p>
             </div>
           </div>
@@ -352,34 +346,38 @@ const DocumentAnalysisPage = () => {
           <div className="mb-04 bg-carbon-green-10 border border-success p-04 flex items-center space-x-03">
             <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-label font-semibold text-text-primary">✅ Sistema RAG v2.0 con Milvus (HNSW ultra-fast search)</p>
+              <p className="text-label font-semibold text-text-primary">
+                ✅ RAG v3.0: Nomic Embeddings (768D) + Milvus HNSW + {selectedLlmModel?.name || 'LLM'}
+              </p>
               <p className="text-caption text-text-secondary">
-                Los documentos se procesarán con embeddings vectoriales y búsqueda semántica de alta velocidad (&lt;10ms).
+                🎯 <strong>Bibliotecario:</strong> Nomic (vectorización ultra-rápida 768D) • 
+                📚 <strong>Almacén:</strong> Milvus (búsqueda &lt;10ms) • 
+                ✍️ <strong>Escritor:</strong> {selectedLlmModel?.name || 'LLM'} (generación de respuestas)
               </p>
             </div>
           </div>
         )}
 
-        {/* ✨ NUEVO: Selector de Modelos (API v2.0 - Embeddings + LLM) */}
+        {/* ✨ Selector de Modelos RAG v3.0 - Separación de Roles */}
         <div className="mb-04 bg-ui-01 border border-ui-03 p-04">
           <div className="flex items-center justify-between mb-03">
             <div className="flex items-center space-x-02">
               <Settings className="w-5 h-5 text-interactive" />
-              <h3 className="text-label font-semibold text-text-primary">Configuración de Modelos</h3>
+              <h3 className="text-label font-semibold text-text-primary">Configuración de Modelos (Arquitectura v3.0)</h3>
             </div>
             {selectedEmbeddingModel && (
               <span className="px-03 py-01 bg-interactive text-white text-caption font-medium">
-                {selectedEmbeddingModel.dimensions} dimensiones
+                {selectedEmbeddingModel.dimensions}D vectores
               </span>
             )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-03">
-            {/* Selector de modelo de Embeddings */}
+            {/* Selector de modelo de Embeddings (SOLO Nomic) */}
             <div>
               <label className="block text-caption text-text-secondary mb-02">
                 <Cpu className="w-3 h-3 inline mr-1" />
-                Modelo de Embeddings
+                🎯 Modelo de Embeddings (Bibliotecario)
               </label>
               <select
                 value={selectedEmbeddingModel?.id || ''}
@@ -389,6 +387,7 @@ const DocumentAnalysisPage = () => {
                 }}
                 disabled={isLoadingModels || isUploading}
                 className="w-full h-10 px-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive disabled:bg-ui-03 disabled:text-text-disabled"
+                title="Modelo especializado SOLO para crear embeddings vectoriales"
               >
                 {isLoadingModels && <option>Cargando modelos...</option>}
                 {!isLoadingModels && availableEmbeddingModels.length === 0 && <option>No hay modelos disponibles</option>}
@@ -398,13 +397,16 @@ const DocumentAnalysisPage = () => {
                   </option>
                 ))}
               </select>
+              <p className="text-helper-text text-text-secondary mt-01">
+                Vectorización de documentos y queries (768 dimensiones)
+              </p>
             </div>
 
-            {/* Selector de modelo LLM */}
+            {/* Selector de modelo LLM (Para generación) */}
             <div>
               <label className="block text-caption text-text-secondary mb-02">
                 <Brain className="w-3 h-3 inline mr-1" />
-                Modelo LLM
+                ✍️ Modelo LLM (Escritor)
               </label>
               <select
                 value={selectedLlmModel?.id || ''}
@@ -414,6 +416,7 @@ const DocumentAnalysisPage = () => {
                 }}
                 disabled={isLoadingModels || isUploading}
                 className="w-full h-10 px-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive disabled:bg-ui-03 disabled:text-text-disabled"
+                title="Modelo SOLO para generar respuestas (NO para embeddings)"
               >
                 {isLoadingModels && <option>Cargando modelos...</option>}
                 {!isLoadingModels && availableLlmModels.length === 0 && <option>No hay modelos disponibles</option>}
@@ -423,23 +426,41 @@ const DocumentAnalysisPage = () => {
                   </option>
                 ))}
               </select>
+              <p className="text-helper-text text-text-secondary mt-01">
+                Generación de respuestas con contexto (Mistral recomendado)
+              </p>
             </div>
           </div>
 
-          {/* Info adicional */}
+          {/* Info de Arquitectura v3.0 */}
+          <div className="mt-03 p-03 bg-carbon-gray-10 border-l-4 border-interactive">
+            <p className="text-caption text-text-secondary">
+              <strong>ℹ️ Arquitectura v3.0:</strong> <strong>Nomic</strong> es el <strong>Bibliotecario</strong> 🎯 (crea embeddings vectoriales 768D ultra-rápidos). 
+              <strong>{selectedLlmModel?.name || 'LLM'}</strong> es el <strong>Escritor</strong> ✍️ (genera respuestas coherentes). 
+              <strong>Milvus HNSW</strong> es el <strong>Almacén</strong> 📚 (búsqueda vectorial &lt;10ms). ⚠️ NO se deben mezclar roles.
+            </p>
+          </div>
+
+          {/* Info detallada de modelos seleccionados */}
           {(selectedEmbeddingModel || selectedLlmModel) && (
             <div className="mt-03 text-caption text-text-secondary grid grid-cols-1 md:grid-cols-2 gap-03">
               {selectedEmbeddingModel && (
                 <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">🔹 Embedding: {selectedEmbeddingModel.name}</p>
-                  <p>📏 Dimensiones: {selectedEmbeddingModel.dimensions}</p>
+                  <p className="font-semibold text-text-primary mb-01">🎯 Bibliotecario: {selectedEmbeddingModel.name}</p>
+                  <p>📏 Dimensiones: {selectedEmbeddingModel.dimensions}D vectores</p>
                   <p>📝 {selectedEmbeddingModel.description}</p>
+                  {selectedEmbeddingModel.service && (
+                    <p className="text-interactive mt-01">🔗 {selectedEmbeddingModel.service}</p>
+                  )}
                 </div>
               )}
               {selectedLlmModel && (
                 <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">🤖 LLM: {selectedLlmModel.name}</p>
+                  <p className="font-semibold text-text-primary mb-01">✍️ Escritor: {selectedLlmModel.name}</p>
                   <p>📝 {selectedLlmModel.description}</p>
+                  {selectedLlmModel.service && (
+                    <p className="text-interactive mt-01">🔗 {selectedLlmModel.service}</p>
+                  )}
                 </div>
               )}
             </div>
