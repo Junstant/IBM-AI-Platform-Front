@@ -65,7 +65,7 @@ class APIClient {
         let errorData = null;
         try {
           errorData = await response.json();
-        } catch (e) {
+        } catch {
           // Si no hay JSON, usar statusText
         }
         throw new APIError(response.status, response.statusText, errorData);
@@ -205,7 +205,7 @@ class APIClient {
             try {
               const data = JSON.parse(line.slice(6));
               onChunk(data);
-            } catch (e) {
+            } catch {
               console.warn('Failed to parse SSE data:', line);
             }
           }

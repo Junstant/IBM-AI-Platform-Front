@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock, Maximize2 } from "lucide-react";
 import SimpleStatus from "../components/SimpleStatus";
+import fraudService, { APIError } from "../services/fraudService";
 // import { encode as encodeTOON } from "../utils/toon"; // TOON disponible para optimización futura
 
 const FraudDetectionPageContent = () => {
@@ -76,35 +77,13 @@ const FraudDetectionPageContent = () => {
     setIsAnalyzing(true);
 
     try {
-      // Nota: Para transacciones individuales, JSON es eficiente
-      // TOON sería útil para análisis batch de múltiples transacciones:
-      // const toonData = encodeTOON({ transactions: [transactionData, ...] });
+      // Usar fraudService con apiClient
+      const data = await fraudService.predictSingleTransaction(transactionData);
       
-      const response = await fetch(`/predict_single_transaction`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          monto: parseFloat(transactionData.monto),
-          comerciante: transactionData.comerciante,
-          ubicacion: transactionData.ubicacion,
-          tipo_tarjeta: transactionData.tipo_tarjeta,
-          horario_transaccion: transactionData.horario_transaccion,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
       console.log("Datos recibidos del análisis individual:", data);
       console.log("Probabilidad de fraude recibida:", data.probabilidad_fraude);
-      console.log("Todos los campos disponibles:", Object.keys(data));
 
       // Transformar respuesta para el formato del UI
-      // Intentar diferentes nombres de campo que podría usar el backend
       let probability = data.probabilidad_fraude || data.fraud_probability || data.probability || 0;
 
       const transformedResult = {
@@ -119,7 +98,11 @@ const FraudDetectionPageContent = () => {
       setResults(transformedResult);
     } catch (error) {
       console.error("Error analyzing transaction:", error);
-      alert(`Error al conectar con la API: ${error.message}`);
+      if (error instanceof APIError) {
+        alert(`Error ${error.status}: ${error.statusText}`);
+      } else {
+        alert(`Error al conectar con la API: ${error.message}`);
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -131,27 +114,18 @@ const FraudDetectionPageContent = () => {
     setIsAnalyzingDatabase(true);
 
     try {
-      console.log("Iniciando petición a la API...");
-      const response = await fetch("/api/fraude/predict_all_from_db", {
-        method: "GET",
-      });
-
-      console.log("Respuesta recibida:", response.status, response.statusText);
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      console.log("Parseando JSON...");
-      const data = await response.json();
+      console.log("Iniciando análisis de base de datos...");
+      
+      // Usar fraudService con apiClient
+      const data = await fraudService.analyzeDatabase();
+      
       console.log("Datos recibidos completos:", data);
-      console.log("Transacciones fraudulentas encontradas:", data.transacciones_fraudulentas_encontradas);
-      console.log("Total resultados:", data.resultados?.length);
-      console.log("Primeras 3 transacciones:", data.resultados?.slice(0, 3));
+      console.log("Transacciones fraudulentas encontradas:", data.fraud_detected);
+      console.log("Total resultados:", data.results?.length);
 
-      // Mapear los datos según la nueva documentación
+      // Mapear los datos según la respuesta del backend
       const mappedResults =
-        data.resultados?.map((transaction) => ({
+        data.results?.map((transaction) => ({
           id: transaction.id,
           cuenta_origen_id: transaction.cuenta_origen || `cuenta_${transaction.id}_origen`,
           cuenta_destino_id: transaction.cuenta_destino || `cuenta_${transaction.id}_destino`,
@@ -161,7 +135,7 @@ const FraudDetectionPageContent = () => {
           tipo_tarjeta: transaction.tipo_tarjeta,
           fecha_transaccion: transaction.fecha_transaccion,
           horario_transaccion: transaction.horario_transaccion,
-          prediccion_fraude: transaction.es_fraude, // Mapear es_fraude a prediccion_fraude
+          prediccion_fraude: transaction.es_fraude,
           probabilidad_fraude: transaction.probabilidad_fraude,
           prediccion: transaction.prediccion,
           nivel_riesgo: transaction.nivel_riesgo,
@@ -170,14 +144,18 @@ const FraudDetectionPageContent = () => {
       console.log("Resultados mapeados:", mappedResults.slice(0, 3));
 
       setDatabaseResults({
-        totalFraudulent: data.transacciones_fraudulentas_encontradas,
-        results: mappedResults, // Usar todos los resultados ya que el endpoint solo devuelve fraudulentas
-        totalResults: data.resultados?.length || 0,
+        totalFraudulent: data.fraud_detected,
+        results: mappedResults,
+        totalResults: data.total_analyzed || 0,
         timestamp: new Date().toLocaleString(),
       });
     } catch (error) {
       console.error("Error analyzing database:", error);
-      alert(`Error al conectar con la API: ${error.message}`);
+      if (error instanceof APIError) {
+        alert(`Error ${error.status}: ${error.statusText}`);
+      } else {
+        alert(`Error al conectar con la API: ${error.message}`);
+      }
     } finally {
       setIsAnalyzingDatabase(false);
     }

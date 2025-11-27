@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const STATS_API_BASE = '/api/stats';
+import { statsAPI, APIError } from '../utils/apiClient';
 
 export const useStatsAPI = () => {
   const [loading, setLoading] = useState(false);
@@ -12,15 +11,15 @@ export const useStatsAPI = () => {
     setError(null);
     
     try {
-      const response = await fetch(`${STATS_API_BASE}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await statsAPI.get(endpoint);
       setLastUpdated(new Date());
       return data;
     } catch (err) {
-      setError(err.message);
+      if (err instanceof APIError) {
+        setError(`HTTP ${err.status}: ${err.statusText}`);
+      } else {
+        setError(err.message);
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -168,9 +167,7 @@ export const useStatsAPI = () => {
 
     const resolveAlert = useCallback(async (alertId) => {
       try {
-        await fetch(`${STATS_API_BASE}/alerts/${alertId}/resolve`, {
-          method: 'POST',
-        });
+        await statsAPI.post(`/alerts/${alertId}/resolve`, {});
         await refresh();
       } catch (err) {
         console.error('Error resolving alert:', err);

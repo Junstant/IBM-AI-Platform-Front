@@ -9,7 +9,7 @@ import rehypeRaw from "rehype-raw";
 import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
-import { encode as encodeTOON } from "../utils/toon";
+import chatbotService, { APIError } from "../services/chatbotService";
 
 const ChatbotPageContent = () => {
   const [selectedModel, setSelectedModel] = useState({
@@ -20,12 +20,7 @@ const ChatbotPageContent = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "¡Hola! Soy tu asistente de IA con memoria contextual alimentado por modelos llama.cpp. Puedo recordar nuestra conversación completa y responder de manera coherente. **Gemma 2B** está seleccionado por defecto y listo para chatear. ¡Pregúntame lo que quieras!",
-      sender: "bot",
-      timestamp: new Date(),
-    },
+    chatbotService.getInitialMessage(selectedModel)
   ]);
   const [inputMessage, setInputMessage] = useState("");
 
@@ -33,157 +28,14 @@ const ChatbotPageContent = () => {
 
   // Función para limpiar el historial de conversación
   const clearConversation = () => {
-    setMessages([
-      {
-        id: 1,
-        text: "¡Conversación reiniciada! Soy tu asistente de IA con memoria contextual. ¿En qué puedo ayudarte?",
-        sender: "bot",
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages([chatbotService.getResetMessage()]);
   };
 
-  // Función para construir el prompt con historial completo usando TOON para eficiencia
-  const buildConversationPrompt = (messages, newMessage) => {
-    const conversation = [];
+  // Usar chatbotService para construir el prompt (movido a servicio)
+  // Ya no necesitamos esta función aquí
 
-    // Agregar mensajes del historial (excluyendo los mensajes iniciales del bot)
-    messages.forEach((msg) => {
-      if (msg.sender === "user") {
-        conversation.push({ role: "user", content: msg.text });
-      } else if (msg.sender === "bot" && !msg.text.includes("Soy tu asistente de IA") && !msg.text.includes("Conversación reiniciada")) {
-        // Excluir los mensajes de bienvenida inicial
-        conversation.push({ role: "assistant", content: msg.text });
-      }
-    });
-
-    // Agregar el nuevo mensaje del usuario
-    conversation.push({ role: "user", content: newMessage });
-
-    // Limitar el historial para evitar exceder el límite de tokens (últimos 10 intercambios)
-    const maxMessages = 20;
-    if (conversation.length > maxMessages) {
-      conversation.splice(0, conversation.length - maxMessages);
-    }
-
-    // Si hay más de 3 mensajes, usar TOON para optimizar tokens
-    if (conversation.length > 3) {
-      const toonHistory = encodeTOON({ conversation });
-      const systemPrompt = `Eres un asistente IA amigable. Historial en TOON (Token-Optimized Object Notation):
-
-${toonHistory}
-
-Responde al último mensaje coherentemente basándote en todo el contexto. Mantén el idioma del usuario.`;
-      return systemPrompt;
-    }
-
-    // Para conversaciones cortas, usar formato ChatML tradicional
-    const systemMsg = "Eres un asistente de IA amigable y útil. Responde en el mismo idioma que el usuario.";
-    const prompt = [`<|system|>\n${systemMsg}`];
-    
-    conversation.forEach((m) => {
-      if (m.role === "user") {
-        prompt.push(`<|user|>\n${m.content}`);
-      } else {
-        prompt.push(`<|assistant|>\n${m.content}`);
-      }
-    });
-
-    // Agregar el inicio de la respuesta del asistente
-    return prompt.join("\n") + "\n<|assistant|>\n";
-  };
-
-  // Función para enviar mensaje a llama.cpp server con historial completo
-  const sendToLlamaServer = async (newMessage, model, conversationHistory, onStreamUpdate) => {
-    if (!model) {
-      throw new Error("No se ha seleccionado un modelo");
-    }
-
-    // Construir el prompt con todo el historial
-    const fullPrompt = buildConversationPrompt(conversationHistory, newMessage);
-
-    const response = await fetch(`/proxy/${model.port}/completion`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama",
-        prompt: fullPrompt,
-        max_tokens: 1024,
-        temperature: 0.6,
-        top_k: 50,
-        top_p: 0.95,
-        presence_penalty: 1.1,
-        frequency_penalty: 0.8,
-        stop: ["</s>", "<|user|>", "<|system|>", "Human:", "User:"],
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    // Procesar el stream con medición de tokens/segundo
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
-    let tokenCount = 0;
-    const startTime = performance.now();
-    let firstTokenTime = null;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const jsonStr = line.slice(6); // Remover "data: "
-            if (jsonStr === '[DONE]') continue;
-            
-            const data = JSON.parse(jsonStr);
-            const content = data.content || data.text || "";
-            
-            if (content) {
-              fullText += content;
-              tokenCount++;
-              
-              // Marcar tiempo del primer token
-              if (!firstTokenTime) {
-                firstTokenTime = performance.now();
-              }
-              
-              // Calcular tokens/segundo
-              const currentTime = performance.now();
-              const elapsedSeconds = (currentTime - (firstTokenTime || startTime)) / 1000;
-              const tokensPerSecond = elapsedSeconds > 0 ? (tokenCount / elapsedSeconds).toFixed(1) : 0;
-              
-              // Llamar al callback para actualizar el UI con tokens/s
-              if (onStreamUpdate) {
-                onStreamUpdate(fullText, tokensPerSecond, tokenCount);
-              }
-            }
-          } catch {
-            // Ignorar errores de parsing
-          }
-        }
-      }
-    }
-
-    // Limpiar la respuesta de posibles tokens especiales
-    fullText = fullText
-      .replace(/<\|assistant\|>/g, "")
-      .replace(/<\|user\|>/g, "")
-      .replace(/<\|system\|>/g, "")
-      .trim();
-
-    return fullText;
-  };
+  // Usar chatbotService para enviar mensajes (movido a servicio)
+  // Ya no necesitamos esta función aquí
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -227,17 +79,24 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
     setIsLoading(false);
 
     try {
-      // Enviar mensaje a llama.cpp server con historial completo y streaming
-      await sendToLlamaServer(currentMessage, selectedModel, messages, (streamedText, tokensPerSecond, totalTokens) => {
-        // Actualizar el mensaje del bot con el texto que va llegando y métricas
-        setMessages((prev) => 
-          prev.map((msg) => 
-            msg.id === botMessageId 
-              ? { ...msg, text: streamedText, tokensPerSecond, totalTokens }
-              : msg
-          )
-        );
-      });
+      // Construir el prompt con historial
+      const fullPrompt = chatbotService.buildConversationPrompt(messages, currentMessage);
+      
+      // Enviar mensaje a llama.cpp server usando chatbotService
+      await chatbotService.sendCompletion(
+        fullPrompt, 
+        selectedModel, 
+        (streamedText, tokensPerSecond, totalTokens) => {
+          // Actualizar el mensaje del bot con el texto que va llegando y métricas
+          setMessages((prev) => 
+            prev.map((msg) => 
+              msg.id === botMessageId 
+                ? { ...msg, text: streamedText, tokensPerSecond, totalTokens }
+                : msg
+            )
+          );
+        }
+      );
 
       // Marcar como completado
       setMessages((prev) => 
@@ -250,13 +109,17 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
     } catch (error) {
       console.error("Error enviando mensaje a llama.cpp:", error);
 
+      const errorMessage = error instanceof APIError
+        ? `Error ${error.status}: ${error.statusText}`
+        : error.message;
+
       // Reemplazar el mensaje vacío con el error
       setMessages((prev) => 
         prev.map((msg) => 
           msg.id === botMessageId 
             ? {
                 ...msg,
-                text: `Error al conectar con ${selectedModel.name}: ${error.message}. Verifica que el modelo esté ejecutándose en el puerto ${selectedModel.port}.`,
+                text: `Error al conectar con ${selectedModel.name}: ${errorMessage}. Verifica que el modelo esté ejecutándose en el puerto ${selectedModel.port}.`,
                 isError: true,
                 isStreaming: false,
               }

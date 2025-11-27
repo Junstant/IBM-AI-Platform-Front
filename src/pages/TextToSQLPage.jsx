@@ -4,6 +4,7 @@ import config from "../config/environment";
 import ExcelJS from "exceljs";
 import DatabaseSchemaFlow from "../components/DatabaseSchemaFlow";
 import SimpleStatus from "../components/SimpleStatus";
+import textoSQLService, { APIError } from "../services/textoSQLService";
 
 const TextToSQLPageContent = () => {
   // Estados principales
@@ -52,89 +53,35 @@ const TextToSQLPageContent = () => {
   // Función para obtener modelos disponibles
   const handleGetAvailableModels = async () => {
     try {
-      const response = await fetch("/api/textosql/models");
-      if (!response.ok) {
-        throw new Error("No se pudieron obtener los modelos disponibles");
-      }
-      const data = await response.json();
-      setAvailableModels(data.models || []);
-      return data.models || [];
+      const models = await textoSQLService.getAvailableModels();
+      setAvailableModels(models);
+      return models;
     } catch (error) {
       console.error("Error obteniendo modelos:", error);
-      // Fallback a configuración estática si la API no funciona
-      const fallbackModels = [
-        { id: "mistral-7b", name: "Mistral 7B", port: "8088", description: "Modelo general equilibrado" },
-        { id: "gemma-2b", name: "Gemma 2B", port: "8085", description: "Modelo ligero y rápido" },
-        { id: "gemma-4b", name: "Gemma 4B", port: "8086", description: "Modelo balanceado" },
-        { id: "gemma-12b", name: "Gemma 12B", port: "8087", description: "Modelo de alta capacidad" },
-        { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
-        { id: "deepseek-8b", name: "DeepSeek 8B", port: "8089", description: "Equilibrado" },
-      ];
-      setAvailableModels(fallbackModels);
-      return fallbackModels;
+      // El servicio ya tiene un fallback integrado
+      setAvailableModels([]);
+      return [];
     }
   };
 
-  // Función para hacer pregunta en lenguaje natural usando el nuevo endpoint dinámico
+  // Función para hacer pregunta en lenguaje natural usando textoSQLService
   const handleAskQuestion = async () => {
-    if (!question.trim()) {
-      setError("Debes escribir una pregunta");
-      return;
-    }
-
-    if (!selectedDatabase) {
-      setError("Debes seleccionar una base de datos");
-      return;
-    }
-
-    if (!selectedModel) {
-      setError("Debes seleccionar un modelo LLM");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     setResults(null);
     setRawLLMResponse("");
 
     try {
-      // Usar el nuevo endpoint dinámico
-      const response = await fetch("/api/textosql/query/ask-dynamic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          database_id: selectedDatabase.id,
-          model_id: selectedModel.id,
-          question: question.trim(),
-        }),
+      // Usar textoSQLService con apiClient
+      const data = await textoSQLService.askQuestion({
+        database_id: selectedDatabase?.id,
+        model_id: selectedModel?.id,
+        question: question,
       });
-
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
-          throw new Error(await response.text());
-        }
-        throw new Error(errorData.detail?.error || errorData.detail || "Error en la consulta");
-      }
-
-      const data = await response.json();
 
       setRawLLMResponse(data.sql_query);
 
-      const resultData = {
-        question: data.question,
-        sqlQuery: data.sql_query,
-        results: data.results,
-        explanation: data.explanation,
-        timestamp: new Date().toLocaleString(),
-        executionTime: 0,
-        error: data.error || null,
-        database_used: data.database_used,
-        model_used: data.model_used,
-      };
-
+      const resultData = textoSQLService.formatResults(data);
       setResults(resultData);
       setCurrentPage(1); // Reset pagination when new results arrive
     } catch (error) {

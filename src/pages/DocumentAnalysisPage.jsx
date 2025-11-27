@@ -102,8 +102,12 @@ const DocumentAnalysisPage = () => {
         }
       }
       
-      // Embeddings están habilitados si hay modelos disponibles
-      setEmbeddingsEnabled(data.embedding_models && data.embedding_models.length > 0);
+      // Backend siempre devuelve Nomic - embeddings están habilitados si /models responde OK
+      setEmbeddingsEnabled(
+        data.embedding_models && 
+        data.embedding_models.length > 0 && 
+        data.embedding_models[0].id === "nomic-embed-text-v1.5"
+      );
     } catch (error) {
       // ⚠️ Sin backend disponible: NO usar fallback
       // Mistral/Gemma NO pueden hacer embeddings correctamente
@@ -133,12 +137,6 @@ const DocumentAnalysisPage = () => {
       }
       setHealthStatus(null);
     }
-  };
-
-  // ✨ NUEVO: Cambiar modelo de embeddings
-  const handleChangeEmbeddingModel = (model) => {
-    setSelectedEmbeddingModel(model);
-    localStorage.setItem('rag_embedding_model', JSON.stringify(model));
   };
 
   // ✨ NUEVO: Cambiar modelo LLM
@@ -193,7 +191,6 @@ const DocumentAnalysisPage = () => {
       try {
         // ✨ Upload usando ragService con progreso
         const data = await ragService.uploadDocument(file, {
-          embedding_model: selectedEmbeddingModel?.id,
           llm_model: selectedLlmModel?.id,
           onProgress: (progress) => {
             setUploadProgress(progress.percent);
@@ -205,9 +202,7 @@ const DocumentAnalysisPage = () => {
         await fetchStats();
         
         // ✨ Mensaje mejorado con info de embeddings (API v3.0 response)
-        const embeddingInfo = selectedEmbeddingModel 
-          ? `\nModelo Embedding: ${selectedEmbeddingModel.name} (${selectedEmbeddingModel.dimensions}D)`
-          : '';
+        const embeddingInfo = `\nVectorizado con: Nomic Embed Text v1.5 (768D)`;
         const llmInfo = selectedLlmModel 
           ? `\nModelo LLM: ${selectedLlmModel.name}`
           : '';
@@ -302,8 +297,8 @@ const DocumentAnalysisPage = () => {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG v2.0</h1>
-              <p className="text-body-long text-text-secondary">Retrieval-Augmented Generation con Milvus (HNSW) + Embeddings + LLM</p>
+              <h1 className="text-productive-heading-04 text-text-primary">Análisis de Documentos RAG v3.0</h1>
+              <p className="text-body-long text-text-secondary">Nomic Embeddings (768D) + Milvus HNSW + LLM | Búsqueda semántica &lt;10ms</p>
             </div>
           </div>
           <div className="flex items-center space-x-03">
@@ -332,15 +327,24 @@ const DocumentAnalysisPage = () => {
         )}
 
         {embeddingsEnabled && (
-          <div className="mb-04 bg-carbon-green-10 border border-success p-04 flex items-center space-x-03">
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-label font-semibold text-text-primary">
-                ✅ RAG v3.0: Nomic Embeddings (768D) + Milvus HNSW + {selectedLlmModel?.name || 'LLM'}
-              </p>
-              <p className="text-caption text-text-secondary">
-                Sistema configurado con búsqueda vectorial ultra-rápida (&lt;10ms) y generación de respuestas coherentes.
-              </p>
+          <div className="mb-04 bg-carbon-green-10 border border-success p-04">
+            <div className="flex items-center space-x-03">
+              <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-01">
+                  <p className="text-label font-semibold text-text-primary">
+                    ✅ RAG v3.0: Nomic (768D) + Milvus HNSW + {stats?.llm_model || selectedLlmModel?.name || 'LLM'}
+                  </p>
+                  {stats?.milvus_connected !== undefined && (
+                    <span className={`px-03 py-01 text-white text-caption font-medium ${stats.milvus_connected ? 'bg-success' : 'bg-danger'}`}>
+                      {stats.milvus_connected ? '🟢 Milvus Conectado' : '🔴 Milvus Desconectado'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-caption text-text-secondary">
+                  Sistema configurado con búsqueda vectorial ultra-rápida (&lt;10ms) y generación de respuestas coherentes.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -360,7 +364,7 @@ const DocumentAnalysisPage = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-03">
-            {/* Selector de modelo de Embeddings (SOLO Nomic) */}
+            {/* Selector de modelo de Embeddings (SOLO Nomic) - Deshabilitado */}
             <div>
               <label className="block text-caption text-text-secondary mb-02">
                 <Cpu className="w-3 h-3 inline mr-1" />
@@ -368,13 +372,9 @@ const DocumentAnalysisPage = () => {
               </label>
               <select
                 value={selectedEmbeddingModel?.id || ''}
-                onChange={(e) => {
-                  const model = availableEmbeddingModels.find(m => m.id === e.target.value);
-                  if (model) handleChangeEmbeddingModel(model);
-                }}
-                disabled={isLoadingModels || isUploading}
-                className="w-full h-10 px-03 border border-ui-04 bg-ui-01 text-text-primary focus:outline-none focus:border-interactive disabled:bg-ui-03 disabled:text-text-disabled"
-                title="Modelo especializado SOLO para crear embeddings vectoriales"
+                disabled={true}
+                className="w-full h-10 px-03 border border-ui-04 bg-ui-03 text-text-disabled cursor-not-allowed"
+                title="Modelo de embeddings fijo: nomic-embed-text-v1.5 (768D)"
               >
                 {isLoadingModels && <option>Cargando modelos...</option>}
                 {!isLoadingModels && availableEmbeddingModels.length === 0 && <option>No hay modelos disponibles</option>}
@@ -385,7 +385,7 @@ const DocumentAnalysisPage = () => {
                 ))}
               </select>
               <p className="text-helper-text text-text-secondary mt-01">
-                Vectorización de documentos y queries (768 dimensiones)
+                Modelo fijo: nomic-embed-text-v1.5 (768 dimensiones)
               </p>
             </div>
 
@@ -419,39 +419,7 @@ const DocumentAnalysisPage = () => {
             </div>
           </div>
 
-          {/* Info de Arquitectura v3.0 */}
-          <div className="mt-03 p-03 bg-carbon-gray-10 border-l-4 border-interactive">
-            <p className="text-caption text-text-secondary">
-              <strong>ℹ️ Arquitectura v3.0:</strong> <strong>Nomic</strong> genera embeddings vectoriales 768D ultra-rápidos. 
-              <strong>{selectedLlmModel?.name || 'LLM'}</strong> genera respuestas coherentes. 
-              <strong>Milvus HNSW</strong> proporciona búsqueda vectorial &lt;10ms. ⚠️ NO se deben mezclar roles.
-            </p>
-          </div>
 
-          {/* Info detallada de modelos seleccionados */}
-          {(selectedEmbeddingModel || selectedLlmModel) && (
-            <div className="mt-03 text-caption text-text-secondary grid grid-cols-1 md:grid-cols-2 gap-03">
-              {selectedEmbeddingModel && (
-                <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">Modelo de Embeddings: {selectedEmbeddingModel.name}</p>
-                  <p>📏 Dimensiones: {selectedEmbeddingModel.dimensions}D vectores</p>
-                  <p>📝 {selectedEmbeddingModel.description}</p>
-                  {selectedEmbeddingModel.service && (
-                    <p className="text-interactive mt-01">🔗 {selectedEmbeddingModel.service}</p>
-                  )}
-                </div>
-              )}
-              {selectedLlmModel && (
-                <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">Modelo LLM: {selectedLlmModel.name}</p>
-                  <p>📝 {selectedLlmModel.description}</p>
-                  {selectedLlmModel.service && (
-                    <p className="text-interactive mt-01">🔗 {selectedLlmModel.service}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Stats */}
@@ -476,14 +444,17 @@ const DocumentAnalysisPage = () => {
                 <Cpu className="w-4 h-4 text-interactive" />
                 <p className="text-caption text-text-secondary">Modelo Embeddings</p>
               </div>
-              <p className="text-label text-text-primary">{selectedEmbeddingModel?.name || 'N/A'}</p>
+              <p className="text-label text-text-primary">{stats.embedding_model || 'N/A'}</p>
+              {stats.embedding_dimension && (
+                <p className="text-caption text-text-secondary">{stats.embedding_dimension}D</p>
+              )}
             </div>
             <div className="bg-ui-01 border border-ui-03 p-04">
               <div className="flex items-center space-x-02 mb-02">
                 <Brain className="w-4 h-4 text-success" />
                 <p className="text-caption text-text-secondary">Modelo LLM</p>
               </div>
-              <p className="text-label text-text-primary">{selectedLlmModel?.name || 'N/A'}</p>
+              <p className="text-label text-text-primary">{stats.llm_model || 'N/A'}</p>
             </div>
           </div>
         )}
@@ -612,11 +583,11 @@ const DocumentAnalysisPage = () => {
                 </div>
               )}
 
-              {queryResult.query_time && (
+              {(queryResult.query_time !== undefined && queryResult.query_time !== null) && (
                 <div className="flex items-center space-x-04 text-caption text-text-secondary">
                   <span>⚡ Tiempo: {queryResult.query_time.toFixed(2)}s</span>
-                  {queryResult.sources && (
-                    <span>📚 {queryResult.sources.length} fuentes consultadas</span>
+                  {queryResult.sources && queryResult.sources.length > 0 && (
+                    <span>📚 {queryResult.sources.length} fuentes | Modelo: {stats?.llm_model || selectedLlmModel?.name || 'LLM'}</span>
                   )}
                 </div>
               )}
