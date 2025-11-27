@@ -339,9 +339,7 @@ const DocumentAnalysisPage = () => {
                 ✅ RAG v3.0: Nomic Embeddings (768D) + Milvus HNSW + {selectedLlmModel?.name || 'LLM'}
               </p>
               <p className="text-caption text-text-secondary">
-                🎯 <strong>Bibliotecario:</strong> Nomic (vectorización ultra-rápida 768D) • 
-                📚 <strong>Almacén:</strong> Milvus (búsqueda &lt;10ms) • 
-                ✍️ <strong>Escritor:</strong> {selectedLlmModel?.name || 'LLM'} (generación de respuestas)
+                Sistema configurado con búsqueda vectorial ultra-rápida (&lt;10ms) y generación de respuestas coherentes.
               </p>
             </div>
           </div>
@@ -366,7 +364,7 @@ const DocumentAnalysisPage = () => {
             <div>
               <label className="block text-caption text-text-secondary mb-02">
                 <Cpu className="w-3 h-3 inline mr-1" />
-                🎯 Modelo de Embeddings (Bibliotecario)
+                Modelo de Embeddings
               </label>
               <select
                 value={selectedEmbeddingModel?.id || ''}
@@ -395,7 +393,7 @@ const DocumentAnalysisPage = () => {
             <div>
               <label className="block text-caption text-text-secondary mb-02">
                 <Brain className="w-3 h-3 inline mr-1" />
-                ✍️ Modelo LLM (Escritor)
+                Modelo LLM
               </label>
               <select
                 value={selectedLlmModel?.id || ''}
@@ -424,9 +422,9 @@ const DocumentAnalysisPage = () => {
           {/* Info de Arquitectura v3.0 */}
           <div className="mt-03 p-03 bg-carbon-gray-10 border-l-4 border-interactive">
             <p className="text-caption text-text-secondary">
-              <strong>ℹ️ Arquitectura v3.0:</strong> <strong>Nomic</strong> es el <strong>Bibliotecario</strong> 🎯 (crea embeddings vectoriales 768D ultra-rápidos). 
-              <strong>{selectedLlmModel?.name || 'LLM'}</strong> es el <strong>Escritor</strong> ✍️ (genera respuestas coherentes). 
-              <strong>Milvus HNSW</strong> es el <strong>Almacén</strong> 📚 (búsqueda vectorial &lt;10ms). ⚠️ NO se deben mezclar roles.
+              <strong>ℹ️ Arquitectura v3.0:</strong> <strong>Nomic</strong> genera embeddings vectoriales 768D ultra-rápidos. 
+              <strong>{selectedLlmModel?.name || 'LLM'}</strong> genera respuestas coherentes. 
+              <strong>Milvus HNSW</strong> proporciona búsqueda vectorial &lt;10ms. ⚠️ NO se deben mezclar roles.
             </p>
           </div>
 
@@ -435,7 +433,7 @@ const DocumentAnalysisPage = () => {
             <div className="mt-03 text-caption text-text-secondary grid grid-cols-1 md:grid-cols-2 gap-03">
               {selectedEmbeddingModel && (
                 <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">🎯 Bibliotecario: {selectedEmbeddingModel.name}</p>
+                  <p className="font-semibold text-text-primary mb-01">Modelo de Embeddings: {selectedEmbeddingModel.name}</p>
                   <p>📏 Dimensiones: {selectedEmbeddingModel.dimensions}D vectores</p>
                   <p>📝 {selectedEmbeddingModel.description}</p>
                   {selectedEmbeddingModel.service && (
@@ -445,7 +443,7 @@ const DocumentAnalysisPage = () => {
               )}
               {selectedLlmModel && (
                 <div className="bg-ui-02 border border-ui-03 p-03">
-                  <p className="font-semibold text-text-primary mb-01">✍️ Escritor: {selectedLlmModel.name}</p>
+                  <p className="font-semibold text-text-primary mb-01">Modelo LLM: {selectedLlmModel.name}</p>
                   <p>📝 {selectedLlmModel.description}</p>
                   {selectedLlmModel.service && (
                     <p className="text-interactive mt-01">🔗 {selectedLlmModel.service}</p>
