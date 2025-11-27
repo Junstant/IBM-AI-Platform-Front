@@ -69,25 +69,26 @@ const ToastNotification = ({ type = 'info', title, message, duration = config.ui
     },
   };
 
-  const config = typeConfig[type] || typeConfig.info;
-  const Icon = config.icon;
+  // ✅ RENOMBRAR para no sobrescribir config importado
+  const toastConfig = typeConfig[type] || typeConfig.info;
+  const Icon = toastConfig.icon;
 
   return (
     <div
-      className={`${config.bgColor} ${config.borderColor} border-l-4 p-04 mb-03 rounded-sm shadow-lg transition-all duration-300 ${
+      className={`${toastConfig.bgColor} ${toastConfig.borderColor} border-l-4 p-04 mb-03 rounded-sm shadow-lg transition-all duration-300 ${
         isExiting ? 'animate-toast-exit' : 'animate-toast-enter'
       }`}
     >
       <div className="flex items-start space-x-03">
         {/* Ícono */}
-        <div className={`${config.iconColor} flex-shrink-0`}>
+        <div className={`${toastConfig.iconColor} flex-shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
 
         {/* Contenido */}
         <div className="flex-1 min-w-0">
           {title && (
-            <h4 className={`text-label font-semibold ${config.titleColor} mb-01`}>
+            <h4 className={`text-label font-semibold ${toastConfig.titleColor} mb-01`}>
               {title}
             </h4>
           )}
@@ -112,7 +113,7 @@ const ToastNotification = ({ type = 'info', title, message, duration = config.ui
       {duration > 0 && (
         <div className="mt-02 h-1 bg-ui-03 rounded-full overflow-hidden">
           <div
-            className={`h-full ${config.iconColor.replace('text-', 'bg-')} animate-toast-progress`}
+            className={`h-full ${toastConfig.iconColor.replace('text-', 'bg-')} animate-toast-progress`}
             style={{ animationDuration: `${duration}ms` }}
           ></div>
         </div>
