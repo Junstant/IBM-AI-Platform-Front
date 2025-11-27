@@ -384,3 +384,48 @@ html {
 .animate-pulse-glow {
   animation: pulseGlow 2s infinite;
 }
+
+/* Toast notification animations */
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-toast-enter {
+  animation: toastEnter 0.3s ease-out;
+}
+
+@keyframes toastExit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-toast-exit {
+  animation: toastExit 0.3s ease-in;
+}
+
+/* Toast progress bar */
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toast-progress {
+  animation: toastProgress linear;
+}

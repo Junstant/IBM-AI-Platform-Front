@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu, Brain, Sparkles } from 'lucide-react';
 import SimpleStatus from '../components/SimpleStatus';
+import { ToastContainer } from '../components/ToastNotification';
+import { useToast } from '../hooks/useToast';
 import ragService, { APIError } from '../services/ragService';
 
 const DocumentAnalysisPage = () => {
@@ -14,6 +16,9 @@ const DocumentAnalysisPage = () => {
   const [queryResult, setQueryResult] = useState(null);
   const [stats, setStats] = useState(null);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  
+  // Toast notifications
+  const { toasts, addToast, removeToast } = useToast();
   
   // ✨ NUEVO: Estados para modelos de embeddings y LLM
   const [availableEmbeddingModels, setAvailableEmbeddingModels] = useState([]);
@@ -175,7 +180,12 @@ const DocumentAnalysisPage = () => {
     for (const file of files) {
       // Validar tamaño (50MB máximo)
       if (file.size > 50 * 1024 * 1024) {
-        alert(`El archivo ${file.name} excede el tamaño máximo de 50MB`);
+        addToast({
+          type: 'error',
+          title: '❌ Archivo demasiado grande',
+          message: `El archivo ${file.name} excede el tamaño máximo de 50MB`,
+          duration: 5000
+        });
         continue;
       }
 
@@ -183,7 +193,12 @@ const DocumentAnalysisPage = () => {
       const validExtensions = ['.pdf', '.docx', '.txt', '.csv', '.xlsx', '.md'];
       const fileExt = '.' + file.name.split('.').pop().toLowerCase();
       if (!validExtensions.includes(fileExt)) {
-        alert(`Formato no soportado: ${fileExt}. Formatos válidos: ${validExtensions.join(', ')}`);
+        addToast({
+          type: 'error',
+          title: '❌ Formato no soportado',
+          message: `El formato ${fileExt} no es válido.\nFormatos válidos: ${validExtensions.join(', ')}`,
+          duration: 5000
+        });
         continue;
       }
 
@@ -219,20 +234,35 @@ const DocumentAnalysisPage = () => {
         await fetchDocuments();
         await fetchStats();
         
-        // ✨ Mensaje mejorado con info de embeddings (API v3.0 response)
-        const embeddingInfo = `\nVectorizado con: Nomic Embed Text v1.5 (768D)`;
+        // ✨ Notificación de éxito con info detallada
+        const embeddingInfo = `Vectorizado con: Nomic Embed Text v1.5 (768D)`;
         const llmInfo = selectedLlmModel 
-          ? `\nModelo LLM: ${selectedLlmModel.name}`
+          ? `Modelo LLM: ${selectedLlmModel.name}`
           : '';
-        const sizeInfo = `\nTamaño: ${ragService.formatFileSize(data.file_size)}`;
+        const sizeInfo = `Tamaño: ${ragService.formatFileSize(data.file_size)}`;
         
-        alert(`✓ ${file.name} procesado correctamente\n${data.total_chunks} chunks creados${embeddingInfo}${llmInfo}${sizeInfo}`);
+        addToast({
+          type: 'success',
+          title: `✅ ${file.name} procesado correctamente`,
+          message: `${data.total_chunks} chunks creados\n${embeddingInfo}\n${llmInfo}\n${sizeInfo}`,
+          duration: 6000
+        });
       } catch (error) {
         console.error('Error uploading file:', error);
         if (error instanceof APIError) {
-          alert(`Error al subir ${file.name}: ${error.statusText}\n${error.data?.detail || ''}`);
+          addToast({
+            type: 'error',
+            title: `❌ Error al subir ${file.name}`,
+            message: `${error.statusText}\n${error.data?.detail || error.message}`,
+            duration: 7000
+          });
         } else {
-          alert(`Error al subir ${file.name}: ${error.message}`);
+          addToast({
+            type: 'error',
+            title: `❌ Error al subir ${file.name}`,
+            message: error.message,
+            duration: 7000
+          });
         }
       } finally {
         setIsUploading(false);
@@ -244,7 +274,12 @@ const DocumentAnalysisPage = () => {
 
   const handleQuery = async () => {
     if (!query.trim()) {
-      alert('Por favor ingresa una pregunta');
+      addToast({
+        type: 'warning',
+        title: '⚠️ Campo vacío',
+        message: 'Por favor ingresa una pregunta para consultar los documentos',
+        duration: 4000
+      });
       return;
     }
 
@@ -264,12 +299,30 @@ const DocumentAnalysisPage = () => {
       data.sources.forEach((source, idx) => {
         console.log(`  [${idx + 1}] ${source.filename} (similitud: ${(source.similarity * 100).toFixed(1)}%)`);
       });
+
+      // Toast de éxito
+      addToast({
+        type: 'success',
+        title: '✅ Consulta completada',
+        message: `Respuesta generada con ${data.sources.length} fuentes relevantes`,
+        duration: 4000
+      });
     } catch (error) {
       console.error('Error querying:', error);
       if (error instanceof APIError) {
-        alert(`Error al consultar: ${error.statusText}\n${error.data?.detail || ''}`);
+        addToast({
+          type: 'error',
+          title: '❌ Error al consultar',
+          message: `${error.statusText}\n${error.data?.detail || error.message}`,
+          duration: 6000
+        });
       } else {
-        alert(`Error al consultar: ${error.message}`);
+        addToast({
+          type: 'error',
+          title: '❌ Error al consultar',
+          message: error.message,
+          duration: 6000
+        });
       }
     } finally {
       setIsQuerying(false);
@@ -277,7 +330,11 @@ const DocumentAnalysisPage = () => {
   };
 
   const handleDeleteDocument = async (docId) => {
-    if (!confirm('¿Estás seguro de eliminar este documento y todos sus chunks?')) {
+    // Confirmación con toast
+    const doc = documents.find(d => d.id === docId);
+    const confirmDelete = window.confirm(`¿Estás seguro de eliminar "${doc?.filename}" y todos sus chunks?`);
+    
+    if (!confirmDelete) {
       return;
     }
 
@@ -288,17 +345,37 @@ const DocumentAnalysisPage = () => {
       await fetchDocuments();
       await fetchStats();
       
-      alert(`✓ ${result.message}`);
+      addToast({
+        type: 'success',
+        title: '✅ Documento eliminado',
+        message: result.message || `Documento eliminado correctamente`,
+        duration: 4000
+      });
     } catch (error) {
       console.error('Error deleting document:', error);
       if (error instanceof APIError) {
         if (error.status === 404) {
-          alert('Error: Documento no encontrado');
+          addToast({
+            type: 'error',
+            title: '❌ Documento no encontrado',
+            message: 'El documento que intentas eliminar no existe',
+            duration: 5000
+          });
         } else {
-          alert(`Error al eliminar: ${error.statusText}\n${error.data?.detail || ''}`);
+          addToast({
+            type: 'error',
+            title: '❌ Error al eliminar',
+            message: `${error.statusText}\n${error.data?.detail || error.message}`,
+            duration: 6000
+          });
         }
       } else {
-        alert(`Error al eliminar: ${error.message}`);
+        addToast({
+          type: 'error',
+          title: '❌ Error al eliminar',
+          message: error.message,
+          duration: 6000
+        });
       }
     }
   };
@@ -307,9 +384,13 @@ const DocumentAnalysisPage = () => {
   const formatFileSize = (bytes) => ragService.formatFileSize(bytes);
 
   return (
-    <div className="space-y-05">
-      {/* Header */}
-      <div className="bg-ui-02 border border-ui-03 p-06">
+    <>
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      
+      <div className="space-y-05">
+        {/* Header */}
+        <div className="bg-ui-02 border border-ui-03 p-06">
         <div className="flex items-center justify-between mb-04">
           <div className="flex items-center space-x-04">
             <div className="w-10 h-10 bg-carbon-gray-70 flex items-center justify-center">
@@ -774,7 +855,8 @@ const DocumentAnalysisPage = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
