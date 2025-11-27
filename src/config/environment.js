@@ -26,6 +26,21 @@ const config = {
     rag: import.meta.env.VITE_RAG_API_PORT || "8004",
   },
 
+  // ✨ RAG API Configuration (v3.0)
+  rag: {
+    apiUrl: import.meta.env.VITE_RAG_API_URL || '/api/rag',
+    apiPort: import.meta.env.VITE_RAG_API_PORT || "8004",
+    // Milvus Vector Database
+    milvusHost: import.meta.env.VITE_MILVUS_HOST || 'milvus-standalone',
+    milvusPort: import.meta.env.VITE_MILVUS_PORT || "19530",
+    // MinIO Object Storage (opcional, para debugging)
+    minioConsoleUrl: import.meta.env.VITE_MINIO_CONSOLE_URL || `http://${import.meta.env.VITE_API_HOST || 'localhost'}:9001`,
+    // Embeddings Service
+    embeddingsPort: import.meta.env.VITE_EMBEDDINGS_PORT || "8090",
+    embeddingModel: import.meta.env.VITE_EMBEDDING_MODEL || "nomic-embed-text-v1.5",
+    embeddingDimension: parseInt(import.meta.env.VITE_EMBEDDING_DIMENSION || "768"),
+  },
+
   // Puertos de modelos LLM (actualizados según configuración centralizada)
   llm: {
     gemma2b: import.meta.env.VITE_GEMMA_2B_PORT || "",

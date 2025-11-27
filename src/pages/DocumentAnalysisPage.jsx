@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, FileText, Send, Database, Zap, CheckCircle, AlertCircle, Loader, Trash2, Search, Settings, RefreshCw, Cpu, Brain } from 'lucide-react';
 import SimpleStatus from '../components/SimpleStatus';
+import ragService, { APIError } from '../services/ragService';
 
 const DocumentAnalysisPage = () => {
   const [documents, setDocuments] = useState([]);
@@ -51,25 +52,25 @@ const DocumentAnalysisPage = () => {
 
   const fetchDocuments = async () => {
     try {
-      const response = await fetch('/api/rag/documents');
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data.documents || []);
-      }
+      const data = await ragService.getDocuments();
+      setDocuments(data);
     } catch (error) {
       console.error('Error fetching documents:', error);
+      if (error instanceof APIError) {
+        console.error(`API Error ${error.status}: ${error.statusText}`);
+      }
     }
   };
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/rag/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
+      const data = await ragService.getStats();
+      setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      if (error instanceof APIError) {
+        console.error(`API Error ${error.status}: ${error.statusText}`);
+      }
     }
   };
 
@@ -77,46 +78,43 @@ const DocumentAnalysisPage = () => {
   const fetchAvailableModels = async () => {
     setIsLoadingModels(true);
     try {
-      const response = await fetch('/api/rag/models');
-      if (response.ok) {
-        const data = await response.json();
+      const data = await ragService.getModels();
+      
+      // Modelos de embeddings (SOLO Nomic - Especializado)
+      setAvailableEmbeddingModels(data.embedding_models || []);
+      
+      // Modelos LLM (Para generación de respuestas)
+      setAvailableLlmModels(data.llm_models || []);
+      
+      // Seleccionar modelos actuales
+      if (data.current) {
+        const currentEmbedding = data.embedding_models?.find(m => m.id === data.current.embedding_model);
+        const currentLlm = data.llm_models?.find(m => m.id === data.current.llm_model);
         
-        // Modelos de embeddings (SOLO Nomic - Especializado)
-        setAvailableEmbeddingModels(data.embedding_models || []);
-        
-        // Modelos LLM (Para generación de respuestas)
-        setAvailableLlmModels(data.llm_models || []);
-        
-        // Seleccionar modelos actuales
-        if (data.current) {
-          const currentEmbedding = data.embedding_models?.find(m => m.id === data.current.embedding_model);
-          const currentLlm = data.llm_models?.find(m => m.id === data.current.llm_model);
-          
-          if (currentEmbedding) {
-            setSelectedEmbeddingModel(currentEmbedding);
-            localStorage.setItem('rag_embedding_model', JSON.stringify(currentEmbedding));
-          }
-          
-          if (currentLlm) {
-            setSelectedLlmModel(currentLlm);
-            localStorage.setItem('rag_llm_model', JSON.stringify(currentLlm));
-          }
+        if (currentEmbedding) {
+          setSelectedEmbeddingModel(currentEmbedding);
+          localStorage.setItem('rag_embedding_model', JSON.stringify(currentEmbedding));
         }
         
-        // Embeddings están habilitados si hay modelos disponibles
-        setEmbeddingsEnabled(data.embedding_models && data.embedding_models.length > 0);
-      } else {
-        // ⚠️ Sin backend disponible: NO usar fallback
-        // Mistral/Gemma NO pueden hacer embeddings correctamente
-        console.error('❌ Backend /api/rag/models no disponible. Sistema RAG deshabilitado.');
-        setAvailableEmbeddingModels([]);
-        setAvailableLlmModels([]);
-        setSelectedEmbeddingModel(null);
-        setSelectedLlmModel(null);
-        setEmbeddingsEnabled(false);
+        if (currentLlm) {
+          setSelectedLlmModel(currentLlm);
+          localStorage.setItem('rag_llm_model', JSON.stringify(currentLlm));
+        }
       }
+      
+      // Embeddings están habilitados si hay modelos disponibles
+      setEmbeddingsEnabled(data.embedding_models && data.embedding_models.length > 0);
     } catch (error) {
-      console.error('Error fetching models:', error);
+      // ⚠️ Sin backend disponible: NO usar fallback
+      // Mistral/Gemma NO pueden hacer embeddings correctamente
+      console.error('❌ Backend /api/rag/models no disponible. Sistema RAG deshabilitado.');
+      if (error instanceof APIError) {
+        console.error(`API Error ${error.status}: ${error.statusText}`);
+      }
+      setAvailableEmbeddingModels([]);
+      setAvailableLlmModels([]);
+      setSelectedEmbeddingModel(null);
+      setSelectedLlmModel(null);
       setEmbeddingsEnabled(false);
     } finally {
       setIsLoadingModels(false);
@@ -126,13 +124,13 @@ const DocumentAnalysisPage = () => {
   // ✨ NUEVO: Health check detallado
   const fetchHealthStatus = async () => {
     try {
-      const response = await fetch('/api/rag/health');
-      if (response.ok) {
-        const data = await response.json();
-        setHealthStatus(data);
-      }
+      const data = await ragService.checkHealth();
+      setHealthStatus(data);
     } catch (error) {
       console.error('Error fetching health status:', error);
+      if (error instanceof APIError) {
+        console.error(`API Error ${error.status}: ${error.statusText}`);
+      }
       setHealthStatus(null);
     }
   };
@@ -193,44 +191,36 @@ const DocumentAnalysisPage = () => {
       setUploadProgress(0);
 
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // ✨ NUEVO: Incluir modelos seleccionados (API v2.0)
-        if (selectedEmbeddingModel) {
-          formData.append('embedding_model', selectedEmbeddingModel.id);
-        }
-        if (selectedLlmModel) {
-          formData.append('llm_model', selectedLlmModel.id);
-        }
-
-        const response = await fetch('/api/rag/upload', {
-          method: 'POST',
-          body: formData,
+        // ✨ Upload usando ragService con progreso
+        const data = await ragService.uploadDocument(file, {
+          embedding_model: selectedEmbeddingModel?.id,
+          llm_model: selectedLlmModel?.id,
+          onProgress: (progress) => {
+            setUploadProgress(progress.percent);
+          }
         });
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
         
         // Recargar lista de documentos y stats
         await fetchDocuments();
         await fetchStats();
         
-        // ✨ Mensaje mejorado con info de embeddings (API v2.0 response)
+        // ✨ Mensaje mejorado con info de embeddings (API v3.0 response)
         const embeddingInfo = selectedEmbeddingModel 
-          ? `\nModelo Embedding: ${selectedEmbeddingModel.name} (${selectedEmbeddingModel.dimensions} dims)`
+          ? `\nModelo Embedding: ${selectedEmbeddingModel.name} (${selectedEmbeddingModel.dimensions}D)`
           : '';
         const llmInfo = selectedLlmModel 
           ? `\nModelo LLM: ${selectedLlmModel.name}`
           : '';
+        const sizeInfo = `\nTamaño: ${ragService.formatFileSize(data.file_size)}`;
         
-        alert(`✓ ${file.name} procesado correctamente\n${data.total_chunks} chunks creados${embeddingInfo}${llmInfo}`);
+        alert(`✓ ${file.name} procesado correctamente\n${data.total_chunks} chunks creados${embeddingInfo}${llmInfo}${sizeInfo}`);
       } catch (error) {
         console.error('Error uploading file:', error);
-        alert(`Error al subir ${file.name}: ${error.message}`);
+        if (error instanceof APIError) {
+          alert(`Error al subir ${file.name}: ${error.statusText}\n${error.data?.detail || ''}`);
+        } else {
+          alert(`Error al subir ${file.name}: ${error.message}`);
+        }
       } finally {
         setIsUploading(false);
         setUploadProgress(0);
@@ -248,25 +238,25 @@ const DocumentAnalysisPage = () => {
     setQueryResult(null);
 
     try {
-      const response = await fetch('/api/rag/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // ✅ FIX: Cambiar "question" por "query" para coincidir con el backend
-        body: JSON.stringify({ 
-          query: query,
-          top_k: 3
-        }),
+      // ✨ Query usando ragService con top_k configurable
+      const data = await ragService.queryDocuments(query, {
+        top_k: 5 // Obtener 5 fuentes relevantes
       });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      
       setQueryResult(data);
+      
+      // Log de fuentes para debugging
+      console.log(`✅ Query respondida con ${data.sources.length} fuentes`);
+      data.sources.forEach((source, idx) => {
+        console.log(`  [${idx + 1}] ${source.filename} (similitud: ${(source.similarity * 100).toFixed(1)}%)`);
+      });
     } catch (error) {
       console.error('Error querying:', error);
-      alert(`Error al consultar: ${error.message}`);
+      if (error instanceof APIError) {
+        alert(`Error al consultar: ${error.statusText}\n${error.data?.detail || ''}`);
+      } else {
+        alert(`Error al consultar: ${error.message}`);
+      }
     } finally {
       setIsQuerying(false);
     }
@@ -278,30 +268,29 @@ const DocumentAnalysisPage = () => {
     }
 
     try {
-      const response = await fetch(`/api/rag/documents/${docId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}`);
-      }
-
+      // ✨ Delete usando ragService
+      const result = await ragService.deleteDocument(docId);
+      
       await fetchDocuments();
       await fetchStats();
-      alert('Documento eliminado correctamente');
+      
+      alert(`✓ ${result.message}`);
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert(`Error al eliminar: ${error.message}`);
+      if (error instanceof APIError) {
+        if (error.status === 404) {
+          alert('Error: Documento no encontrado');
+        } else {
+          alert(`Error al eliminar: ${error.statusText}\n${error.data?.detail || ''}`);
+        }
+      } else {
+        alert(`Error al eliminar: ${error.message}`);
+      }
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  // Usar formatFileSize de ragService
+  const formatFileSize = (bytes) => ragService.formatFileSize(bytes);
 
   return (
     <div className="space-y-05">
