@@ -4,6 +4,7 @@ import SimpleStatus from '../components/SimpleStatus';
 import { ToastContainer } from '../components/ToastNotification';
 import { useToast } from '../hooks/useToast';
 import ragService, { APIError } from '../services/ragService';
+import config from '../config/environment';
 
 const DocumentAnalysisPage = () => {
   const [documents, setDocuments] = useState([]);
@@ -178,26 +179,24 @@ const DocumentAnalysisPage = () => {
 
   const uploadFiles = async (files) => {
     for (const file of files) {
-      // Validar tamaño (50MB máximo)
-      if (file.size > 50 * 1024 * 1024) {
+      // ✨ VALIDAR TAMAÑO DESDE CONFIGURACIÓN
+      if (file.size > config.rag.maxFileSize) {
         addToast({
           type: 'error',
           title: '❌ Archivo demasiado grande',
-          message: `El archivo ${file.name} excede el tamaño máximo de 50MB`,
-          duration: 5000
+          message: `El archivo ${file.name} excede el tamaño máximo de ${config.rag.maxFileSize / (1024 * 1024)}MB`,
         });
         continue;
       }
 
-      // Validar extensión
-      const validExtensions = ['.pdf', '.docx', '.txt', '.csv', '.xlsx', '.md'];
+      // ✨ VALIDAR EXTENSIÓN DESDE CONFIGURACIÓN
+      const validExtensions = config.rag.allowedFormats;
       const fileExt = '.' + file.name.split('.').pop().toLowerCase();
       if (!validExtensions.includes(fileExt)) {
         addToast({
           type: 'error',
           title: '❌ Formato no soportado',
           message: `El formato ${fileExt} no es válido.\nFormatos válidos: ${validExtensions.join(', ')}`,
-          duration: 5000
         });
         continue;
       }
@@ -228,7 +227,7 @@ const DocumentAnalysisPage = () => {
         
         // ✨ Animación de éxito
         setShowSuccessAnimation(true);
-        setTimeout(() => setShowSuccessAnimation(false), 2000);
+        setTimeout(() => setShowSuccessAnimation(false), config.ui.successAnimationDuration);
         
         // Recargar lista de documentos y stats
         await fetchDocuments();

@@ -7,7 +7,12 @@
  *   const docs = await ragAPI.get('/documents');
  *   const result = await ragAPI.post('/query', { query: 'test' });
  *   await ragAPI.uploadFile('/upload', file);
+ * 
+ * @version 2.0.0
+ * @date 2025-11-27
  */
+
+import config from '../config/environment';
 
 /**
  * Error personalizado para requests API
@@ -262,11 +267,11 @@ export const checkAllServicesHealth = async () => {
 /**
  * Utility: Retry con exponential backoff
  * @param {function} fn - Función async a reintentar
- * @param {number} maxRetries - Número máximo de reintentos
- * @param {number} baseDelay - Delay inicial en ms
+ * @param {number} maxRetries - Número máximo de reintentos (default desde config)
+ * @param {number} baseDelay - Delay inicial en ms (default desde config)
  * @returns {Promise<any>}
  */
-export const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
+export const retryWithBackoff = async (fn, maxRetries = config.timeouts.maxRetries, baseDelay = config.timeouts.retryBaseDelay) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
@@ -278,8 +283,8 @@ export const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => 
         throw error;
       }
       
-      // Exponential backoff: 1s, 2s, 4s, ...
-      const delay = Math.min(baseDelay * Math.pow(2, i), 10000);
+      // Exponential backoff con límite desde config
+      const delay = Math.min(baseDelay * Math.pow(2, i), config.timeouts.retryMaxDelay);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -288,10 +293,10 @@ export const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => 
 /**
  * Utility: Timeout para requests
  * @param {Promise} promise - Promise a ejecutar
- * @param {number} timeoutMs - Timeout en milisegundos
+ * @param {number} timeoutMs - Timeout en milisegundos (default desde config)
  * @returns {Promise<any>}
  */
-export const withTimeout = (promise, timeoutMs = 30000) => {
+export const withTimeout = (promise, timeoutMs = config.timeouts.default) => {
   return Promise.race([
     promise,
     new Promise((_, reject) =>

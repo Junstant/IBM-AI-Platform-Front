@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
+import config from '../config/environment';
 
 /**
  * Toast Notification Component - IBM AI Platform
@@ -9,11 +10,11 @@ import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
  * @param {string} props.type - Tipo de notificación: 'success' | 'error' | 'warning' | 'info'
  * @param {string} props.title - Título de la notificación
  * @param {string} props.message - Mensaje de la notificación
- * @param {number} props.duration - Duración en ms (default: 5000)
+ * @param {number} props.duration - Duración en ms (default desde config)
  * @param {function} props.onClose - Callback cuando se cierra
  */
 
-const ToastNotification = ({ type = 'info', title, message, duration = 5000, onClose }) => {
+const ToastNotification = ({ type = 'info', title, message, duration = config.ui.toastDuration, onClose }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -40,28 +41,28 @@ const ToastNotification = ({ type = 'info', title, message, duration = 5000, onC
   const typeConfig = {
     success: {
       icon: CheckCircle,
-      bgColor: 'bg-success/10',
+      bgColor: 'bg-white',
       borderColor: 'border-success',
       iconColor: 'text-success',
       titleColor: 'text-success',
     },
     error: {
       icon: XCircle,
-      bgColor: 'bg-danger/10',
+      bgColor: 'bg-white',
       borderColor: 'border-danger',
       iconColor: 'text-danger',
       titleColor: 'text-danger',
     },
     warning: {
       icon: AlertCircle,
-      bgColor: 'bg-carbon-yellow-10',
+      bgColor: 'bg-white',
       borderColor: 'border-carbon-yellow-30',
       iconColor: 'text-carbon-yellow-50',
       titleColor: 'text-carbon-yellow-50',
     },
     info: {
       icon: Info,
-      bgColor: 'bg-interactive/10',
+      bgColor: 'bg-white',
       borderColor: 'border-interactive',
       iconColor: 'text-interactive',
       titleColor: 'text-interactive',

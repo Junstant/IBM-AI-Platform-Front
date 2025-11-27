@@ -10,14 +10,12 @@ import { Highlight, themes } from "prism-react-renderer";
 import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
 import chatbotService, { APIError } from "../services/chatbotService";
+import config from "../config/environment";
 
 const ChatbotPageContent = () => {
-  const [selectedModel, setSelectedModel] = useState({
-    id: "gemma-2b",
-    name: "Gemma 2B",
-    port: "8085",
-    description: "Modelo ligero y rápido (seleccionado por defecto)",
-  });
+  // ✨ USAR MODELO POR DEFECTO DESDE CONFIGURACIÓN
+  const defaultModel = config.getDefaultModel('chatbot') || config.llm.availableModels[0];
+  const [selectedModel, setSelectedModel] = useState(defaultModel);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     chatbotService.getInitialMessage(selectedModel)

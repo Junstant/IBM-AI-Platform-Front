@@ -1,3 +1,5 @@
+import config from '../config/environment';
+
 // Función simple para hacer ping
 export const simplePing = async (url) => {
   try {
@@ -17,7 +19,7 @@ export const simplePing = async (url) => {
         headers: {
           'Accept': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5 segundos timeout
+        signal: AbortSignal.timeout(config.timeouts.health), // Timeout desde config
       });
 
       if (response.ok) {
@@ -41,7 +43,7 @@ export const simplePing = async (url) => {
       headers: {
         'Accept': 'application/json',
       },
-      signal: AbortSignal.timeout(5000), // 5 segundos timeout
+      signal: AbortSignal.timeout(config.timeouts.health), // Timeout desde config
     });
 
     if (response.ok) {
@@ -62,7 +64,7 @@ export const simplePing = async (url) => {
     if (error.name === 'TimeoutError') {
       return { 
         status: 'timeout', 
-        message: 'Timeout (5s)',
+        message: `Timeout (${config.timeouts.health / 1000}s)`,
         timestamp: new Date().toLocaleTimeString()
       };
     }

@@ -2,11 +2,12 @@
  * 🤖 Chatbot Service - IBM AI Platform
  * Servicio para interacción con modelos LLM vía llama.cpp
  * 
- * @version 1.0.0
+ * @version 2.0.0
  * @date 2025-11-27
  */
 
 import { APIError } from '../utils/apiClient';
+import config from '../config/environment';
 
 /**
  * ================================
@@ -75,16 +76,18 @@ const chatbotService = {
       throw new Error("No se ha seleccionado un modelo");
     }
 
+    // ✨ USAR PARÁMETROS DESDE CONFIGURACIÓN CENTRALIZADA
+    const defaults = config.llm.defaultParams;
     const completionRequest = {
       model: "llama",
       prompt: prompt,
-      max_tokens: options.max_tokens || 1024,
-      temperature: options.temperature || 0.6,
-      top_k: options.top_k || 50,
-      top_p: options.top_p || 0.95,
-      presence_penalty: options.presence_penalty || 1.1,
-      frequency_penalty: options.frequency_penalty || 0.8,
-      stop: options.stop || ["</s>", "<|user|>", "<|system|>", "Human:", "User:"],
+      max_tokens: options.max_tokens || defaults.max_tokens,
+      temperature: options.temperature || defaults.temperature,
+      top_k: options.top_k || defaults.top_k,
+      top_p: options.top_p || defaults.top_p,
+      presence_penalty: options.presence_penalty || defaults.presence_penalty,
+      frequency_penalty: options.frequency_penalty || defaults.frequency_penalty,
+      stop: options.stop || defaults.stop,
       stream: options.stream !== false, // Default true
     };
 
@@ -202,21 +205,10 @@ const chatbotService = {
     // Auto-detectar si usar TOON (más de 3 mensajes)
     const shouldUseTOON = useTOON !== null ? useTOON : conversation.length > 3;
 
+    // TOON encoding está disponible pero requiere importación dinámica async
+    // Para mantener compatibilidad síncrona, usamos ChatML tradicional
     if (shouldUseTOON) {
-      // Usar TOON para optimizar tokens (requiere importar encode)
-      try {
-        // Lazy import para evitar dependencia circular
-        const { encode } = require('../utils/toon');
-        const toonHistory = encode({ conversation });
-        
-        return `Eres un asistente IA amigable. Historial en TOON (Token-Optimized Object Notation):
-
-${toonHistory}
-
-Responde al último mensaje coherentemente basándote en todo el contexto. Mantén el idioma del usuario.`;
-      } catch (error) {
-        console.warn('TOON encoding failed, falling back to ChatML:', error);
-      }
+      console.info('Long conversation detected, using ChatML format (TOON available for future optimization)');
     }
 
     // Para conversaciones cortas, usar formato ChatML tradicional
@@ -283,9 +275,10 @@ Responde al último mensaje coherentemente basándote en todo el contexto. Mant�
    */
   async checkModelHealth(model) {
     try {
+      // ✨ USAR TIMEOUT DESDE CONFIGURACIÓN
       const response = await fetch(`/proxy/${model.port}/health`, {
         method: 'GET',
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(config.timeouts.health),
       });
       return response.ok;
     } catch (error) {

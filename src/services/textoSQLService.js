@@ -2,11 +2,12 @@
  * 🗄️ Text-to-SQL Service - IBM AI Platform
  * Servicio para convertir lenguaje natural a consultas SQL
  * 
- * @version 1.0.0
+ * @version 2.0.0
  * @date 2025-11-27
  */
 
 import { textoSQLAPI, APIError } from '../utils/apiClient';
+import config from '../config/environment';
 
 /**
  * ================================
@@ -76,16 +77,14 @@ const textoSQLService = {
         console.error(`TextoSQL Models Error ${error.status}:`, error.statusText);
       }
       
-      // Fallback a modelos estáticos
-      console.warn('Using fallback static models');
-      return [
-        { id: "mistral-7b", name: "Mistral 7B", port: "8088", description: "Modelo general equilibrado" },
-        { id: "gemma-2b", name: "Gemma 2B", port: "8085", description: "Modelo ligero y rápido" },
-        { id: "gemma-4b", name: "Gemma 4B", port: "8086", description: "Modelo balanceado" },
-        { id: "gemma-12b", name: "Gemma 12B", port: "8087", description: "Modelo de alta capacidad" },
-        { id: "deepseek-1.5b", name: "DeepSeek 1.5B", port: "8091", description: "Ultraligero" },
-        { id: "deepseek-8b", name: "DeepSeek 8B", port: "8089", description: "Equilibrado" },
-      ];
+      // ✨ FALLBACK A CONFIGURACIÓN CENTRALIZADA
+      console.warn('Using fallback static models from config');
+      return config.llm.availableModels.map(model => ({
+        id: model.id,
+        name: model.name,
+        port: model.port,
+        description: model.description,
+      }));
     }
   },
 

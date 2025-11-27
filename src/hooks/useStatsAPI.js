@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { statsAPI, APIError } from '../utils/apiClient';
+import config from '../config/environment';
 
 export const useStatsAPI = () => {
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export const useStatsAPI = () => {
   }, []);
 
   // Hook específico para dashboard summary
-  const useDashboardSummary = (refreshInterval = 30000) => {
+  const useDashboardSummary = (refreshInterval = config.ui.refreshIntervals.dashboardSummary) => {
     const [data, setData] = useState(null);
 
     const refresh = useCallback(async () => {
@@ -49,7 +50,7 @@ export const useStatsAPI = () => {
   };
 
   // Hook para modelos status
-  const useModelsStatus = (refreshInterval = 30000) => {
+  const useModelsStatus = (refreshInterval = config.ui.refreshIntervals.modelsStatus) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {
@@ -131,7 +132,7 @@ export const useStatsAPI = () => {
   };
 
   // Hook para recursos del sistema
-  const useSystemResources = (refreshInterval = 30000) => {
+  const useSystemResources = (refreshInterval = config.ui.refreshIntervals.systemResources) => {
     const [data, setData] = useState(null);
 
     const refresh = useCallback(async () => {
@@ -153,7 +154,7 @@ export const useStatsAPI = () => {
   };
 
   // Hook para alertas
-  const useAlerts = (refreshInterval = 10000) => {
+  const useAlerts = (refreshInterval = config.ui.refreshIntervals.alerts) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {

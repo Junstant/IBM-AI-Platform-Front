@@ -26,7 +26,7 @@ const TextToSQLPageContent = () => {
   
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10000);
+  const [itemsPerPage] = useState(config.ui.pagination.defaultItemsPerPage);
 
   // Conectividad simple manejada por SimpleStatus
 
