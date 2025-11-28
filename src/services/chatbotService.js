@@ -76,6 +76,14 @@ const chatbotService = {
       throw new Error("No se ha seleccionado un modelo");
     }
 
+    // 🐛 DEBUG: Verificar modelo y puerto
+    console.log("🐛 [chatbotService] sendCompletion called with:", {
+      modelId: model.id,
+      modelName: model.name,
+      modelPort: model.port,
+      modelObject: model
+    });
+
     // ✨ USAR PARÁMETROS DESDE CONFIGURACIÓN CENTRALIZADA
     const defaults = config.llm.defaultParams;
     const completionRequest = {
@@ -91,8 +99,11 @@ const chatbotService = {
       stream: options.stream !== false, // Default true
     };
 
+    const url = `/proxy/${model.port}/completion`;
+    console.log("🐛 [chatbotService] Fetching URL:", url);
+
     try {
-      const response = await fetch(`/proxy/${model.port}/completion`, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

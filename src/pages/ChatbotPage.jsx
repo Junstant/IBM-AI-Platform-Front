@@ -11,6 +11,7 @@ import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
 import chatbotService, { APIError } from "../services/chatbotService";
 import config from "../config/environment";
+import DebugConfig from "../components/DebugConfig"; // 🐛 TEMPORAL DEBUG
 
 const ChatbotPageContent = () => {
   // ✨ USAR MODELO POR DEFECTO DESDE CONFIGURACIÓN
@@ -392,7 +393,12 @@ const ChatbotPageContent = () => {
 
 // Componente principal simplificado - sin preloader complejo
 const ChatbotPage = () => {
-  return <ChatbotPageContent />;
+  return (
+    <>
+      <ChatbotPageContent />
+      <DebugConfig /> {/* 🐛 TEMPORAL DEBUG - ELIMINAR EN PRODUCCIÓN */}
+    </>
+  );
 };
 
 export default ChatbotPage;
