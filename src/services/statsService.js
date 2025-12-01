@@ -2,9 +2,9 @@
  * 📊 Stats Service - IBM AI Platform
  * Servicio para estadísticas y métricas del sistema
  * 
- * @version 2.0.0
+ * @version 2.1.0
  * @date 2025-12-01
- * @aligned_with STATS_API_SPECIFICATION.md v2.0.0
+ * @aligned_with Backend Stats API v2.0 (endpoints con prefijo /v2/ y formato kebab-case)
  */
 
 import { statsAPI, APIError } from '../utils/apiClient';
@@ -82,7 +82,7 @@ const statsService = {
    */
   async getDashboardSummary() {
     try {
-      return await statsAPI.get('/dashboard/summary');
+      return await statsAPI.get('/v2/dashboard-summary');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Dashboard Summary Error ${error.status}:`, error.statusText);
@@ -98,7 +98,7 @@ const statsService = {
    */
   async getServicesStatus() {
     try {
-      return await statsAPI.get('/services/status');
+      return await statsAPI.get('/v2/services-status');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Services Status Error ${error.status}:`, error.statusText);
@@ -131,7 +131,7 @@ const statsService = {
    */
   async getAlerts() {
     try {
-      return await statsAPI.get('/alerts/active');
+      return await statsAPI.get('/v2/active-alerts');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Alerts Error ${error.status}:`, error.statusText);
@@ -148,7 +148,7 @@ const statsService = {
    */
   async resolveAlert(alertId) {
     try {
-      return await statsAPI.post(`/alerts/${alertId}/resolve`, {});
+      return await statsAPI.post(`/v2/alerts/${alertId}/resolve`, {});
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Resolve Alert Error ${error.status}:`, error.statusText);
@@ -164,7 +164,7 @@ const statsService = {
    */
   async getFunctionalityPerformance() {
     try {
-      return await statsAPI.get('/functionality/performance');
+      return await statsAPI.get('/v2/functionality-performance');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Functionality Performance Error ${error.status}:`, error.statusText);
@@ -181,7 +181,7 @@ const statsService = {
    */
   async getRecentErrors(limit = 20) {
     try {
-      return await statsAPI.get('/errors/recent', { limit });
+      return await statsAPI.get('/v2/recent-errors', { limit });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Recent Errors Error ${error.status}:`, error.statusText);
@@ -198,7 +198,7 @@ const statsService = {
    */
   async getHourlyTrends(hours = 24) {
     try {
-      return await statsAPI.get('/trends/hourly', { hours });
+      return await statsAPI.get('/v2/hourly-trends', { hours });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Hourly Trends Error ${error.status}:`, error.statusText);
@@ -214,7 +214,7 @@ const statsService = {
    */
   async getSystemResources() {
     try {
-      return await statsAPI.get('/system/resources');
+      return await statsAPI.get('/v2/system-resources');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`System Resources Error ${error.status}:`, error.statusText);
@@ -231,7 +231,7 @@ const statsService = {
    */
   async getRecentActivity(limit = 10) {
     try {
-      return await statsAPI.get('/activity/recent', { limit });
+      return await statsAPI.get('/v2/recent-activity', { limit });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Recent Activity Error ${error.status}:`, error.statusText);
@@ -248,7 +248,7 @@ const statsService = {
    */
   async getDetailedMetrics(params = {}) {
     try {
-      return await statsAPI.get('/metrics/detailed', params);
+      return await statsAPI.get('/v2/detailed-metrics', params);
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Detailed Metrics Error ${error.status}:`, error.statusText);

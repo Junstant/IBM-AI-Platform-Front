@@ -1,9 +1,10 @@
 # 📊 API de Estadísticas y Métricas - Especificación Backend
 
-## Versión: 2.0.0
+## Versión: 2.1.0
 ## Fecha: 2025-12-01
+## ✅ Alineado con Backend Stats API v2.0
 
-Esta documentación define la estructura completa de datos que el **backend de estadísticas** debe proveer para que el frontend pueda mostrar métricas en tiempo real.
+Esta documentación define la estructura completa de datos que el **backend de estadísticas** provee. Todos los endpoints usan el formato `/v2/` con nomenclatura kebab-case.
 
 ---
 
@@ -66,10 +67,10 @@ CREATE TABLE service_health (
 
 ## 📡 Endpoints Requeridos
 
-Base URL: `/api/stats/`
+Base URL: `/api/stats/v2/` (kebab-case format)
 
 ### 1. Dashboard Summary
-**GET** `/api/stats/dashboard/summary`
+**GET** `/api/stats/v2/dashboard-summary`
 
 Resumen general para las 4 tarjetas principales del dashboard.
 
@@ -103,7 +104,7 @@ Resumen general para las 4 tarjetas principales del dashboard.
 ---
 
 ### 2. Models & APIs Status
-**GET** `/api/stats/services/status`
+**GET** `/api/stats/v2/services-status`
 
 Lista completa de modelos LLM y APIs con su estado de salud.
 
@@ -184,7 +185,7 @@ Lista completa de modelos LLM y APIs con su estado de salud.
 ---
 
 ### 3. System Resources
-**GET** `/api/stats/system/resources`
+**GET** `/api/stats/v2/system-resources`
 
 Recursos del sistema (CPU, RAM, disco, red).
 
@@ -231,7 +232,7 @@ def get_system_resources():
 ---
 
 ### 4. Hourly Trends
-**GET** `/api/stats/trends/hourly?hours=24`
+**GET** `/api/stats/v2/hourly-trends?hours=24`
 
 Tendencias de las últimas N horas (para gráficos de línea).
 
@@ -283,7 +284,7 @@ ORDER BY hour ASC;
 ---
 
 ### 5. Functionality Performance
-**GET** `/api/stats/functionality/performance`
+**GET** `/api/stats/v2/functionality-performance`
 
 Rendimiento por funcionalidad (chatbot, fraude, text-to-sql, etc.).
 
@@ -347,7 +348,7 @@ Rendimiento por funcionalidad (chatbot, fraude, text-to-sql, etc.).
 ---
 
 ### 6. Recent Errors
-**GET** `/api/stats/errors/recent?limit=20`
+**GET** `/api/stats/v2/recent-errors?limit=20`
 
 Errores recientes con detalles.
 
@@ -391,7 +392,7 @@ Errores recientes con detalles.
 ---
 
 ### 7. Active Alerts
-**GET** `/api/stats/alerts/active`
+**GET** `/api/stats/v2/active-alerts`
 
 Alertas activas del sistema.
 
@@ -434,7 +435,7 @@ Alertas activas del sistema.
 }
 ```
 
-**POST** `/api/stats/alerts/{alert_id}/resolve`
+**POST** `/api/stats/v2/alerts/{alert_id}/resolve`
 
 Marcar alerta como resuelta.
 
@@ -450,7 +451,7 @@ Marcar alerta como resuelta.
 ---
 
 ### 8. Recent Activity
-**GET** `/api/stats/activity/recent?limit=10`
+**GET** `/api/stats/v2/recent-activity?limit=10`
 
 Actividad reciente del sistema (eventos, acciones, cambios).
 
@@ -511,7 +512,7 @@ Actividad reciente del sistema (eventos, acciones, cambios).
 ---
 
 ### 9. Detailed Metrics (Nueva página)
-**GET** `/api/stats/metrics/detailed?timeframe=today&funcionalidad=all`
+**GET** `/api/stats/v2/detailed-metrics?timeframe=today&funcionalidad=all`
 
 Métricas detalladas para la nueva página de métricas.
 

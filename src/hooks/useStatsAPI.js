@@ -33,7 +33,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/dashboard/summary');
+        const result = await fetchData('/v2/dashboard-summary');
         setData(result);
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
@@ -55,8 +55,8 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/models-status');
-        setData(result);
+        const result = await fetchData('/v2/services-status');
+        setData(result?.llm_models || []);
       } catch (err) {
         console.error('Error fetching models status:', err);
       }
@@ -77,7 +77,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/functionality/performance');
+        const result = await fetchData('/v2/functionality-performance');
         setData(result?.functionalities || []);
       } catch (err) {
         console.error('Error fetching functionality performance:', err);
@@ -97,7 +97,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/errors/recent?limit=${limit}`);
+        const result = await fetchData(`/v2/recent-errors?limit=${limit}`);
         setData(result?.errors || []);
       } catch (err) {
         console.error('Error fetching recent errors:', err);
@@ -117,7 +117,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/trends/hourly?hours=${hours}`);
+        const result = await fetchData(`/v2/hourly-trends?hours=${hours}`);
         setData(result?.data || []);
       } catch (err) {
         console.error('Error fetching hourly trends:', err);
@@ -137,7 +137,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/system/resources');
+        const result = await fetchData('/v2/system-resources');
         setData(result);
       } catch (err) {
         console.error('Error fetching system resources:', err);
@@ -159,7 +159,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/alerts/active');
+        const result = await fetchData('/v2/active-alerts');
         setData(result?.alerts || []);
       } catch (err) {
         console.error('Error fetching alerts:', err);
@@ -168,7 +168,7 @@ export const useStatsAPI = () => {
 
     const resolveAlert = useCallback(async (alertId) => {
       try {
-        await statsAPI.post(`/alerts/${alertId}/resolve`, {});
+        await statsAPI.post(`/v2/alerts/${alertId}/resolve`, {});
         await refresh();
       } catch (err) {
         console.error('Error resolving alert:', err);
@@ -190,7 +190,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/activity/recent?limit=${limit}`);
+        const result = await fetchData(`/v2/recent-activity?limit=${limit}`);
         setData(result?.activities || []);
       } catch (err) {
         console.error('Error fetching recent activity:', err);
@@ -212,7 +212,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/services/status');
+        const result = await fetchData('/v2/services-status');
         setData(result || { llm_models: [], api_endpoints: [] });
       } catch (err) {
         console.error('Error fetching services status:', err);
