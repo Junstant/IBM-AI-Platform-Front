@@ -2,9 +2,9 @@
  * 📊 Stats Service - IBM AI Platform
  * Servicio para estadísticas y métricas del sistema
  * 
- * @version 2.1.0
+ * @version 2.2.0
  * @date 2025-12-01
- * @aligned_with Backend Stats API v2.0 (endpoints con prefijo /v2/ y formato kebab-case)
+ * @aligned_with Backend Stats API v2.0 Real (http://localhost:8003/api/stats/v2/*)
  */
 
 import { statsAPI, APIError } from '../utils/apiClient';
@@ -93,7 +93,7 @@ const statsService = {
 
   /**
    * ✨ NUEVO: Obtener estado de servicios (modelos LLM + APIs)
-   * @returns {Promise<Object>} - { llm_models: [], api_endpoints: [] }
+   * @returns {Promise<Object>} - { services: [] }
    * @throws {APIError}
    */
   async getServicesStatus() {
@@ -115,7 +115,8 @@ const statsService = {
   async getModelsStatus() {
     try {
       const data = await this.getServicesStatus();
-      return data.llm_models || [];
+      // Backend v2 retorna { services: [] }, filtrar por tipo LLM
+      return data.services?.filter(s => s.service_type === 'llm') || [];
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Models Status Error ${error.status}:`, error.statusText);
@@ -126,7 +127,7 @@ const statsService = {
 
   /**
    * Obtener alertas activas
-   * @returns {Promise<Object>} - { alerts: [], total_active: number, timestamp: string }
+   * @returns {Promise<Object>} - { alerts: [] }
    * @throws {APIError}
    */
   async getAlerts() {
@@ -143,12 +144,13 @@ const statsService = {
   /**
    * Resolver una alerta
    * @param {string} alertId - ID de la alerta
+   * @param {string} resolvedBy - Email del usuario que resuelve
    * @returns {Promise<Object>}
    * @throws {APIError}
    */
-  async resolveAlert(alertId) {
+  async resolveAlert(alertId, resolvedBy = 'system') {
     try {
-      return await statsAPI.post(`/v2/alerts/${alertId}/resolve`, {});
+      return await statsAPI.post(`/v2/resolve-alert/${alertId}`, { resolved_by: resolvedBy });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Resolve Alert Error ${error.status}:`, error.statusText);
@@ -159,7 +161,7 @@ const statsService = {
 
   /**
    * Obtener performance por funcionalidad
-   * @returns {Promise<Object>} - { functionalities: [], timestamp: string }
+   * @returns {Promise<Object>} - { functionalities: [] }
    * @throws {APIError}
    */
   async getFunctionalityPerformance() {
@@ -175,13 +177,14 @@ const statsService = {
 
   /**
    * Obtener errores recientes
-   * @param {number} limit - Máximo de errores (default: 20)
-   * @returns {Promise<Object>} - { errors: [], total_errors_today: number, timestamp: string }
+   * @param {number} hours - Horas hacia atrás (default: 24)
+   * @param {number} limit - Máximo de errores (default: 50)
+   * @returns {Promise<Object>} - { errors: [] }
    * @throws {APIError}
    */
-  async getRecentErrors(limit = 20) {
+  async getRecentErrors(hours = 24, limit = 50) {
     try {
-      return await statsAPI.get('/v2/recent-errors', { limit });
+      return await statsAPI.get('/v2/recent-errors', { hours, limit });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Recent Errors Error ${error.status}:`, error.statusText);
@@ -193,12 +196,15 @@ const statsService = {
   /**
    * Obtener tendencias por hora
    * @param {number} hours - Número de horas hacia atrás (default: 24)
-   * @returns {Promise<Object>} - { period_start, period_end, data: [] }
+   * @param {string} functionality - Filtrar por funcionalidad (opcional)
+   * @returns {Promise<Object>} - { trends: [] }
    * @throws {APIError}
    */
-  async getHourlyTrends(hours = 24) {
+  async getHourlyTrends(hours = 24, functionality = null) {
     try {
-      return await statsAPI.get('/v2/hourly-trends', { hours });
+      const params = { hours };
+      if (functionality) params.functionality = functionality;
+      return await statsAPI.get('/v2/hourly-trends', params);
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Hourly Trends Error ${error.status}:`, error.statusText);
@@ -209,7 +215,7 @@ const statsService = {
 
   /**
    * Obtener recursos del sistema
-   * @returns {Promise<Object>}
+   * @returns {Promise<Object>} - { cpu_usage, memory_usage, disk_usage, timestamp }
    * @throws {APIError}
    */
   async getSystemResources() {
@@ -224,14 +230,14 @@ const statsService = {
   },
 
   /**
-   * ✨ NUEVO: Obtener actividad reciente
-   * @param {number} limit - Máximo de actividades (default: 10)
-   * @returns {Promise<Object>}
+   * ✨ NUEVO: Obtener actividad reciente (activity log)
+   * @param {number} limit - Máximo de actividades (default: 100)
+   * @returns {Promise<Object>} - { activities: [] }
    * @throws {APIError}
    */
-  async getRecentActivity(limit = 10) {
+  async getRecentActivity(limit = 100) {
     try {
-      return await statsAPI.get('/v2/recent-activity', { limit });
+      return await statsAPI.get('/v2/activity-log', { limit });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Recent Activity Error ${error.status}:`, error.statusText);
@@ -242,12 +248,15 @@ const statsService = {
 
   /**
    * ✨ NUEVO: Obtener métricas detalladas
-   * @param {Object} params - { timeframe, funcionalidad }
-   * @returns {Promise<Object>}
+   * @param {number} hours - Horas hacia atrás (default: 24)
+   * @param {string} functionality - Funcionalidad a filtrar (opcional)
+   * @returns {Promise<Object>} - { metrics: [] }
    * @throws {APIError}
    */
-  async getDetailedMetrics(params = {}) {
+  async getDetailedMetrics(hours = 24, functionality = null) {
     try {
+      const params = { hours };
+      if (functionality) params.functionality = functionality;
       return await statsAPI.get('/v2/detailed-metrics', params);
     } catch (error) {
       if (error instanceof APIError) {

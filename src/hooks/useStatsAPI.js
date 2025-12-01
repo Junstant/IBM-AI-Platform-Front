@@ -56,7 +56,9 @@ export const useStatsAPI = () => {
     const refresh = useCallback(async () => {
       try {
         const result = await fetchData('/v2/services-status');
-        setData(result?.llm_models || []);
+        // Backend v2 retorna { services: [] }, filtrar por tipo LLM
+        const services = result?.services || [];
+        setData(services.filter(s => s.service_type === 'llm'));
       } catch (err) {
         console.error('Error fetching models status:', err);
       }
@@ -92,17 +94,17 @@ export const useStatsAPI = () => {
   };
 
   // Hook para errores recientes
-  const useRecentErrors = (limit = 20) => {
+  const useRecentErrors = (hours = 24, limit = 50) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/v2/recent-errors?limit=${limit}`);
+        const result = await fetchData(`/v2/recent-errors?hours=${hours}&limit=${limit}`);
         setData(result?.errors || []);
       } catch (err) {
         console.error('Error fetching recent errors:', err);
       }
-    }, [limit]);
+    }, [hours, limit]);
 
     useEffect(() => {
       refresh();
@@ -118,7 +120,7 @@ export const useStatsAPI = () => {
     const refresh = useCallback(async () => {
       try {
         const result = await fetchData(`/v2/hourly-trends?hours=${hours}`);
-        setData(result?.data || []);
+        setData(result?.trends || []);
       } catch (err) {
         console.error('Error fetching hourly trends:', err);
       }
@@ -166,9 +168,9 @@ export const useStatsAPI = () => {
       }
     }, []);
 
-    const resolveAlert = useCallback(async (alertId) => {
+    const resolveAlert = useCallback(async (alertId, resolvedBy = 'system') => {
       try {
-        await statsAPI.post(`/v2/alerts/${alertId}/resolve`, {});
+        await statsAPI.post(`/v2/resolve-alert/${alertId}`, { resolved_by: resolvedBy });
         await refresh();
       } catch (err) {
         console.error('Error resolving alert:', err);
@@ -185,12 +187,12 @@ export const useStatsAPI = () => {
   };
 
   // ✨ NUEVO: Hook para actividad reciente
-  const useRecentActivity = (limit = 10, refreshInterval = config.ui.refreshIntervals.alerts) => {
+  const useRecentActivity = (limit = 100, refreshInterval = config.ui.refreshIntervals.alerts) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/v2/recent-activity?limit=${limit}`);
+        const result = await fetchData(`/v2/activity-log?limit=${limit}`);
         setData(result?.activities || []);
       } catch (err) {
         console.error('Error fetching recent activity:', err);
@@ -208,12 +210,12 @@ export const useStatsAPI = () => {
 
   // ✨ NUEVO: Hook para servicios (modelos + APIs)
   const useServicesStatus = (refreshInterval = config.ui.refreshIntervals.modelsStatus) => {
-    const [data, setData] = useState({ llm_models: [], api_endpoints: [] });
+    const [data, setData] = useState({ services: [] });
 
     const refresh = useCallback(async () => {
       try {
         const result = await fetchData('/v2/services-status');
-        setData(result || { llm_models: [], api_endpoints: [] });
+        setData(result || { services: [] });
       } catch (err) {
         console.error('Error fetching services status:', err);
       }
