@@ -11,7 +11,7 @@ import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
 import chatbotService, { APIError } from "../services/chatbotService";
 import config from "../config/environment";
-import DebugConfig from "../components/DebugConfig"; // 🐛 TEMPORAL DEBUG
+// import DebugConfig from "../components/DebugConfig"; // 🐛 DEBUG REMOVIDO
 
 const ChatbotPageContent = () => {
   // ✨ USAR MODELO POR DEFECTO DESDE CONFIGURACIÓN
@@ -347,7 +347,7 @@ const ChatbotPageContent = () => {
         <div className="flex items-center gap-03 max-w-6xl mx-auto">
           {/* Selector de modelo */}
           <div className="flex-shrink-0 min-w-[280px]">
-            <ModelSelector value={selectedModel?.name} onChange={setSelectedModel} showPort={true} hideLabel={true} />
+            <ModelSelector value={selectedModel?.id} onChange={setSelectedModel} showPort={true} hideLabel={true} />
           </div>
 
           {/* Warning cuando no hay modelo */}
@@ -393,12 +393,7 @@ const ChatbotPageContent = () => {
 
 // Componente principal simplificado - sin preloader complejo
 const ChatbotPage = () => {
-  return (
-    <>
-      <ChatbotPageContent />
-      <DebugConfig /> {/* 🐛 TEMPORAL DEBUG - ELIMINAR EN PRODUCCIÓN */}
-    </>
-  );
+  return <ChatbotPageContent />;
 };
 
 export default ChatbotPage;

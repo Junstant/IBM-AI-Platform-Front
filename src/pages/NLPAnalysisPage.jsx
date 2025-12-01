@@ -238,7 +238,7 @@ const NLPAnalysisPage = () => {
             {/* Selector de modelo */}
             <div className="col-span-1">
               <ModelSelector 
-                value={selectedModel?.name} 
+                value={selectedModel?.id} 
                 onChange={setSelectedModel} 
                 showPort={true} 
                 hideLabel={false} 

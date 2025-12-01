@@ -3,7 +3,6 @@ import ExcelJS from "exceljs";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Database, Zap, BarChart3, Clock, Maximize2 } from "lucide-react";
 import SimpleStatus from "../components/SimpleStatus";
 import fraudService, { APIError } from "../services/fraudService";
-import config from "../config/environment";
 // import { encode as encodeTOON } from "../utils/toon"; // TOON disponible para optimización futura
 
 const FraudDetectionPageContent = () => {
@@ -14,9 +13,6 @@ const FraudDetectionPageContent = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showFullscreenTable, setShowFullscreenTable] = useState(false);
-  
-  // ✨ USAR SERVER IP DESDE CONFIGURACIÓN
-  const ServerIP = config.server.serverIP;
   
   // Conectividad simple manejada por SimpleStatus
   // Descargar Excel con exceljs
