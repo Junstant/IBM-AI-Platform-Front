@@ -80,7 +80,7 @@ const fraudService = {
    */
   async analyzeDatabase() {
     try {
-      const result = await fraudeAPI.post('/analyze_database', {});
+      const result = await fraudeAPI.get('/predict_all_from_db');
       return result;
     } catch (error) {
       if (error instanceof APIError) {

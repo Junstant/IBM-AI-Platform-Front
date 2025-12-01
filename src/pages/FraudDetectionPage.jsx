@@ -79,9 +79,6 @@ const FraudDetectionPageContent = () => {
     try {
       // Usar fraudService con apiClient
       const data = await fraudService.predictSingleTransaction(transactionData);
-      
-      console.log("Datos recibidos del análisis individual:", data);
-      console.log("Probabilidad de fraude recibida:", data.probabilidad_fraude);
 
       // Transformar respuesta para el formato del UI
       let probability = data.probabilidad_fraude || data.fraud_probability || data.probability || 0;
@@ -112,14 +109,8 @@ const FraudDetectionPageContent = () => {
     setIsAnalyzingDatabase(true);
 
     try {
-      console.log("Iniciando análisis de base de datos...");
-      
       // Usar fraudService con apiClient
       const data = await fraudService.analyzeDatabase();
-      
-      console.log("Datos recibidos completos:", data);
-      console.log("Transacciones fraudulentas encontradas:", data.fraud_detected);
-      console.log("Total resultados:", data.results?.length);
 
       // Mapear los datos según la respuesta del backend
       const mappedResults =
@@ -138,8 +129,6 @@ const FraudDetectionPageContent = () => {
           prediccion: transaction.prediccion,
           nivel_riesgo: transaction.nivel_riesgo,
         })) || [];
-
-      console.log("Resultados mapeados:", mappedResults.slice(0, 3));
 
       setDatabaseResults({
         totalFraudulent: data.fraud_detected,
