@@ -9,6 +9,7 @@ import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
 import FraudDetectionPage from "./pages/FraudDetectionPage";
 import NLPAnalysisPage from "./pages/NLPAnalysisPage";
 import TextToSQLPage from "./pages/TextToSQLPage";
+import MetricsPage from "./pages/MetricsPage";
 import { BarChart, Bot, Database, Shield, Home, Cpu, Plus,Brain,Search,Hash,Tag, Sparkles, MessageSquare, FileText } from "lucide-react";
 
 // Páginas temporales para las rutas faltantes
@@ -182,6 +183,7 @@ function App() {
             <Route path="/nlp" element={<NLPAnalysisPage />} />
             <Route path="/nlp-models" element={<NLPPage />} />
             <Route path="/text-to-sql" element={<TextToSQLPage />} />
+            <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/ml-models" element={<MLModelsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
             <Route path="/settings" element={<SettingsPage />} />

@@ -1,13 +1,17 @@
 import React from 'react';
 import { CheckCircle, XCircle, AlertCircle, Loader, Activity, Clock, Cpu, MemoryStick } from 'lucide-react';
 
-const ModelStatusCard = ({ model }) => {
+const ModelStatusCard = ({ model, isAPI = false }) => {
   const getStatusIcon = () => {
-    switch (model.status) {
+    const status = model.status?.toLowerCase();
+    switch (status) {
+      case 'online':
       case 'active':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'degraded':
       case 'loading':
         return <Loader className="w-5 h-5 text-yellow-500 animate-spin" />;
+      case 'offline':
       case 'error':
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'maintenance':
@@ -18,11 +22,15 @@ const ModelStatusCard = ({ model }) => {
   };
 
   const getStatusColor = () => {
-    switch (model.status) {
+    const status = model.status?.toLowerCase();
+    switch (status) {
+      case 'online':
       case 'active':
         return 'border-green-200 bg-green-50';
+      case 'degraded':
       case 'loading':
         return 'border-yellow-200 bg-yellow-50';
+      case 'offline':
       case 'error':
         return 'border-red-200 bg-red-50';
       case 'maintenance':
@@ -65,16 +73,20 @@ const ModelStatusCard = ({ model }) => {
         <div className="flex items-center space-x-2">
           {getStatusIcon()}
           <div>
-            <h3 className="font-medium text-gray-900">{model.model_name}</h3>
-            <p className="text-xs text-gray-500">{model.model_type} • {model.model_size}</p>
+            <h3 className="font-medium text-gray-900">
+              {model.display_name || model.model_name || model.service_name}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {isAPI ? `API ${model.metadata?.version || 'v1'}` : `${model.model_type || 'LLM'} • ${model.model_size || 'N/A'}`}
+            </p>
           </div>
         </div>
         <div className="text-right">
           <span className={`text-xs font-medium ${getHealthStatus()}`}>
-            {model.health_status}
+            {model.status}
           </span>
-          {model.port && (
-            <p className="text-xs text-gray-400">:{model.port}</p>
+          {(model.port || model.metadata?.port) && (
+            <p className="text-xs text-gray-400">:{model.port || model.metadata?.port}</p>
           )}
         </div>
       </div>
@@ -88,17 +100,27 @@ const ModelStatusCard = ({ model }) => {
           </div>
           <p className="text-sm font-semibold text-gray-900">{model.total_requests || 0}</p>
           <p className="text-xs text-gray-500">
-            {model.success_rate ? `${model.success_rate}% éxito` : 'N/A'}
+            {model.successful_requests && model.total_requests
+              ? `${((model.successful_requests / model.total_requests) * 100).toFixed(1)}% éxito`
+              : model.success_rate
+              ? `${model.success_rate}% éxito`
+              : 'N/A'}
           </p>
         </div>
 
         <div className="bg-white bg-opacity-50 rounded p-2">
           <div className="flex items-center space-x-1">
             <Clock className="w-3 h-3 text-green-500" />
-            <span className="text-xs text-gray-600">Respuesta</span>
+            <span className="text-xs text-gray-600">Latencia</span>
           </div>
           <p className="text-sm font-semibold text-gray-900">
-            {model.avg_response_time ? `${model.avg_response_time.toFixed(2)}s` : 'N/A'}
+            {model.avg_latency_ms
+              ? model.avg_latency_ms < 1000
+                ? `${model.avg_latency_ms.toFixed(0)}ms`
+                : `${(model.avg_latency_ms / 1000).toFixed(2)}s`
+              : model.avg_response_time
+              ? `${model.avg_response_time.toFixed(2)}s`
+              : 'N/A'}
           </p>
         </div>
       </div>

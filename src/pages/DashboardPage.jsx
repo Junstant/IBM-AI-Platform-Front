@@ -12,10 +12,15 @@ import AlertsPanel from "../components/stats/AlertsPanel";
 import LastUpdated from "../components/stats/LastUpdated";
 
 const DashboardPage = () => {
-  const { useDashboardSummary, useModelsStatus, useAlerts } = useStatsAPI();
+  const { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity } = useStatsAPI();
   const { data: summary, loading: summaryLoading, refresh: refreshSummary, lastUpdated } = useDashboardSummary();
-  const { data: models, loading: modelsLoading } = useModelsStatus();
+  const { data: services } = useServicesStatus();
   const { data: alerts, resolveAlert } = useAlerts();
+  const { data: recentActivity } = useRecentActivity(10);
+
+  // Extraer modelos y APIs
+  const models = services?.llm_models || [];
+  const apis = services?.api_endpoints || [];
 
   // Stats con datos reales o fallback
   const stats = [
@@ -161,17 +166,21 @@ const DashboardPage = () => {
 
       {/* Stats en tiempo real y alertas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-05">
-        {/* Modelos activos */}
-        <div className="lg:col-span-2">
+        {/* Modelos y APIs */}
+        <div className="lg:col-span-2 space-y-05">
+          {/* Modelos LLM */}
           <Card padding="lg">
             <div className="flex items-center justify-between mb-05">
-              <h2 className="text-xl font-semibold text-primary">Estado de Modelos IA</h2>
+              <h2 className="text-xl font-semibold text-primary">
+                <Brain className="w-5 h-5 inline-block mr-2" />
+                Modelos LLM
+              </h2>
               <LastUpdated timestamp={lastUpdated} onRefresh={refreshSummary} loading={summaryLoading} />
             </div>
 
-            {modelsLoading ? (
+            {summaryLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2].map((i) => (
                   <div key={i} className="animate-pulse">
                     <div className="bg-gray-200 h-32 rounded-lg"></div>
                   </div>
@@ -180,7 +189,7 @@ const DashboardPage = () => {
             ) : models && models.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {models.slice(0, 4).map((model) => (
-                  <ModelStatusCard key={model.model_name} model={model} />
+                  <ModelStatusCard key={model.service_name} model={model} />
                 ))}
               </div>
             ) : (
@@ -190,12 +199,36 @@ const DashboardPage = () => {
                 <p className="text-sm">Los modelos aparecerán aquí cuando estén activos</p>
               </div>
             )}
+          </Card>
 
-            {models && models.length > 4 && (
-              <div className="mt-05 text-center">
-                <Link to="/analytics" className="text-interactive hover:text-carbon-blue-70 text-sm font-medium">
-                  Ver todos los modelos ({models.length}) →
-                </Link>
+          {/* APIs de Backend */}
+          <Card padding="lg">
+            <div className="flex items-center justify-between mb-05">
+              <h2 className="text-xl font-semibold text-primary">
+                <Cpu className="w-5 h-5 inline-block mr-2" />
+                APIs de Backend
+              </h2>
+            </div>
+
+            {summaryLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 h-32 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : apis && apis.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {apis.map((api) => (
+                  <ModelStatusCard key={api.service_name} model={api} isAPI={true} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Cpu className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No hay APIs configuradas</p>
+                <p className="text-sm">Las APIs aparecerán aquí cuando estén activas</p>
               </div>
             )}
           </Card>
@@ -240,26 +273,55 @@ const DashboardPage = () => {
       {/* Actividad reciente */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Actividad Reciente</h2>
-        <div className="space-y-4">
-          {[
-            { time: "Hace 2 minutos", action: "Nuevo modelo de ML entrenado", type: "success" },
-            { time: "Hace 15 minutos", action: "Análisis de documento completado", type: "info" },
-            { time: "Hace 1 hora", action: "Chatbot Watson actualizado", type: "warning" },
-            { time: "Hace 3 horas", action: "Backup de datos completado", type: "success" },
-          ].map((activity, index) => (
-            <div key={index} className="flex items-center space-x-04 p-04 rounded hover:bg-ui-03 transition-colors duration-fast">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  activity.type === "success" ? "bg-success" : activity.type === "info" ? "bg-interactive" : activity.type === "warning" ? "bg-carbon-yellow-30" : "bg-carbon-gray-50"
-                }`}
-              />
-              <div className="flex-1">
-                <p className="text-sm text-primary">{activity.action}</p>
-                <p className="text-xs text-secondary">{activity.time}</p>
+        {summaryLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse flex items-center space-x-04">
+                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : recentActivity && recentActivity.length > 0 ? (
+          <div className="space-y-4">
+            {recentActivity.map((activity) => {
+              const severityColors = {
+                success: "bg-success",
+                info: "bg-interactive",
+                warning: "bg-carbon-yellow-30",
+                error: "bg-danger",
+              };
+              return (
+                <div
+                  key={activity.id}
+                  className="flex items-center space-x-04 p-04 rounded hover:bg-ui-03 transition-colors duration-fast"
+                >
+                  <div className={`w-2 h-2 rounded-full ${severityColors[activity.severity] || "bg-carbon-gray-50"}`} />
+                  <div className="flex-1">
+                    <p className="text-sm text-primary">{activity.title || activity.description}</p>
+                    <p className="text-xs text-secondary">
+                      {activity.timestamp ? new Date(activity.timestamp).toLocaleString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        day: '2-digit',
+                        month: 'short'
+                      }) : 'Fecha desconocida'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>No hay actividad reciente</p>
+            <p className="text-sm">La actividad aparecerá aquí cuando ocurran eventos</p>
+          </div>
+        )}
       </Card>
     </div>
   );

@@ -112,9 +112,12 @@ const FraudDetectionPageContent = () => {
       // Usar fraudService con apiClient
       const data = await fraudService.analyzeDatabase();
 
-      // Mapear los datos según la respuesta del backend
+      // ✅ BACKEND DEVUELVE: transacciones_fraudulentas_encontradas, total_transacciones_analizadas, resultados[]
+      console.log('📦 Datos recibidos del backend:', data);
+
+      // Mapear los datos según la respuesta REAL del backend
       const mappedResults =
-        data.results?.map((transaction) => ({
+        data.resultados?.map((transaction) => ({
           id: transaction.id,
           cuenta_origen_id: transaction.cuenta_origen || `cuenta_${transaction.id}_origen`,
           cuenta_destino_id: transaction.cuenta_destino || `cuenta_${transaction.id}_destino`,
@@ -124,16 +127,18 @@ const FraudDetectionPageContent = () => {
           tipo_tarjeta: transaction.tipo_tarjeta,
           fecha_transaccion: transaction.fecha_transaccion,
           horario_transaccion: transaction.horario_transaccion,
-          prediccion_fraude: transaction.es_fraude,
+          prediccion_fraude: transaction.es_fraude || transaction.prediccion,
           probabilidad_fraude: transaction.probabilidad_fraude,
           prediccion: transaction.prediccion,
           nivel_riesgo: transaction.nivel_riesgo,
         })) || [];
 
+      console.log('✅ Resultados mapeados:', mappedResults.length, 'transacciones');
+
       setDatabaseResults({
-        totalFraudulent: data.fraud_detected,
+        totalFraudulent: data.transacciones_fraudulentas_encontradas || 0,
         results: mappedResults,
-        totalResults: data.total_analyzed || 0,
+        totalResults: data.total_transacciones_analizadas || 0,
         timestamp: new Date().toLocaleString(),
       });
     } catch (error) {

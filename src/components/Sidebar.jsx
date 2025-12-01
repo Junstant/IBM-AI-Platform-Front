@@ -10,12 +10,13 @@ const Sidebar = () => {
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: Bot, label: "Chatbot IA", path: "/chatbot" },
-    { icon: Image, label: "Generador Imágenes", path: "/image-generator" },
+    { icon: Shield, label: "Detección de Fraude", path: "/fraud-detection" },
+    { icon: Brain, label: "Text-to-SQL", path: "/text-to-sql" },
     { icon: FileText, label: "Análisis Documentos", path: "/document-analysis" },
-    { icon: BarChart3, label: "Analytics IA", path: "/analytics" },
-    { icon: MessageSquare, label: "Procesamiento Lenguaje", path: "/nlp-models" },
-    { icon: Cpu, label: "Machine Learning", path: "/ml-models" },
-    { icon: Zap, label: "Automatización", path: "/automation" },
+    { icon: MessageSquare, label: "Análisis NLP", path: "/nlp" },
+    { icon: Image, label: "Generador Imágenes", path: "/image-generator" },
+    { icon: BarChart3, label: "Métricas Detalladas", path: "/metrics" },
+    { icon: Cpu, label: "Analytics IA", path: "/analytics" },
     { icon: Settings, label: "Configuración", path: "/settings" },
   ];
 

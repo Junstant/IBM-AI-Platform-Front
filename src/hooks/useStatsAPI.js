@@ -33,7 +33,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/dashboard-summary');
+        const result = await fetchData('/dashboard/summary');
         setData(result);
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
@@ -77,8 +77,8 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/functionality-performance');
-        setData(result);
+        const result = await fetchData('/functionality/performance');
+        setData(result?.functionalities || []);
       } catch (err) {
         console.error('Error fetching functionality performance:', err);
       }
@@ -92,17 +92,17 @@ export const useStatsAPI = () => {
   };
 
   // Hook para errores recientes
-  const useRecentErrors = () => {
+  const useRecentErrors = (limit = 20) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/recent-errors');
-        setData(result);
+        const result = await fetchData(`/errors/recent?limit=${limit}`);
+        setData(result?.errors || []);
       } catch (err) {
         console.error('Error fetching recent errors:', err);
       }
-    }, []);
+    }, [limit]);
 
     useEffect(() => {
       refresh();
@@ -112,17 +112,17 @@ export const useStatsAPI = () => {
   };
 
   // Hook para tendencias por hora
-  const useHourlyTrends = () => {
+  const useHourlyTrends = (hours = 24) => {
     const [data, setData] = useState([]);
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/hourly-trends');
-        setData(result);
+        const result = await fetchData(`/trends/hourly?hours=${hours}`);
+        setData(result?.data || []);
       } catch (err) {
         console.error('Error fetching hourly trends:', err);
       }
-    }, []);
+    }, [hours]);
 
     useEffect(() => {
       refresh();
@@ -137,7 +137,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/system-resources');
+        const result = await fetchData('/system/resources');
         setData(result);
       } catch (err) {
         console.error('Error fetching system resources:', err);
@@ -159,8 +159,8 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/alerts');
-        setData(result);
+        const result = await fetchData('/alerts/active');
+        setData(result?.alerts || []);
       } catch (err) {
         console.error('Error fetching alerts:', err);
       }
@@ -184,6 +184,50 @@ export const useStatsAPI = () => {
     return { data, loading, error, refresh, resolveAlert, lastUpdated };
   };
 
+  // ✨ NUEVO: Hook para actividad reciente
+  const useRecentActivity = (limit = 10, refreshInterval = config.ui.refreshIntervals.alerts) => {
+    const [data, setData] = useState([]);
+
+    const refresh = useCallback(async () => {
+      try {
+        const result = await fetchData(`/activity/recent?limit=${limit}`);
+        setData(result?.activities || []);
+      } catch (err) {
+        console.error('Error fetching recent activity:', err);
+      }
+    }, [limit]);
+
+    useEffect(() => {
+      refresh();
+      const interval = setInterval(refresh, refreshInterval);
+      return () => clearInterval(interval);
+    }, [refresh, refreshInterval]);
+
+    return { data, loading, error, refresh, lastUpdated };
+  };
+
+  // ✨ NUEVO: Hook para servicios (modelos + APIs)
+  const useServicesStatus = (refreshInterval = config.ui.refreshIntervals.modelsStatus) => {
+    const [data, setData] = useState({ llm_models: [], api_endpoints: [] });
+
+    const refresh = useCallback(async () => {
+      try {
+        const result = await fetchData('/services/status');
+        setData(result || { llm_models: [], api_endpoints: [] });
+      } catch (err) {
+        console.error('Error fetching services status:', err);
+      }
+    }, []);
+
+    useEffect(() => {
+      refresh();
+      const interval = setInterval(refresh, refreshInterval);
+      return () => clearInterval(interval);
+    }, [refresh, refreshInterval]);
+
+    return { data, loading, error, refresh, lastUpdated };
+  };
+
   return {
     useDashboardSummary,
     useModelsStatus,
@@ -192,6 +236,8 @@ export const useStatsAPI = () => {
     useHourlyTrends,
     useSystemResources,
     useAlerts,
+    useRecentActivity,
+    useServicesStatus,
     fetchData,
     loading,
     error,
