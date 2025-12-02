@@ -33,7 +33,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/dashboard-summary');
+        const result = await fetchData('/dashboard/summary');
         setData(result);
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
@@ -55,7 +55,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/services-status');
+        const result = await fetchData('/services/status');
         // Backend v2 retorna { services: [] }, filtrar por tipo LLM
         const services = result?.services || [];
         setData(services.filter(s => s.service_type === 'llm'));
@@ -79,7 +79,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/functionality-performance');
+        const result = await fetchData('/functionality/performance');
         setData(result?.functionalities || []);
       } catch (err) {
         console.error('Error fetching functionality performance:', err);
@@ -99,8 +99,8 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/v2/recent-errors?hours=${hours}&limit=${limit}`);
-        setData(result?.errors || []);
+        const result = await fetchData(`/errors/recent?hours=${hours}&limit=${limit}`);
+        setData(result);
       } catch (err) {
         console.error('Error fetching recent errors:', err);
       }
@@ -119,8 +119,8 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/v2/hourly-trends?hours=${hours}`);
-        setData(result?.trends || []);
+        const result = await fetchData(`/trends/hourly?hours=${hours}`);
+        setData(result);
       } catch (err) {
         console.error('Error fetching hourly trends:', err);
       }
@@ -139,7 +139,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/system-resources');
+        const result = await fetchData('/system/resources');
         setData(result);
       } catch (err) {
         console.error('Error fetching system resources:', err);
@@ -161,7 +161,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/active-alerts');
+        const result = await fetchData('/alerts/active');
         setData(result?.alerts || []);
       } catch (err) {
         console.error('Error fetching alerts:', err);
@@ -170,7 +170,7 @@ export const useStatsAPI = () => {
 
     const resolveAlert = useCallback(async (alertId, resolvedBy = 'system') => {
       try {
-        await statsAPI.post(`/v2/resolve-alert/${alertId}`, { resolved_by: resolvedBy });
+        await statsAPI.post(`/alerts/${alertId}/resolve`, { resolved_by: resolvedBy });
         await refresh();
       } catch (err) {
         console.error('Error resolving alert:', err);
@@ -192,7 +192,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData(`/v2/activity-log?limit=${limit}`);
+        const result = await fetchData(`/activity/recent?limit=${limit}`);
         setData(result?.activities || []);
       } catch (err) {
         console.error('Error fetching recent activity:', err);
@@ -214,7 +214,7 @@ export const useStatsAPI = () => {
 
     const refresh = useCallback(async () => {
       try {
-        const result = await fetchData('/v2/services-status');
+        const result = await fetchData('/services/status');
         setData(result || { services: [] });
       } catch (err) {
         console.error('Error fetching services status:', err);
