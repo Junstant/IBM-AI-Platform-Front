@@ -8,16 +8,19 @@ const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { icon: Home, label: "Dashboard", path: "/" },
-    { icon: Bot, label: "Chatbot IA", path: "/chatbot" },
-    { icon: Shield, label: "Detección de Fraude", path: "/fraud-detection" },
-    { icon: Brain, label: "Text-to-SQL", path: "/text-to-sql" },
-    { icon: FileText, label: "Análisis Documentos", path: "/document-analysis" },
-    { icon: MessageSquare, label: "Análisis NLP", path: "/nlp" },
-    { icon: Image, label: "Generador Imágenes", path: "/image-generator" },
-    { icon: BarChart3, label: "Métricas Detalladas", path: "/metrics" },
-    { icon: Cpu, label: "Analytics IA", path: "/analytics" },
-    { icon: Settings, label: "Configuración", path: "/settings" },
+    { icon: Home, label: "Dashboard", path: "/", enabled: true },
+    { icon: Bot, label: "Chatbot IA", path: "/chatbot", enabled: true },
+    { icon: Shield, label: "Detección de Fraude", path: "/fraud-detection", enabled: true },
+    { icon: Brain, label: "Text-to-SQL", path: "/text-to-sql", enabled: true },
+    { icon: FileText, label: "Análisis Documentos", path: "/document-analysis", enabled: true },
+    { icon: MessageSquare, label: "Análisis NLP", path: "/nlp", enabled: false },
+    { icon: Image, label: "Generador Imágenes", path: "/image-generator", enabled: false },
+    { icon: BarChart3, label: "Métricas Detalladas", path: "/metrics", enabled: true },
+    { icon: Settings, label: "Configuración", path: "/settings", enabled: false },
+  ];
+
+  const bottomMenuItems = [
+    { icon: Cpu, label: "Analytics IA", path: "/analytics", enabled: false },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -48,39 +51,94 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-4 flex flex-col">
+        <ul className="space-y-2 flex-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const disabled = !item.enabled;
 
             return (
               <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`
-                    flex items-center space-x-3 px-3 py-2.5 rounded-lg
-                    transition-all duration-200
-                    ${active ? "bg-primary text-white shadow-md" : "text-ibm-gray-10 hover:bg-ibm-gray-20 hover:text-ibm-gray-90"}
-                  `}
-                  title={isCollapsed ? item.label : ""}
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
-                </Link>
+                {disabled ? (
+                  <div
+                    className={`
+                      flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                      opacity-40 cursor-not-allowed text-ibm-gray-60
+                    `}
+                    title={isCollapsed ? `${item.label} (Próximamente)` : "Próximamente"}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+                  </div>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`
+                      flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                      transition-all duration-200
+                      ${active ? "bg-primary text-white shadow-md" : "text-ibm-gray-10 hover:bg-ibm-gray-20 hover:text-ibm-gray-90"}
+                    `}
+                    title={isCollapsed ? item.label : ""}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+                  </Link>
+                )}
               </li>
             );
           })}
         </ul>
+
+        {/* Bottom Menu Items */}
+        <div className="mt-4 pt-4 border-t border-ibm-gray-70">
+          <ul className="space-y-2">
+            {bottomMenuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              const disabled = !item.enabled;
+
+              return (
+                <li key={item.path}>
+                  {disabled ? (
+                    <div
+                      className={`
+                        flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                        opacity-40 cursor-not-allowed text-ibm-gray-60
+                      `}
+                      title={isCollapsed ? `${item.label} (Próximamente)` : "Próximamente"}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+                    </div>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={`
+                        flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                        transition-all duration-200
+                        ${active ? "bg-primary text-white shadow-md" : "text-ibm-gray-10 hover:bg-ibm-gray-20 hover:text-ibm-gray-90"}
+                      `}
+                      title={isCollapsed ? item.label : ""}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </nav>
 
       {/* Footer */}
       <div className="p-4 border-t border-ibm-gray-70">
         {!isCollapsed && (
           <div className="text-xs text-ibm-gray-60 text-center">
-            <p>IBM AI Platform</p>
-            <p>v1.0.0</p>
-            <p>Desarrollado por Jung</p>
+            <p className="font-semibold text-ibm-gray-10">IBM AI Platform</p>
+            <p className="mt-1">v2.1.0</p>
+            <p className="mt-2 text-ibm-gray-50">Made by Lucas Jung</p>
           </div>
         )}
       </div>

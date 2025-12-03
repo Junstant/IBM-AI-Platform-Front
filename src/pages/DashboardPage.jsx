@@ -18,9 +18,10 @@ const DashboardPage = () => {
   const { data: alerts, resolveAlert } = useAlerts();
   const { data: recentActivity } = useRecentActivity(10);
 
-  // Extraer modelos y APIs
-  const models = services?.llm_models || [];
-  const apis = services?.api_endpoints || [];
+  // Extraer modelos y APIs del array de servicios
+  const allServices = Array.isArray(services) ? services : [];
+  const models = allServices.filter(s => s.service_type === 'llm');
+  const apis = allServices.filter(s => s.service_type !== 'llm');
 
   // Stats con datos reales o fallback
   const stats = [
