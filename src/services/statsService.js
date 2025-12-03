@@ -128,14 +128,14 @@ const statsService = {
   },
 
   /**
-   * Obtener alertas activas (v2 endpoint)
+   * Obtener alertas activas
    * @returns {Promise<Array>} - Array de alertas activas
    * @throws {APIError}
    */
   async getAlerts() {
     try {
-      const response = await statsAPI.get('/v2/alerts/active');
-      // Backend v2 retorna array directamente
+      const response = await statsAPI.get('/alerts/active');
+      // Backend retorna array directamente
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
@@ -172,7 +172,7 @@ const statsService = {
    */
   async getTopEndpoints(limit = 10, worst = false) {
     try {
-      return await statsAPI.get('/v2/performance/top-endpoints', { limit, worst });
+      return await statsAPI.get('/performance/top-endpoints', { limit, worst });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Top Endpoints Error ${error.status}:`, error.statusText);
@@ -190,7 +190,7 @@ const statsService = {
    */
   async getGlobalMetrics(startDate, endDate) {
     try {
-      return await statsAPI.get('/v2/metrics/global', { start_date: startDate, end_date: endDate });
+      return await statsAPI.get('/metrics/global', { start_date: startDate, end_date: endDate });
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Global Metrics Error ${error.status}:`, error.statusText);
@@ -200,7 +200,7 @@ const statsService = {
   },
 
   /**
-   * Obtener tendencias por hora (v2 endpoint)
+   * Obtener tendencias por hora
    * @param {string} startDate - Fecha inicio ISO 8601
    * @param {string} endDate - Fecha fin ISO 8601
    * @param {string} service - Filtrar por servicio (opcional)
@@ -211,7 +211,7 @@ const statsService = {
     try {
       const params = { start_date: startDate, end_date: endDate };
       if (service) params.service = service;
-      return await statsAPI.get('/v2/trends/hourly', params);
+      return await statsAPI.get('/trends/hourly', params);
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Hourly Trends Error ${error.status}:`, error.statusText);
@@ -237,14 +237,14 @@ const statsService = {
   },
 
   /**
-   * ✨ Obtener actividad reciente (v2 endpoint)
+   * ✨ Obtener actividad reciente
    * @param {number} limit - Máximo de actividades (default: 20)
    * @returns {Promise<Array>} - Array de actividades
    * @throws {APIError}
    */
   async getRecentActivity(limit = 20) {
     try {
-      const response = await statsAPI.get('/v2/activity/recent', { limit });
+      const response = await statsAPI.get('/activity/recent', { limit });
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
@@ -265,7 +265,7 @@ const statsService = {
   async getDetailedMetrics({ timeframe = 'today', funcionalidad = 'all' }) {
     try {
       const params = { timeframe, funcionalidad };
-      return await statsAPI.get('/v2/metrics/detailed', params);
+      return await statsAPI.get('/metrics/detailed', params);
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Detailed Metrics Error ${error.status}:`, error.statusText);
@@ -286,7 +286,7 @@ const statsService = {
     try {
       const params = { start_date: startDate, end_date: endDate };
       if (service) params.service = service;
-      return await statsAPI.get('/v2/metrics/by-service', params);
+      return await statsAPI.get('/metrics/by-service', params);
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Metrics by Service Error ${error.status}:`, error.statusText);

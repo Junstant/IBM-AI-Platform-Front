@@ -121,7 +121,7 @@ export const useServicesStatus = (refreshInterval = config.ui.refreshIntervals.m
 
 /**
  * Hook para Alertas
- * Endpoint: GET /api/stats/v2/alerts/active
+ * Endpoint: GET /api/stats/alerts/active
  */
 export const useAlerts = (refreshInterval = config.ui.refreshIntervals.alerts) => {
   const [data, setData] = useState([]);
@@ -133,7 +133,7 @@ export const useAlerts = (refreshInterval = config.ui.refreshIntervals.alerts) =
     setLoading(true);
     setError(null);
     try {
-      const result = await statsAPI.get('/v2/alerts/active');
+      const result = await statsAPI.get('/alerts/active');
       setData(Array.isArray(result) ? result : []);
       setLastUpdated(new Date());
     } catch (err) {
@@ -168,7 +168,7 @@ export const useAlerts = (refreshInterval = config.ui.refreshIntervals.alerts) =
 
 /**
  * Hook para Actividad Reciente
- * Endpoint: GET /api/stats/v2/activity/recent
+ * Endpoint: GET /api/stats/activity/recent
  */
 export const useRecentActivity = (limit = 20, refreshInterval = config.ui.refreshIntervals.alerts) => {
   const [data, setData] = useState([]);
@@ -180,7 +180,7 @@ export const useRecentActivity = (limit = 20, refreshInterval = config.ui.refres
     setLoading(true);
     setError(null);
     try {
-      const result = await statsAPI.get(`/v2/activity/recent?limit=${limit}`);
+      const result = await statsAPI.get(`/activity/recent?limit=${limit}`);
       setData(Array.isArray(result) ? result : []);
       setLastUpdated(new Date());
     } catch (err) {
@@ -206,7 +206,7 @@ export const useRecentActivity = (limit = 20, refreshInterval = config.ui.refres
 
 /**
  * Hook para Top Endpoints
- * Endpoint: GET /api/stats/v2/performance/top-endpoints
+ * Endpoint: GET /api/stats/performance/top-endpoints
  */
 export const useTopEndpoints = (limit = 10, worst = false) => {
   const [data, setData] = useState([]);
@@ -217,7 +217,7 @@ export const useTopEndpoints = (limit = 10, worst = false) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await statsAPI.get(`/v2/performance/top-endpoints?limit=${limit}&worst=${worst}`);
+      const result = await statsAPI.get(`/performance/top-endpoints?limit=${limit}&worst=${worst}`);
       setData(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error('Error fetching top endpoints:', err);
@@ -240,7 +240,7 @@ export const useTopEndpoints = (limit = 10, worst = false) => {
 
 /**
  * Hook para Métricas Globales
- * Endpoint: GET /api/stats/v2/metrics/global
+ * Endpoint: GET /api/stats/metrics/global
  */
 export const useGlobalMetrics = (startDate, endDate) => {
   const [data, setData] = useState(null);
@@ -251,7 +251,7 @@ export const useGlobalMetrics = (startDate, endDate) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await statsAPI.get(`/v2/metrics/global?start_date=${startDate}&end_date=${endDate}`);
+      const result = await statsAPI.get(`/metrics/global?start_date=${startDate}&end_date=${endDate}`);
       setData(result);
     } catch (err) {
       console.error('Error fetching global metrics:', err);
@@ -274,7 +274,7 @@ export const useGlobalMetrics = (startDate, endDate) => {
 
 /**
  * Hook para Tendencias por Hora
- * Endpoint: GET /api/stats/v2/trends/hourly
+ * Endpoint: GET /api/stats/trends/hourly
  */
 export const useHourlyTrends = (startDate, endDate, service = null) => {
   const [data, setData] = useState([]);
@@ -287,7 +287,7 @@ export const useHourlyTrends = (startDate, endDate, service = null) => {
     try {
       const params = new URLSearchParams({ start_date: startDate, end_date: endDate });
       if (service) params.append('service', service);
-      const result = await statsAPI.get(`/v2/trends/hourly?${params}`);
+      const result = await statsAPI.get(`/trends/hourly?${params}`);
       setData(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error('Error fetching hourly trends:', err);
