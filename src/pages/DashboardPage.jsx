@@ -105,9 +105,9 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div className="space-y-06">
+    <div className="space-y-06 animate-fadeIn">
       {/* Header */}
-      <div className="my-5">
+      <div className="my-5 animate-slideDown">
         <h1 className="text-3xl font-semibold text-primary mb-03">Dashboard de IA</h1>
         <p className="text-secondary">Bienvenido a la plataforma de inteligencia artificial de IBM, haga click en la demo que desea utilizar</p>
       </div>

@@ -98,7 +98,6 @@ const NLPAnalysisPage = () => {
       }
 
       const data = await response.json();
-      console.log("Datos recibidos del análisis NLP:", data);
 
       const transformedResult = {
         sentiment: data.sentimiento || "neutral",
@@ -128,22 +127,15 @@ const NLPAnalysisPage = () => {
     setIsAnalyzingDatabase(true);
 
     try {
-      console.log("Iniciando análisis masivo de textos...");
       const response = await fetch(`http://${ServerIP}:${apiPort}/analyze_all_texts`, {
         method: "GET",
       });
-
-      console.log("Respuesta recibida:", response.status, response.statusText);
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("Datos recibidos:", {
-        total_textos: data.total_textos_analizados,
-        total_resultados: data.resultados?.length,
-      });
 
       setDatabaseResults({
         totalAnalyzed: data.total_textos_analizados,
@@ -203,11 +195,11 @@ const NLPAnalysisPage = () => {
   };
 
   return (
-    <div className="space-y-05">
+    <div className="space-y-05 animate-fadeIn">
       {/* Header */}
-      <div className="bg-ui-02 border border-ui-03 p-06 mb-05">
+      <div className="bg-ui-02 border border-ui-03 p-06 mb-05 animate-slideDown">
         <div className="flex items-center space-x-04 mb-04">
-          <div className="w-10 h-10 bg-carbon-blue-60 flex items-center justify-center">
+          <div className="w-10 h-10 bg-carbon-blue-60 flex items-center justify-center animate-scaleIn">
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>

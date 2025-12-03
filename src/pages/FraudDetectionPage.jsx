@@ -113,8 +113,7 @@ const FraudDetectionPageContent = () => {
       const data = await fraudService.analyzeDatabase();
 
       // ✅ BACKEND DEVUELVE: transacciones_fraudulentas_encontradas, total_transacciones_analizadas, resultados[]
-      console.log('📦 Datos recibidos del backend:', data);
-
+      
       // Mapear los datos según la respuesta REAL del backend
       const mappedResults =
         data.resultados?.map((transaction) => ({
@@ -132,8 +131,6 @@ const FraudDetectionPageContent = () => {
           prediccion: transaction.prediccion,
           nivel_riesgo: transaction.nivel_riesgo,
         })) || [];
-
-      console.log('✅ Resultados mapeados:', mappedResults.length, 'transacciones');
 
       setDatabaseResults({
         totalFraudulent: data.transacciones_fraudulentas_encontradas || 0,
@@ -178,11 +175,11 @@ const FraudDetectionPageContent = () => {
   };
 
   return (
-    <div className="space-y-05">
+    <div className="space-y-05 animate-fadeIn">
       {/* Header */}
-      <div className="bg-ui-02 border border-ui-03 p-06">
+      <div className="bg-ui-02 border border-ui-03 p-06 animate-slideDown">
         <div className="flex items-center space-x-04 mb-04">
-          <div className="w-10 h-10 bg-danger flex items-center justify-center">
+          <div className="w-10 h-10 bg-danger flex items-center justify-center animate-scaleIn">
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>

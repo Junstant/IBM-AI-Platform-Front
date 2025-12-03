@@ -233,12 +233,12 @@ const TextToSQLPageContent = () => {
   };
 
   return (
-    <div className="space-y-05">
+    <div className="space-y-05 animate-fadeIn">
       {/* Header */}
-      <div className="bg-ui-02 border border-ui-03 mb-05 p-06">
+      <div className="bg-ui-02 border border-ui-03 mb-05 p-06 animate-slideDown">
         <div className="flex items-center justify-between mb-05">
           <div className="flex items-center space-x-04">
-            <div className="w-10 h-10 bg-success flex items-center justify-center">
+            <div className="w-10 h-10 bg-success flex items-center justify-center animate-scaleIn">
               <Database className="w-6 h-6 text-white" />
             </div>
             <div>

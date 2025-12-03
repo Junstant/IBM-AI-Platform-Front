@@ -293,11 +293,7 @@ const DocumentAnalysisPage = () => {
       
       setQueryResult(data);
       
-      // Log de fuentes para debugging
-      console.log(`✅ Query respondida con ${data.sources.length} fuentes`);
-      data.sources.forEach((source, idx) => {
-        console.log(`  [${idx + 1}] ${source.filename} (similitud: ${(source.similarity * 100).toFixed(1)}%)`);
-      });
+      // ✅ Query respondida con fuentes
 
       // Toast de éxito
       addToast({

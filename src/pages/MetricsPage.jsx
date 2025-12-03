@@ -127,9 +127,9 @@ const MetricsPage = () => {
   }
 
   return (
-    <div className="space-y-06">
+    <div className="space-y-06 animate-fadeIn">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-slideDown">
         <div>
           <h1 className="text-3xl font-semibold text-primary mb-02">Métricas Detalladas</h1>
           <p className="text-secondary">

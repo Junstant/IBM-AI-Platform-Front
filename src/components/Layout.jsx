@@ -3,7 +3,7 @@ import { Header, Sidebar } from "./carbon";
 
 /**
  * 🎨 Layout Principal con estética IBM Carbon
- * Estructura de 3 partes: Header (parte del flujo flex) + Sidebar (aside lateral) + Main (contenido)
+ * Estructura de 3 partes: Header + Sidebar + Main (contenido)
  */
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -15,7 +15,7 @@ const Layout = ({ children }) => {
 
       {/* 2 & 3. Container para Sidebar + Main Content */}
       <div className="flex flex-1 min-h-0">
-        {/* 2. Sidebar - Aside lateral parte del flujo flex */}
+        {/* 2. Sidebar - Aside lateral con grupos de navegación */}
         <Sidebar isOpen={sidebarOpen} />
 
         {/* 3. Main Content - Contenido principal con padding uniforme */}

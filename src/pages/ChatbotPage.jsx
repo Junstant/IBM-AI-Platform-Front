@@ -129,12 +129,12 @@ const ChatbotPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col -m-06" style={{ height: 'calc(97vh - 2.5rem)' }}>
+    <div className="flex flex-col -m-06 animate-fadeIn" style={{ height: 'calc(97vh - 2.5rem)' }}>
       {/* Header compacto */}
-      <div className="bg-ui-02 border-b border-ui-03 px-06 py-05 flex-shrink-0">
+      <div className="bg-ui-02 border-b border-ui-03 px-06 py-05 flex-shrink-0 animate-slideDown">
         <div className="flex items-center justify-between gap-04">
           <div className="flex items-center space-x-04">
-            <div className="w-10 h-10 bg-interactive flex items-center justify-center">
+            <div className="w-10 h-10 bg-interactive flex items-center justify-center animate-scaleIn">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
