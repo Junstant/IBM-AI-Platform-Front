@@ -255,6 +255,26 @@ const statsService = {
   },
 
   /**
+   * ✨ Obtener métricas detalladas (para MetricsPage)
+   * @param {Object} params - Parámetros de consulta
+   * @param {string} params.timeframe - 'today', '7days', '30days'
+   * @param {string} params.funcionalidad - 'all', 'nlp', 'textosql', 'fraud', etc.
+   * @returns {Promise<Object>} - { summary, top_endpoints, worst_endpoints, errors, period }
+   * @throws {APIError}
+   */
+  async getDetailedMetrics({ timeframe = 'today', funcionalidad = 'all' }) {
+    try {
+      const params = { timeframe, funcionalidad };
+      return await statsAPI.get('/v2/metrics/detailed', params);
+    } catch (error) {
+      if (error instanceof APIError) {
+        console.error(`Detailed Metrics Error ${error.status}:`, error.statusText);
+      }
+      throw error;
+    }
+  },
+
+  /**
    * ✨ Obtener métricas por servicio
    * @param {string} startDate - Fecha inicio ISO 8601
    * @param {string} endDate - Fecha fin ISO 8601

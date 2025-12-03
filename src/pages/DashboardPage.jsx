@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Brain, Zap, TrendingUp, Activity, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield, Database, ArrowUpRight } from "lucide-react";
 import { Card } from "../components/carbon";
-import { useStatsAPI } from "../hooks/useStatsAPI";
+import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity } from "../hooks/useStatsHooks";
 import ModelStatusCard from "../components/stats/ModelStatusCard";
 import PerformanceChart from "../components/stats/PerformanceChart";
 import ResourcesGauge from "../components/stats/ResourcesGauge";
@@ -12,7 +12,6 @@ import AlertsPanel from "../components/stats/AlertsPanel";
 import LastUpdated from "../components/stats/LastUpdated";
 
 const DashboardPage = () => {
-  const { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity } = useStatsAPI();
   const { data: summary, loading: summaryLoading, refresh: refreshSummary, lastUpdated } = useDashboardSummary();
   const { data: services } = useServicesStatus();
   const { data: alerts, resolveAlert } = useAlerts();
