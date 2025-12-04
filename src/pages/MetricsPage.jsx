@@ -4,7 +4,7 @@ import { Card } from '../components/carbon';
 import statsService from '../services/statsService';
 import * as XLSX from 'exceljs';
 import '@carbon/charts-react/styles.css';
-import { LineChart, BarChart, DonutChart, MeterChart } from '@carbon/charts-react';
+import { LineChart, SimpleBarChart, DonutChart, GaugeChart } from '@carbon/charts-react';
 
 // 🔧 FUNCIONES HELPER
 const getFunctionalityIcon = (funcionalidad) => {
@@ -343,36 +343,30 @@ const MetricsPage = () => {
           </span>
         </div>
         <div style={{ height: '200px' }}>
-          <MeterChart
+          <GaugeChart
             data={[
               {
-                group: 'Tasa de Éxito',
+                group: 'value',
                 value: toNumber(metrics?.summary?.success_rate)
               }
             ]}
             options={{
               title: '',
-              meter: {
-                proportional: {
-                  total: 100,
-                  unit: '%'
-                },
-                status: {
-                  ranges: [
-                    { range: [0, 70], status: 'danger' },
-                    { range: [70, 90], status: 'warning' },
-                    { range: [90, 100], status: 'success' }
-                  ]
-                }
-              },
+              resizable: true,
               height: '200px',
-              theme: 'g90',
+              width: '100%',
+              gauge: {
+                type: 'semi',
+                status: 'success',
+                arcWidth: 16
+              },
               color: {
                 scale: {
-                  'Tasa de Éxito': toNumber(metrics?.summary?.success_rate) >= 90 ? '#24a148' : 
-                                   toNumber(metrics?.summary?.success_rate) >= 70 ? '#f1c21b' : '#da1e28'
+                  'value': toNumber(metrics?.summary?.success_rate) >= 90 ? '#24a148' : 
+                           toNumber(metrics?.summary?.success_rate) >= 70 ? '#f1c21b' : '#da1e28'
                 }
-              }
+              },
+              theme: 'g90'
             }}
           />
         </div>
@@ -498,7 +492,7 @@ const MetricsPage = () => {
         </div>
         {metrics?.by_functionality?.length > 0 ? (
           <div style={{ height: '350px' }}>
-            <BarChart
+            <SimpleBarChart
               data={metrics.by_functionality.flatMap(func => [
                 {
                   group: getFunctionalityName(func.functionality),
@@ -527,9 +521,6 @@ const MetricsPage = () => {
                 },
                 height: '350px',
                 theme: 'g90',
-                bars: {
-                  maxWidth: 40
-                },
                 color: {
                   scale: {
                     'Promedio': '#24a148',
