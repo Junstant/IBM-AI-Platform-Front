@@ -1,8 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, Clock, AlertCircle, Download, RefreshCw, Filter } from 'lucide-react';
+import { Activity, TrendingUp, Clock, AlertCircle, Download, RefreshCw, Filter, Bot, Shield, Database, FileText, Brain } from 'lucide-react';
 import { Card } from '../components/carbon';
 import statsService from '../services/statsService';
 import * as XLSX from 'exceljs';
+
+// 🔧 FUNCIONES HELPER - AGREGAR AL INICIO
+const getFunctionalityIcon = (funcionalidad) => {
+  const iconMap = {
+    'chatbot': <Bot className="w-5 h-5 text-interactive" />,
+    'fraud_detection': <Shield className="w-5 h-5 text-danger" />,
+    'text_to_sql': <Database className="w-5 h-5 text-success" />,
+    'rag_documents': <FileText className="w-5 h-5 text-carbon-blue-70" />,
+    'nlp_analysis': <Brain className="w-5 h-5 text-carbon-purple-50" />,
+    'unknown': <Activity className="w-5 h-5 text-secondary" />,
+  };
+  return iconMap[funcionalidad] || iconMap['unknown'];
+};
+
+const getFunctionalityName = (funcionalidad) => {
+  const nameMap = {
+    'chatbot': 'Chatbot LLM',
+    'fraud_detection': 'Detección de Fraude',
+    'text_to_sql': 'Text-to-SQL',
+    'rag_documents': 'RAG Documentos',
+    'nlp_analysis': 'Análisis NLP',
+    'unknown': 'Desconocido',
+  };
+  return nameMap[funcionalidad] || nameMap['unknown'];
+};
 
 const MetricsPage = () => {
   const [timeframe, setTimeframe] = useState('today');
@@ -63,11 +88,11 @@ const MetricsPage = () => {
     ];
     functionalitySheet.addRows(
       metrics.by_functionality?.map(f => ({
-        funcionalidad: f.funcionalidad,
-        requests: f.requests,
-        success_rate: f.success_rate,
-        avg_response_time: f.avg_response_time_ms,
-        errors: f.total_errors
+        funcionalidad: f?.funcionalidad || 'unknown',
+        requests: f?.requests || 0,
+        success_rate: f?.success_rate || 0,
+        avg_response_time: f?.avg_response_time_ms || 0,
+        errors: f?.total_errors || 0
       })) || []
     );
 
@@ -80,9 +105,9 @@ const MetricsPage = () => {
     ];
     slowestSheet.addRows(
       metrics.slowest_endpoints?.map(e => ({
-        endpoint: e.endpoint,
-        avg_response_time: e.avg_response_time_ms,
-        p95_response_time: e.p95_response_time_ms
+        endpoint: e?.endpoint || 'unknown',
+        avg_response_time: e?.avg_response_time_ms || 0,
+        p95_response_time: e?.p95_response_time_ms || 0
       })) || []
     );
 
@@ -202,16 +227,16 @@ const MetricsPage = () => {
           <div className="flex items-center justify-between mb-2">
             <Activity className="w-8 h-8 text-interactive" />
             <span className="text-xs text-success">
-              {metrics?.summary.success_rate?.toFixed(1)}%
+              {metrics?.summary?.success_rate?.toFixed(1) || '0'}%
             </span>
           </div>
           <h3 className="text-2xl font-bold text-primary mb-1">
-            {metrics?.summary.total_requests?.toLocaleString() || 0}
+            {metrics?.summary?.total_requests?.toLocaleString() || 0}
           </h3>
           <p className="text-sm text-secondary">Total Requests</p>
           <p className="text-xs text-secondary mt-1">
-            {metrics?.summary.successful_requests?.toLocaleString() || 0} exitosos •{' '}
-            {metrics?.summary.failed_requests?.toLocaleString() || 0} fallidos
+            {metrics?.summary?.successful_requests?.toLocaleString() || 0} exitosos •{' '}
+            {metrics?.summary?.failed_requests?.toLocaleString() || 0} fallidos
           </p>
         </Card>
 
@@ -221,13 +246,13 @@ const MetricsPage = () => {
             <span className="text-xs text-secondary">Promedio</span>
           </div>
           <h3 className="text-2xl font-bold text-primary mb-1">
-            {metrics?.summary.avg_response_time_ms
+            {metrics?.summary?.avg_response_time_ms
               ? `${metrics.summary.avg_response_time_ms.toFixed(0)}ms`
               : 'N/A'}
           </h3>
           <p className="text-sm text-secondary">Tiempo de Respuesta</p>
           <p className="text-xs text-secondary mt-1">
-            Mediana: {metrics?.summary.median_response_time_ms?.toFixed(0)}ms
+            Mediana: {metrics?.summary?.median_response_time_ms?.toFixed(0) || 0}ms
           </p>
         </Card>
 
@@ -237,13 +262,13 @@ const MetricsPage = () => {
             <span className="text-xs text-secondary">P95</span>
           </div>
           <h3 className="text-2xl font-bold text-primary mb-1">
-            {metrics?.summary.p95_response_time_ms
+            {metrics?.summary?.p95_response_time_ms
               ? `${metrics.summary.p95_response_time_ms.toFixed(0)}ms`
               : 'N/A'}
           </h3>
           <p className="text-sm text-secondary">Percentil 95</p>
           <p className="text-xs text-secondary mt-1">
-            P99: {metrics?.summary.p99_response_time_ms?.toFixed(0)}ms
+            P99: {metrics?.summary?.p99_response_time_ms?.toFixed(0) || 0}ms
           </p>
         </Card>
 
@@ -251,17 +276,17 @@ const MetricsPage = () => {
           <div className="flex items-center justify-between mb-2">
             <AlertCircle className="w-8 h-8 text-danger" />
             <span className="text-xs text-danger">
-              {metrics?.summary.failed_requests && metrics?.summary.total_requests
+              {metrics?.summary?.failed_requests && metrics?.summary?.total_requests
                 ? `${((metrics.summary.failed_requests / metrics.summary.total_requests) * 100).toFixed(1)}%`
                 : '0%'}
             </span>
           </div>
           <h3 className="text-2xl font-bold text-primary mb-1">
-            {metrics?.summary.failed_requests?.toLocaleString() || 0}
+            {metrics?.summary?.failed_requests?.toLocaleString() || 0}
           </h3>
           <p className="text-sm text-secondary">Errores</p>
           <p className="text-xs text-secondary mt-1">
-            {metrics?.summary.total_data_transferred_mb
+            {metrics?.summary?.total_data_transferred_mb
               ? `${metrics.summary.total_data_transferred_mb.toFixed(1)}MB transferidos`
               : 'Sin datos'}
           </p>
@@ -283,29 +308,35 @@ const MetricsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {metrics?.by_functionality?.map((func, index) => (
-                <tr key={index} className="border-b border-ui-02 hover:bg-ui-01">
-                  <td className="px-4 py-3 text-sm text-primary font-medium">
-                    {func.funcionalidad}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right text-primary">
-                    {func.requests?.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right">
-                    <span className={`font-medium ${func.success_rate >= 95 ? 'text-success' : func.success_rate >= 90 ? 'text-carbon-yellow-50' : 'text-danger'}`}>
-                      {func.success_rate?.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right text-primary">
-                    {func.avg_response_time_ms?.toFixed(0)}ms
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right">
-                    <span className={`font-medium ${func.total_errors > 0 ? 'text-danger' : 'text-success'}`}>
-                      {func.total_errors}
-                    </span>
-                  </td>
-                </tr>
-              )) || (
+              {metrics?.by_functionality?.length > 0 ? (
+                metrics.by_functionality.map((func, index) => (
+                  <tr key={index} className="border-b border-ui-02 hover:bg-ui-01">
+                    <td className="px-4 py-3 text-sm text-primary font-medium">
+                      {func?.funcionalidad || 'Desconocido'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-primary">
+                      {func?.requests?.toLocaleString() || 0}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      <span className={`font-medium ${
+                        (func?.success_rate ?? 0) >= 95 ? 'text-success' : 
+                        (func?.success_rate ?? 0) >= 90 ? 'text-carbon-yellow-50' : 
+                        'text-danger'
+                      }`}>
+                        {func?.success_rate?.toFixed(1) || '0'}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-primary">
+                      {func?.avg_response_time_ms?.toFixed(0) || 0}ms
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      <span className={`font-medium ${(func?.total_errors ?? 0) > 0 ? 'text-danger' : 'text-success'}`}>
+                        {func?.total_errors || 0}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                     No hay datos disponibles
@@ -318,7 +349,7 @@ const MetricsPage = () => {
       </Card>
 
       {/* Distribución por Status Code */}
-      {metrics?.by_status_code && (
+      {metrics?.by_status_code && Object.keys(metrics.by_status_code).length > 0 && (
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-05">Distribución por Código de Estado</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -344,21 +375,25 @@ const MetricsPage = () => {
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-05">Endpoints Más Usados</h2>
           <div className="space-y-3">
-            {metrics?.top_endpoints?.slice(0, 5).map((endpoint, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-ui-01 rounded">
-                <div className="flex-1 mr-3">
-                  <p className="text-sm text-primary font-medium truncate">{endpoint.endpoint}</p>
-                  <p className="text-xs text-secondary">
-                    {endpoint.requests} requests • {endpoint.success_rate?.toFixed(1)}% éxito
-                  </p>
+            {metrics?.top_endpoints?.length > 0 ? (
+              metrics.top_endpoints.slice(0, 5).map((endpoint, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-ui-01 rounded">
+                  <div className="flex-1 mr-3">
+                    <p className="text-sm text-primary font-medium truncate">{endpoint?.endpoint || 'Desconocido'}</p>
+                    <p className="text-xs text-secondary">
+                      {endpoint?.requests || 0} requests • {endpoint?.success_rate?.toFixed(1) || 0}% éxito
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-primary">
+                      {endpoint?.avg_response_time_ms?.toFixed(0) || 0}ms
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-primary">
-                    {endpoint.avg_response_time_ms?.toFixed(0)}ms
-                  </p>
-                </div>
-              </div>
-            )) || <p className="text-secondary text-center py-4">No hay datos disponibles</p>}
+              ))
+            ) : (
+              <p className="text-secondary text-center py-4">No hay datos disponibles</p>
+            )}
           </div>
         </Card>
 
@@ -366,21 +401,25 @@ const MetricsPage = () => {
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-05">Endpoints Más Lentos</h2>
           <div className="space-y-3">
-            {metrics?.slowest_endpoints?.slice(0, 5).map((endpoint, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-ui-01 rounded">
-                <div className="flex-1 mr-3">
-                  <p className="text-sm text-primary font-medium truncate">{endpoint.endpoint}</p>
-                  <p className="text-xs text-secondary">
-                    P95: {endpoint.p95_response_time_ms?.toFixed(0)}ms
-                  </p>
+            {metrics?.slowest_endpoints?.length > 0 ? (
+              metrics.slowest_endpoints.slice(0, 5).map((endpoint, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-ui-01 rounded">
+                  <div className="flex-1 mr-3">
+                    <p className="text-sm text-primary font-medium truncate">{endpoint?.endpoint || 'Desconocido'}</p>
+                    <p className="text-xs text-secondary">
+                      P95: {endpoint?.p95_response_time_ms?.toFixed(0) || 0}ms
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-danger">
+                      {endpoint?.avg_response_time_ms?.toFixed(0) || 0}ms
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-danger">
-                    {endpoint.avg_response_time_ms?.toFixed(0)}ms
-                  </p>
-                </div>
-              </div>
-            )) || <p className="text-secondary text-center py-4">No hay datos disponibles</p>}
+              ))
+            ) : (
+              <p className="text-secondary text-center py-4">No hay datos disponibles</p>
+            )}
           </div>
         </Card>
       </div>
@@ -389,85 +428,81 @@ const MetricsPage = () => {
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-05">Rendimiento por Funcionalidad - Detalle</h2>
         <div className="grid grid-cols-1 gap-4">
-          {(metrics?.by_functionality || []).map((functionality, index) => (
-            <div 
-              key={functionality?.funcionalidad || index}
-              className="bg-ui-01 border border-ui-03 p-04 hover:border-interactive transition-all duration-300 animate-slide-in-up group"
-              style={{ animationDelay: `${index * 80}ms` }}
-            >
-              {/* VALIDACIÓN: Solo renderizar si functionality existe */}
-              {functionality ? (
-                <>
-                  <div className="flex items-center justify-between mb-03">
-                    <div className="flex items-center space-x-02">
-                      <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
-                        {getFunctionalityIcon(functionality.funcionalidad || 'unknown')}
-                      </div>
-                      <h3 className="text-label font-semibold text-text-primary">
-                        {getFunctionalityName(functionality.funcionalidad || 'unknown')}
-                      </h3>
+          {metrics?.by_functionality?.length > 0 ? (
+            metrics.by_functionality.map((functionality, index) => (
+              <div 
+                key={functionality?.funcionalidad || index}
+                className="bg-ui-01 border border-ui-03 p-04 hover:border-interactive transition-all duration-300 animate-slide-in-up group"
+                style={{ animationDelay: `${index * 80}ms` }}
+              >
+                <div className="flex items-center justify-between mb-03">
+                  <div className="flex items-center space-x-02">
+                    <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
+                      {getFunctionalityIcon(functionality?.funcionalidad || 'unknown')}
                     </div>
-                    
-                    {/* VALIDACIÓN: Optional chaining en success_rate */}
-                    <span 
-                      className={`px-03 py-01 text-white text-caption font-medium rounded-sm shadow-sm ${
+                    <h3 className="text-label font-semibold text-text-primary">
+                      {getFunctionalityName(functionality?.funcionalidad || 'unknown')}
+                    </h3>
+                  </div>
+                  
+                  <span 
+                    className={`px-03 py-01 text-white text-caption font-medium rounded-sm shadow-sm ${
+                      (functionality?.success_rate ?? 0) >= 90 
+                        ? 'bg-success' 
+                        : (functionality?.success_rate ?? 0) >= 70 
+                          ? 'bg-warning' 
+                          : 'bg-danger'
+                    }`}
+                  >
+                    {(functionality?.success_rate ?? 0).toFixed(1)}% éxito
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-03">
+                  <div className="text-center">
+                    <p className="text-caption text-text-secondary mb-01">Requests</p>
+                    <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
+                      {functionality?.requests ?? 0}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-caption text-text-secondary mb-01">Latencia</p>
+                    <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
+                      {(functionality?.avg_response_time_ms ?? 0).toFixed(0)}ms
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-caption text-text-secondary mb-01">Errores</p>
+                    <p className="text-productive-heading-02 text-danger">
+                      {functionality?.total_errors ?? 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-03">
+                  <div className="h-2 bg-ui-03 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${
                         (functionality?.success_rate ?? 0) >= 90 
                           ? 'bg-success' 
                           : (functionality?.success_rate ?? 0) >= 70 
                             ? 'bg-warning' 
                             : 'bg-danger'
                       }`}
-                    >
-                      {(functionality?.success_rate ?? 0).toFixed(1)}% éxito
-                    </span>
+                      style={{ width: `${functionality?.success_rate ?? 0}%` }}
+                    ></div>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-03">
-                    <div className="text-center">
-                      <p className="text-caption text-text-secondary mb-01">Requests</p>
-                      <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
-                        {functionality?.requests ?? 0}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-caption text-text-secondary mb-01">Latencia</p>
-                      <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
-                        {(functionality?.avg_response_time_ms ?? 0).toFixed(0)}ms
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-caption text-text-secondary mb-01">Errores</p>
-                      <p className="text-productive-heading-02 text-danger">
-                        {functionality?.total_errors ?? 0}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Progress bar con validación */}
-                  <div className="mt-03">
-                    <div className="h-2 bg-ui-03 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-500 ${
-                          (functionality?.success_rate ?? 0) >= 90 
-                            ? 'bg-success' 
-                            : (functionality?.success_rate ?? 0) >= 70 
-                              ? 'bg-warning' 
-                              : 'bg-danger'
-                        }`}
-                        style={{ width: `${functionality?.success_rate ?? 0}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-04">
-                  <p className="text-caption text-text-secondary">
-                    Datos no disponibles
-                  </p>
                 </div>
-              )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-08">
+              <Activity className="w-12 h-12 mx-auto mb-4 text-secondary opacity-50" />
+              <p className="text-caption text-text-secondary">
+                No hay datos de funcionalidades disponibles
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </Card>
     </div>
