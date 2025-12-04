@@ -68,6 +68,17 @@ const MetricsPage = () => {
       console.log('📈 Functionality:', functionalityPerf);
       console.log('⏰ Hourly Trends:', hourlyData);
 
+      // Advertencias para endpoints que fallaron
+      if (!hourlyData || hourlyData.length === 0) {
+        console.warn('⚠️ Hourly trends endpoint retornó vacío - el gráfico de tendencias estará vacío');
+      }
+      if (!recentErrors || recentErrors.length === 0) {
+        console.info('ℹ️ No hay errores recientes registrados');
+      }
+      if (!functionalityPerf || functionalityPerf.length === 0) {
+        console.warn('⚠️ Functionality performance endpoint retornó vacío');
+      }
+
       setMetrics({
         summary: {
           total_requests: detailedMetrics?.total_requests || 0,

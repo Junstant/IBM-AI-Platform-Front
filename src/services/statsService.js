@@ -284,9 +284,12 @@ const statsService = {
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
-        console.error(`Functionality Performance Error ${error.status}:`, error.statusText);
+        console.warn(`Functionality Performance endpoint failed (${error.status}):`, error.statusText);
+      } else {
+        console.warn('Functionality Performance endpoint failed:', error.message);
       }
-      throw error;
+      // Retornar array vacío en lugar de lanzar error
+      return [];
     }
   },
 
@@ -302,9 +305,12 @@ const statsService = {
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
-        console.error(`Recent Errors Error ${error.status}:`, error.statusText);
+        console.warn(`Recent Errors endpoint failed (${error.status}):`, error.statusText);
+      } else {
+        console.warn('Recent Errors endpoint failed:', error.message);
       }
-      throw error;
+      // Retornar array vacío en lugar de lanzar error para no romper la UI
+      return [];
     }
   },
 
@@ -320,9 +326,12 @@ const statsService = {
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
-        console.error(`Hourly Trends Error ${error.status}:`, error.statusText);
+        console.warn(`Hourly Trends endpoint failed (${error.status}):`, error.statusText);
+      } else {
+        console.warn('Hourly Trends endpoint failed:', error.message);
       }
-      throw error;
+      // Retornar array vacío en lugar de lanzar error para no romper la UI
+      return [];
     }
   },
 
