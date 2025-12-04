@@ -31,7 +31,7 @@ const MetricsPage = () => {
   }, [timeframe, funcionalidad]);
 
   const downloadExcel = async () => {
-    if (!metrics) return;
+    if (!metrics || !metrics.summary) return;
 
     const workbook = new XLSX.Workbook();
     
@@ -42,14 +42,14 @@ const MetricsPage = () => {
       { header: 'Valor', key: 'value', width: 20 }
     ];
     summarySheet.addRows([
-      { metric: 'Total de Requests', value: metrics.summary.total_requests },
-      { metric: 'Requests Exitosos', value: metrics.summary.successful_requests },
-      { metric: 'Requests Fallidos', value: metrics.summary.failed_requests },
-      { metric: 'Tasa de Éxito', value: `${metrics.summary.success_rate}%` },
-      { metric: 'Tiempo Promedio (ms)', value: metrics.summary.avg_response_time_ms },
-      { metric: 'Mediana (ms)', value: metrics.summary.median_response_time_ms },
-      { metric: 'P95 (ms)', value: metrics.summary.p95_response_time_ms },
-      { metric: 'P99 (ms)', value: metrics.summary.p99_response_time_ms },
+      { metric: 'Total de Requests', value: metrics.summary?.total_requests || 0 },
+      { metric: 'Requests Exitosos', value: metrics.summary?.successful_requests || 0 },
+      { metric: 'Requests Fallidos', value: metrics.summary?.failed_requests || 0 },
+      { metric: 'Tasa de Éxito', value: `${metrics.summary?.success_rate || 0}%` },
+      { metric: 'Tiempo Promedio (ms)', value: metrics.summary?.avg_response_time_ms || 0 },
+      { metric: 'Mediana (ms)', value: metrics.summary?.median_response_time_ms || 0 },
+      { metric: 'P95 (ms)', value: metrics.summary?.p95_response_time_ms || 0 },
+      { metric: 'P99 (ms)', value: metrics.summary?.p99_response_time_ms || 0 },
     ]);
 
     // Hoja 2: Por Funcionalidad

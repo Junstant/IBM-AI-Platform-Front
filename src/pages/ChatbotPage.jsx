@@ -75,7 +75,6 @@ const ChatbotPageContent = () => {
 
     // Agregar el mensaje del bot vacío
     setMessages((prev) => [...prev, botResponse]);
-    setIsLoading(false);
 
     try {
       // Construir el prompt con historial
@@ -86,6 +85,11 @@ const ChatbotPageContent = () => {
         fullPrompt, 
         selectedModel, 
         (streamedText, tokensPerSecond, totalTokens) => {
+          // Ocultar loading cuando llega el primer token
+          if (streamedText && isLoading) {
+            setIsLoading(false);
+          }
+          
           // Actualizar el mensaje del bot con el texto que va llegando y métricas
           setMessages((prev) => 
             prev.map((msg) => 
@@ -105,6 +109,7 @@ const ChatbotPageContent = () => {
             : msg
         )
       );
+      setIsLoading(false);
     } catch (error) {
       console.error("Error enviando mensaje a llama.cpp:", error);
 

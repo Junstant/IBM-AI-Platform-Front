@@ -76,8 +76,11 @@ const FunctionalityMetrics = ({ data }) => {
       <h3 className="text-lg font-medium text-gray-900 mb-6">Métricas por Funcionalidad</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data.map((functionality) => (
-          <div 
+        {data.map((functionality) => {
+          // ⚠️ Validación defensiva: asegurar que functionality existe y tiene datos
+          if (!functionality) return null;
+          
+          return (<div 
             key={functionality.functionality} 
             className={`border rounded-lg p-4 transition-all hover:shadow-md ${getFunctionalityColor(functionality.functionality)}`}
           >
@@ -158,8 +161,8 @@ const FunctionalityMetrics = ({ data }) => {
                   <TrendingUp className="w-4 h-4 text-blue-500" />
                   <span className="text-xs text-gray-600">Tasa de Éxito</span>
                 </div>
-                <span className={`text-sm font-semibold ${getSuccessRateColor(functionality.success_rate)}`}>
-                  {functionality.success_rate ? `${functionality.success_rate.toFixed(1)}%` : 'N/A'}
+                <span className={`text-sm font-semibold ${getSuccessRateColor(functionality?.success_rate || 0)}`}>
+                  {functionality?.success_rate ? `${functionality.success_rate.toFixed(1)}%` : 'N/A'}
                 </span>
               </div>
               
@@ -167,15 +170,15 @@ const FunctionalityMetrics = ({ data }) => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    functionality.success_rate >= 95 ? 'bg-green-500' :
-                    functionality.success_rate >= 90 ? 'bg-yellow-500' : 'bg-red-500'
+                    (functionality?.success_rate || 0) >= 95 ? 'bg-green-500' :
+                    (functionality?.success_rate || 0) >= 90 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
-                  style={{ width: `${functionality.success_rate || 0}%` }}
+                  style={{ width: `${functionality?.success_rate || 0}%` }}
                 ></div>
               </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </div>
   );
