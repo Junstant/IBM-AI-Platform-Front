@@ -15,7 +15,10 @@
     "demo": "docker-compose up -d --build"
   },
   "dependencies": {
+    "@carbon/charts": "^1.27.0",
+    "@carbon/charts-react": "^1.27.0",
     "@xyflow/react": "^12.9.0",
+    "d3": "^7.9.0",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.19.2",
     "lucide-react": "^0.524.0",

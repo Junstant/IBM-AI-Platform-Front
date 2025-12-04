@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, Clock, AlertCircle, Download, RefreshCw, Filter, Bot, Shield, Database, FileText, Brain } from 'lucide-react';
+import { Activity, TrendingUp, Clock, AlertCircle, Download, RefreshCw, Bot, Shield, Database, FileText, Brain, BarChart3, PieChart } from 'lucide-react';
 import { Card } from '../components/carbon';
 import statsService from '../services/statsService';
 import * as XLSX from 'exceljs';
+import '@carbon/charts-react/styles.css';
+import { LineChart, BarChart, DonutChart, MeterChart } from '@carbon/charts-react';
 
 // 🔧 FUNCIONES HELPER
 const getFunctionalityIcon = (funcionalidad) => {
@@ -37,11 +39,10 @@ const toNumber = (value, defaultValue = 0) => {
 };
 
 const MetricsPage = () => {
-  const [timeframe, setTimeframe] = useState('24h');
-  const [funcionalidad, setFuncionalidad] = useState('all');
   const [metrics, setMetrics] = useState(null);
   const [services, setServices] = useState([]);
   const [errors, setErrors] = useState([]);
+  const [hourlyTrends, setHourlyTrends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -49,23 +50,46 @@ const MetricsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch múltiples endpoints en paralelo
-      const [detailedMetrics, servicesData, recentErrors, functionalityPerf] = await Promise.all([
-        statsService.getDetailedMetrics({ timeframe, funcionalidad }),
+      // Fetch múltiples endpoints en paralelo usando los REALES del backend
+      const [detailedMetrics, servicesData, recentErrors, functionalityPerf, hourlyData] = await Promise.all([
+        statsService.getDetailedMetrics({ timeframe: '24h', funcionalidad: 'all' }),
         statsService.getServicesStatus(),
         statsService.getRecentErrors(20),
-        statsService.getFunctionalityPerformance()
+        statsService.getFunctionalityPerformance(),
+        statsService.getHourlyTrendsV2(24)
       ]);
 
+      // Backend retorna: { total_requests, successful_requests, failed_requests, success_rate, 
+      //                   error_rate, avg_response_time_ms, median_response_time_ms, 
+      //                   p95_response_time_ms, p99_response_time_ms, top_endpoints, slowest_endpoints }
+      console.log('📊 Detailed Metrics:', detailedMetrics);
+      console.log('🔧 Services:', servicesData);
+      console.log('⚠️ Errors:', recentErrors);
+      console.log('📈 Functionality:', functionalityPerf);
+      console.log('⏰ Hourly Trends:', hourlyData);
+
       setMetrics({
-        ...detailedMetrics,
-        by_functionality: functionalityPerf
+        summary: {
+          total_requests: detailedMetrics?.total_requests || 0,
+          successful_requests: detailedMetrics?.successful_requests || 0,
+          failed_requests: detailedMetrics?.failed_requests || 0,
+          success_rate: detailedMetrics?.success_rate || 0,
+          error_rate: detailedMetrics?.error_rate || 0,
+          avg_response_time_ms: detailedMetrics?.avg_response_time_ms || 0,
+          median_response_time_ms: detailedMetrics?.median_response_time_ms || 0,
+          p95_response_time_ms: detailedMetrics?.p95_response_time_ms || 0,
+          p99_response_time_ms: detailedMetrics?.p99_response_time_ms || 0,
+        },
+        top_endpoints: detailedMetrics?.top_endpoints || [],
+        slowest_endpoints: detailedMetrics?.slowest_endpoints || [],
+        by_functionality: functionalityPerf || []
       });
-      setServices(servicesData);
-      setErrors(recentErrors);
+      setServices(servicesData || []);
+      setErrors(recentErrors || []);
+      setHourlyTrends(hourlyData || []);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching metrics:', err);
+      console.error('❌ Error fetching metrics:', err);
     } finally {
       setLoading(false);
     }
@@ -76,7 +100,7 @@ const MetricsPage = () => {
     const interval = setInterval(fetchMetrics, 30000); // Actualizar cada 30s
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeframe, funcionalidad]);
+  }, []);
 
   const downloadExcel = async () => {
     if (!metrics || !metrics.summary) return;
@@ -164,9 +188,9 @@ const MetricsPage = () => {
           endpoint: e?.endpoint_base || e?.endpoint || 'unknown',
           functionality: e?.functionality || 'unknown',
           total_requests: toNumber(e?.total_requests),
-          avg_response_time: toNumber(e?.avg_response_time || e?.avg_response_time_ms).toFixed(0),
-          p95_response_time: toNumber(e?.p95_response_time || e?.p95_response_time_ms).toFixed(0),
-          max_response_time: toNumber(e?.max_response_time || e?.max_response_time_ms).toFixed(0)
+          avg_response_time: toNumber(e?.avg_response_time).toFixed(0),
+          p95_response_time: toNumber(e?.p95_response_time).toFixed(0),
+          max_response_time: toNumber(e?.max_response_time).toFixed(0)
         }))
       );
     }
@@ -177,7 +201,7 @@ const MetricsPage = () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `metrics_${timeframe}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `metrics_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   };
@@ -240,46 +264,6 @@ const MetricsPage = () => {
           </button>
         </div>
       </div>
-
-      {/* Filtros */}
-      <Card padding="md">
-        <div className="flex items-center space-x-4">
-          <Filter className="w-5 h-5 text-secondary" />
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Timeframe */}
-            <div>
-              <label className="block text-sm text-secondary mb-2">Período de Tiempo</label>
-              <select
-                value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value)}
-                className="w-full px-3 py-2 border border-ui-04 rounded focus:outline-none focus:border-interactive"
-              >
-                <option value="today">Hoy</option>
-                <option value="week">Esta Semana</option>
-                <option value="month">Este Mes</option>
-                <option value="custom">Personalizado</option>
-              </select>
-            </div>
-
-            {/* Funcionalidad */}
-            <div>
-              <label className="block text-sm text-secondary mb-2">Funcionalidad</label>
-              <select
-                value={funcionalidad}
-                onChange={(e) => setFuncionalidad(e.target.value)}
-                className="w-full px-3 py-2 border border-ui-04 rounded focus:outline-none focus:border-interactive"
-              >
-                <option value="all">Todas</option>
-                <option value="chatbot">Chatbot</option>
-                <option value="fraud_detection">Detección de Fraude</option>
-                <option value="text_to_sql">Text-to-SQL</option>
-                <option value="rag_documents">RAG Documentos</option>
-                <option value="nlp_analysis">Análisis NLP</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-05">
@@ -346,6 +330,224 @@ const MetricsPage = () => {
           </p>
         </Card>
       </div>
+
+      {/* 🎯 GAUGE - Tasa de Éxito Global */}
+      <Card padding="lg">
+        <div className="flex items-center justify-between mb-05">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-success" />
+            <h2 className="text-xl font-semibold text-primary">Tasa de Éxito Global</h2>
+          </div>
+          <span className="text-sm text-secondary">
+            {toNumber(metrics?.summary?.successful_requests).toLocaleString()} / {toNumber(metrics?.summary?.total_requests).toLocaleString()} requests
+          </span>
+        </div>
+        <div style={{ height: '200px' }}>
+          <MeterChart
+            data={[
+              {
+                group: 'Tasa de Éxito',
+                value: toNumber(metrics?.summary?.success_rate)
+              }
+            ]}
+            options={{
+              title: '',
+              meter: {
+                proportional: {
+                  total: 100,
+                  unit: '%'
+                },
+                status: {
+                  ranges: [
+                    { range: [0, 70], status: 'danger' },
+                    { range: [70, 90], status: 'warning' },
+                    { range: [90, 100], status: 'success' }
+                  ]
+                }
+              },
+              height: '200px',
+              theme: 'g90',
+              color: {
+                scale: {
+                  'Tasa de Éxito': toNumber(metrics?.summary?.success_rate) >= 90 ? '#24a148' : 
+                                   toNumber(metrics?.summary?.success_rate) >= 70 ? '#f1c21b' : '#da1e28'
+                }
+              }
+            }}
+          />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+          <div className="p-3 bg-ui-01 rounded">
+            <p className="text-2xl font-bold text-success">{toNumber(metrics?.summary?.successful_requests).toLocaleString()}</p>
+            <p className="text-xs text-secondary mt-1">Exitosos</p>
+          </div>
+          <div className="p-3 bg-ui-01 rounded">
+            <p className="text-2xl font-bold text-danger">{toNumber(metrics?.summary?.failed_requests).toLocaleString()}</p>
+            <p className="text-xs text-secondary mt-1">Fallidos</p>
+          </div>
+          <div className="p-3 bg-ui-01 rounded">
+            <p className="text-2xl font-bold text-primary">{toNumber(metrics?.summary?.error_rate).toFixed(1)}%</p>
+            <p className="text-xs text-secondary mt-1">Tasa de Error</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* 📊 GRÁFICOS CARBON - Sección de Visualizaciones */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-05">
+        {/* Gráfico de Tendencias Horarias */}
+        <Card padding="lg">
+          <div className="flex items-center justify-between mb-05">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-interactive" />
+              <h2 className="text-xl font-semibold text-primary">Tendencias por Hora (24h)</h2>
+            </div>
+          </div>
+          {hourlyTrends.length > 0 ? (
+            <div style={{ height: '300px' }}>
+              <LineChart
+                data={hourlyTrends.map(trend => ({
+                  group: 'Requests',
+                  date: new Date(trend.hour).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                  value: trend.total_requests || 0
+                }))}
+                options={{
+                  title: '',
+                  axes: {
+                    bottom: {
+                      title: 'Hora',
+                      mapsTo: 'date',
+                      scaleType: 'labels'
+                    },
+                    left: {
+                      title: 'Requests',
+                      mapsTo: 'value',
+                      scaleType: 'linear'
+                    }
+                  },
+                  curve: 'curveMonotoneX',
+                  height: '300px',
+                  theme: 'g90',
+                  color: {
+                    scale: {
+                      'Requests': '#0f62fe'
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-secondary">
+              <div className="text-center">
+                <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>No hay datos de tendencias</p>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Gráfico de Distribución por Funcionalidad */}
+        <Card padding="lg">
+          <div className="flex items-center justify-between mb-05">
+            <div className="flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-carbon-purple-50" />
+              <h2 className="text-xl font-semibold text-primary">Distribución de Requests</h2>
+            </div>
+          </div>
+          {metrics?.by_functionality?.length > 0 ? (
+            <div style={{ height: '300px' }}>
+              <DonutChart
+                data={metrics.by_functionality.map(func => ({
+                  group: getFunctionalityName(func.functionality),
+                  value: func.total_requests || 0
+                }))}
+                options={{
+                  title: '',
+                  resizable: true,
+                  donut: {
+                    center: {
+                      label: 'Total'
+                    },
+                    alignment: 'center'
+                  },
+                  height: '300px',
+                  theme: 'g90',
+                  legend: {
+                    alignment: 'center'
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-secondary">
+              <div className="text-center">
+                <PieChart className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>No hay datos de distribución</p>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Gráfico de Barras - Performance por Funcionalidad */}
+      <Card padding="lg">
+        <div className="flex items-center justify-between mb-05">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-success" />
+            <h2 className="text-xl font-semibold text-primary">Tiempo de Respuesta por Funcionalidad</h2>
+          </div>
+        </div>
+        {metrics?.by_functionality?.length > 0 ? (
+          <div style={{ height: '350px' }}>
+            <BarChart
+              data={metrics.by_functionality.flatMap(func => [
+                {
+                  group: getFunctionalityName(func.functionality),
+                  key: 'Promedio',
+                  value: toNumber(func.avg_response_time_ms)
+                },
+                {
+                  group: getFunctionalityName(func.functionality),
+                  key: 'P95',
+                  value: toNumber(func.p95_response_time_ms)
+                }
+              ])}
+              options={{
+                title: '',
+                axes: {
+                  left: {
+                    title: 'Funcionalidad',
+                    mapsTo: 'group',
+                    scaleType: 'labels'
+                  },
+                  bottom: {
+                    title: 'Tiempo (ms)',
+                    mapsTo: 'value',
+                    scaleType: 'linear'
+                  }
+                },
+                height: '350px',
+                theme: 'g90',
+                bars: {
+                  maxWidth: 40
+                },
+                color: {
+                  scale: {
+                    'Promedio': '#24a148',
+                    'P95': '#0f62fe'
+                  }
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-[350px] text-secondary">
+            <div className="text-center">
+              <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-30" />
+              <p>No hay datos de performance</p>
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Performance por Funcionalidad */}
       <Card padding="lg">
@@ -504,14 +706,16 @@ const MetricsPage = () => {
               metrics.top_endpoints.slice(0, 10).map((endpoint, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-ui-01 rounded hover:bg-ui-02 transition-colors">
                   <div className="flex-1 mr-3">
-                    <p className="text-sm text-primary font-medium truncate">{endpoint?.endpoint_base || endpoint?.endpoint || 'Desconocido'}</p>
+                    <p className="text-sm text-primary font-medium truncate">
+                      {endpoint?.endpoint_base || endpoint?.endpoint || 'Desconocido'}
+                    </p>
                     <p className="text-xs text-secondary">
-                      {toNumber(endpoint?.requests)} requests • {toNumber(endpoint?.success_rate).toFixed(1)}% éxito
+                      {toNumber(endpoint?.total_requests)} requests • {toNumber(endpoint?.success_rate).toFixed(1)}% éxito
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-primary">
-                      {toNumber(endpoint?.avg_response_time_ms).toFixed(0)}ms
+                      {toNumber(endpoint?.avg_response_time).toFixed(0)}ms
                     </p>
                   </div>
                 </div>
@@ -584,15 +788,15 @@ const MetricsPage = () => {
                     </td>
                     <td className="px-4 py-3 text-sm text-right">
                       <span className="font-medium text-carbon-yellow-50">
-                        {toNumber(endpoint?.avg_response_time || endpoint?.avg_response_time_ms).toFixed(0)}ms
+                        {toNumber(endpoint?.avg_response_time).toFixed(0)}ms
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-carbon-yellow-50">
-                      {toNumber(endpoint?.p95_response_time || endpoint?.p95_response_time_ms).toFixed(0)}ms
+                      {toNumber(endpoint?.p95_response_time).toFixed(0)}ms
                     </td>
                     <td className="px-4 py-3 text-sm text-right">
                       <span className="font-bold text-danger">
-                        {toNumber(endpoint?.max_response_time || endpoint?.max_response_time_ms).toFixed(0)}ms
+                        {toNumber(endpoint?.max_response_time).toFixed(0)}ms
                       </span>
                     </td>
                   </tr>
