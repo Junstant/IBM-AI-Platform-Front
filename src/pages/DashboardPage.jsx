@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Brain, Zap, TrendingUp, Activity, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield, Database, ArrowUpRight } from "lucide-react";
 import { Card } from "../components/carbon";
-import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity } from "../hooks/useStatsHooks";
+import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity, useSystemResources } from "../hooks/useStatsHooks";
 import ModelStatusCard from "../components/stats/ModelStatusCard";
 import PerformanceChart from "../components/stats/PerformanceChart";
 import ResourcesGauge from "../components/stats/ResourcesGauge";
@@ -16,6 +16,7 @@ const DashboardPage = () => {
   const { data: services } = useServicesStatus();
   const { data: alerts, resolveAlert } = useAlerts();
   const { data: recentActivity } = useRecentActivity(10);
+  const { data: systemResources, loading: resourcesLoading } = useSystemResources();
 
   // Extraer modelos y APIs del array de servicios
   const allServices = Array.isArray(services) ? services : [];
@@ -243,7 +244,7 @@ const DashboardPage = () => {
       {/* Recursos del sistema */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Recursos del Sistema</h2>
-        <ResourcesGauge />
+        <ResourcesGauge data={systemResources} loading={resourcesLoading} />
       </Card>
 
       {/* Actividad reciente y errores */}
