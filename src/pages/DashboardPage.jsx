@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Brain, Zap, TrendingUp, Activity, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield, Database, ArrowUpRight } from "lucide-react";
 import { Card } from "../components/carbon";
-import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity, useSystemResources } from "../hooks/useStatsHooks";
+import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity, useSystemResources, useHourlyTrends } from "../hooks/useStatsHooks";
+import statsService from "../services/statsService";
 import ModelStatusCard from "../components/stats/ModelStatusCard";
 import PerformanceChart from "../components/stats/PerformanceChart";
 import ResourcesGauge from "../components/stats/ResourcesGauge";
@@ -17,6 +18,33 @@ const DashboardPage = () => {
   const { data: alerts, resolveAlert } = useAlerts();
   const { data: recentActivity } = useRecentActivity(10);
   const { data: systemResources, loading: resourcesLoading } = useSystemResources();
+  
+  // Datos para gráficos de tendencias (últimas 24h)
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const { data: hourlyTrends } = useHourlyTrends(
+    yesterday.toISOString(),
+    now.toISOString()
+  );
+  
+  // Estado para functionality metrics
+  const [functionalityData, setFunctionalityData] = React.useState([]);
+  
+  // Cargar datos de funcionalidad
+  React.useEffect(() => {
+    const loadFunctionalityData = async () => {
+      try {
+        const data = await statsService.getFunctionalityPerformance();
+        setFunctionalityData(data || []);
+      } catch (error) {
+        console.error('Error loading functionality data:', error);
+        setFunctionalityData([]);
+      }
+    };
+    loadFunctionalityData();
+    const interval = setInterval(loadFunctionalityData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Extraer modelos y APIs del array de servicios
   const allServices = Array.isArray(services) ? services : [];
@@ -258,7 +286,7 @@ const DashboardPage = () => {
         {/* Métricas por funcionalidad */}
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-06">Rendimiento por Funcionalidad</h2>
-          <FunctionalityMetrics />
+          <FunctionalityMetrics data={functionalityData} />
         </Card>
       </div>
 
@@ -266,8 +294,20 @@ const DashboardPage = () => {
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Tendencias de Rendimiento</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PerformanceChart title="Tiempo de Respuesta" dataKey="response_time" type="line" color="#8884d8" />
-          <PerformanceChart title="Consultas por Hora" dataKey="requests_count" type="area" color="#82ca9d" />
+          <PerformanceChart 
+            data={hourlyTrends} 
+            title="Tiempo de Respuesta" 
+            dataKey="avg_response_time" 
+            type="line" 
+            color="#8884d8" 
+          />
+          <PerformanceChart 
+            data={hourlyTrends} 
+            title="Consultas por Hora" 
+            dataKey="total_requests" 
+            type="area" 
+            color="#82ca9d" 
+          />
         </div>
       </Card>
 

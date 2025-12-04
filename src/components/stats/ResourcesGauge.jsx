@@ -6,16 +6,26 @@ const ResourcesGauge = ({ data }) => {
   const GaugeComponent = ({ title, value, icon: IconComponent, color, unit = '%' }) => {
     const percentage = Math.min(Math.max(value || 0, 0), 100);
     
+    // Mapeo de colores a valores hexadecimales
+    const colorMap = {
+      blue: '#3b82f6',
+      green: '#10b981',
+      purple: '#a855f7',
+      orange: '#f97316',
+      red: '#ef4444',
+      yellow: '#eab308'
+    };
+
     const getColorClass = () => {
       if (percentage >= 90) return 'text-red-500 border-red-500';
       if (percentage >= 70) return 'text-yellow-500 border-yellow-500';
       return `text-${color}-500 border-${color}-500`;
     };
 
-    const getProgressColor = () => {
-      if (percentage >= 90) return 'bg-red-500';
-      if (percentage >= 70) return 'bg-yellow-500';
-      return `bg-${color}-500`;
+    const getStrokeColor = () => {
+      if (percentage >= 90) return colorMap.red;
+      if (percentage >= 70) return colorMap.yellow;
+      return colorMap[color] || colorMap.blue;
     };
 
     const circumference = 2 * Math.PI * 45; // radio de 45
@@ -49,15 +59,14 @@ const ResourcesGauge = ({ data }) => {
               cx="50"
               cy="50"
               r="45"
-              stroke="currentColor"
+              stroke={getStrokeColor()}
               strokeWidth="8"
               fill="none"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
-              className={getProgressColor()}
               style={{
-                transition: 'stroke-dashoffset 0.5s ease-in-out',
+                transition: 'stroke-dashoffset 0.5s ease-in-out, stroke 0.3s ease-in-out',
               }}
             />
           </svg>
