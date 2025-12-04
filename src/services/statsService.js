@@ -255,20 +255,72 @@ const statsService = {
   },
 
   /**
-   * ✨ Obtener métricas detalladas (para MetricsPage)
+   * ✨ Obtener métricas detalladas (para MetricsPage) - Backend v2.0
    * @param {Object} params - Parámetros de consulta
-   * @param {string} params.timeframe - 'today', '7days', '30days'
+   * @param {string} params.timeframe - '24h', '7days', '30days'
    * @param {string} params.funcionalidad - 'all', 'nlp', 'textosql', 'fraud', etc.
-   * @returns {Promise<Object>} - { summary, top_endpoints, worst_endpoints, errors, period }
+   * @returns {Promise<Object>} - Métricas detalladas con percentiles
    * @throws {APIError}
    */
-  async getDetailedMetrics({ timeframe = 'today', funcionalidad = 'all' }) {
+  async getDetailedMetrics({ timeframe = '24h', funcionalidad = 'all' }) {
     try {
-      const params = { timeframe, funcionalidad };
-      return await statsAPI.get('/metrics/detailed', params);
+      return await statsAPI.get('/metrics/detailed');
     } catch (error) {
       if (error instanceof APIError) {
         console.error(`Detailed Metrics Error ${error.status}:`, error.statusText);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * ✨ Obtener performance por funcionalidad - Backend v2.0
+   * @returns {Promise<Array>} - Array de performance por funcionalidad
+   * @throws {APIError}
+   */
+  async getFunctionalityPerformance() {
+    try {
+      const response = await statsAPI.get('/functionality/performance');
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      if (error instanceof APIError) {
+        console.error(`Functionality Performance Error ${error.status}:`, error.statusText);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * ✨ Obtener errores recientes - Backend v2.0
+   * @param {number} limit - Número de errores (default: 20)
+   * @returns {Promise<Array>} - Array de errores recientes
+   * @throws {APIError}
+   */
+  async getRecentErrors(limit = 20) {
+    try {
+      const response = await statsAPI.get('/errors/recent', { limit });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      if (error instanceof APIError) {
+        console.error(`Recent Errors Error ${error.status}:`, error.statusText);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * ✨ Obtener tendencias horarias - Backend v2.0
+   * @param {number} hours - Número de horas hacia atrás (default: 24)
+   * @returns {Promise<Array>} - Array de tendencias horarias
+   * @throws {APIError}
+   */
+  async getHourlyTrendsV2(hours = 24) {
+    try {
+      const response = await statsAPI.get('/trends/hourly', { hours });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      if (error instanceof APIError) {
+        console.error(`Hourly Trends Error ${error.status}:`, error.statusText);
       }
       throw error;
     }

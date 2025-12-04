@@ -436,9 +436,6 @@ const DocumentAnalysisPage = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-caption text-text-secondary">
-                  Sistema configurado con búsqueda vectorial ultra-rápida (&lt;10ms) y generación de respuestas coherentes.
-                </p>
               </div>
             </div>
           </div>
@@ -449,7 +446,7 @@ const DocumentAnalysisPage = () => {
           <div className="flex items-center justify-between mb-03">
             <div className="flex items-center space-x-02">
               <Settings className="w-5 h-5 text-interactive" />
-              <h3 className="text-label font-semibold text-text-primary">Configuración de Modelos (Arquitectura v3.0)</h3>
+              <h3 className="text-label font-semibold text-text-primary">Configuración de modelos</h3>
             </div>
             {selectedEmbeddingModel && (
               <span className="px-03 py-01 bg-interactive text-white text-caption font-medium">
