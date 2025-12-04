@@ -384,6 +384,92 @@ const MetricsPage = () => {
           </div>
         </Card>
       </div>
+
+      {/* Rendimiento por Funcionalidad - Detalle */}
+      <Card padding="lg">
+        <h2 className="text-xl font-semibold text-primary mb-05">Rendimiento por Funcionalidad - Detalle</h2>
+        <div className="grid grid-cols-1 gap-4">
+          {(metrics?.by_functionality || []).map((functionality, index) => (
+            <div 
+              key={functionality?.funcionalidad || index}
+              className="bg-ui-01 border border-ui-03 p-04 hover:border-interactive transition-all duration-300 animate-slide-in-up group"
+              style={{ animationDelay: `${index * 80}ms` }}
+            >
+              {/* VALIDACIÓN: Solo renderizar si functionality existe */}
+              {functionality ? (
+                <>
+                  <div className="flex items-center justify-between mb-03">
+                    <div className="flex items-center space-x-02">
+                      <div className="p-02 bg-interactive/10 rounded-sm group-hover:bg-interactive/20 transition-colors">
+                        {getFunctionalityIcon(functionality.funcionalidad || 'unknown')}
+                      </div>
+                      <h3 className="text-label font-semibold text-text-primary">
+                        {getFunctionalityName(functionality.funcionalidad || 'unknown')}
+                      </h3>
+                    </div>
+                    
+                    {/* VALIDACIÓN: Optional chaining en success_rate */}
+                    <span 
+                      className={`px-03 py-01 text-white text-caption font-medium rounded-sm shadow-sm ${
+                        (functionality?.success_rate ?? 0) >= 90 
+                          ? 'bg-success' 
+                          : (functionality?.success_rate ?? 0) >= 70 
+                            ? 'bg-warning' 
+                            : 'bg-danger'
+                      }`}
+                    >
+                      {(functionality?.success_rate ?? 0).toFixed(1)}% éxito
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-03">
+                    <div className="text-center">
+                      <p className="text-caption text-text-secondary mb-01">Requests</p>
+                      <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
+                        {functionality?.requests ?? 0}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-caption text-text-secondary mb-01">Latencia</p>
+                      <p className="text-productive-heading-02 text-text-primary group-hover:text-interactive transition-colors">
+                        {(functionality?.avg_response_time_ms ?? 0).toFixed(0)}ms
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-caption text-text-secondary mb-01">Errores</p>
+                      <p className="text-productive-heading-02 text-danger">
+                        {functionality?.total_errors ?? 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress bar con validación */}
+                  <div className="mt-03">
+                    <div className="h-2 bg-ui-03 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-500 ${
+                          (functionality?.success_rate ?? 0) >= 90 
+                            ? 'bg-success' 
+                            : (functionality?.success_rate ?? 0) >= 70 
+                              ? 'bg-warning' 
+                              : 'bg-danger'
+                        }`}
+                        style={{ width: `${functionality?.success_rate ?? 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-04">
+                  <p className="text-caption text-text-secondary">
+                    Datos no disponibles
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 };
