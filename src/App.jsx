@@ -1,4 +1,3 @@
-// File: simport { BarChart, Bot, Database, Shield, Home, Cpu, Plus, Sparkles, MessageSquare, FileText, Brain, Search, Hash, Tag } from 'lucide-react';c/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Layout from "./components/Layout";
@@ -12,7 +11,6 @@ import TextToSQLPage from "./pages/TextToSQLPage";
 import MetricsPage from "./pages/MetricsPage";
 import { BarChart, Bot, Database, Shield, Home, Cpu, Plus,Brain,Search,Hash,Tag, Sparkles, MessageSquare, FileText } from "lucide-react";
 
-// Páginas temporales para las rutas faltantes
 const AnalyticsPage = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold text-ibm-gray-90 mb-4">Analytics IA</h1>

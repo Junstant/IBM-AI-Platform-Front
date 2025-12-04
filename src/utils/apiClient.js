@@ -46,7 +46,7 @@ export class APIError extends Error {
  */
 class APIClient {
   constructor(baseRoute) {
-    this.baseRoute = baseRoute; // ej: '/api/rag'
+    this.baseRoute = baseRoute;
   }
 
   /**
@@ -71,12 +71,11 @@ class APIClient {
         try {
           errorData = await response.json();
         } catch {
-          // Si no hay JSON, usar statusText
+          errorData = null;
         }
         throw new APIError(response.status, response.statusText, errorData);
       }
 
-      // Algunas respuestas pueden ser vacías (204 No Content)
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         return await response.json();
@@ -87,7 +86,6 @@ class APIClient {
       if (error instanceof APIError) {
         throw error;
       }
-      // Error de red o fetch
       throw new Error(`Network error: ${error.message}`);
     }
   }
@@ -156,7 +154,6 @@ class APIClient {
     const formData = new FormData();
     formData.append('file', file);
     
-    // Añadir datos adicionales
     Object.entries(additionalData).forEach(([key, value]) => {
       if (typeof value === 'object') {
         formData.append(key, JSON.stringify(value));
@@ -168,7 +165,6 @@ class APIClient {
     return this.request(endpoint, {
       method: 'POST',
       body: formData
-      // NO incluir Content-Type, el browser lo añade automáticamente con boundary
     });
   }
 
@@ -236,7 +232,6 @@ class APIClient {
   }
 }
 
-// Instancias exportables para cada servicio
 export const ragAPI = new APIClient('/api/rag');
 export const statsAPI = new APIClient('/api/stats');
 export const textoSQLAPI = new APIClient('/api/textosql');
@@ -278,7 +273,6 @@ export const retryWithBackoff = async (fn, maxRetries = config.timeouts.maxRetri
     } catch (error) {
       if (i === maxRetries - 1) throw error;
       
-      // No reintentar errores de cliente (4xx)
       if (error instanceof APIError && error.isClientError()) {
         throw error;
       }

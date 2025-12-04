@@ -19,7 +19,6 @@ const DashboardPage = () => {
   const { data: recentActivity } = useRecentActivity(10);
   const { data: systemResources, loading: resourcesLoading } = useSystemResources();
   
-  // Datos para gráficos de tendencias (últimas 24h)
   const now = new Date();
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const { data: hourlyTrends } = useHourlyTrends(
@@ -27,10 +26,8 @@ const DashboardPage = () => {
     now.toISOString()
   );
   
-  // Estado para functionality metrics
   const [functionalityData, setFunctionalityData] = React.useState([]);
   
-  // Cargar datos de funcionalidad
   React.useEffect(() => {
     const loadFunctionalityData = async () => {
       try {
@@ -46,12 +43,10 @@ const DashboardPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Extraer modelos y APIs del array de servicios
   const allServices = Array.isArray(services) ? services : [];
   const models = allServices.filter(s => s.service_type === 'llm');
   const apis = allServices.filter(s => s.service_type !== 'llm');
 
-  // Stats con datos reales o fallback
   const stats = [
     {
       title: "Modelos IA Activos",
@@ -134,13 +129,11 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-06 animate-fadeIn">
-      {/* Header */}
       <div className="my-5 animate-slideDown">
         <h1 className="text-3xl font-semibold text-primary mb-03">Dashboard de IA</h1>
         <p className="text-secondary">Bienvenido a la plataforma de inteligencia artificial de IBM, haga click en la demo que desea utilizar</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-05">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -162,13 +155,11 @@ const DashboardPage = () => {
         })}
       </div>
 
-      {/* Quick Actions */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Demos Disponibles</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-05">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
-            // Map color names to both border and text colors
             const colorStyles = {
               interactive: { border: "border-t-interactive", text: "text-interactive" },
               danger: { border: "border-t-danger", text: "text-danger" },
@@ -193,11 +184,8 @@ const DashboardPage = () => {
         </div>
       </Card>
 
-      {/* Stats en tiempo real y alertas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-05">
-        {/* Modelos y APIs */}
         <div className="lg:col-span-2 space-y-05">
-          {/* Modelos LLM */}
           <Card padding="lg">
             <div className="flex items-center justify-between mb-05">
               <h2 className="text-xl font-semibold text-primary">
@@ -230,7 +218,6 @@ const DashboardPage = () => {
             )}
           </Card>
 
-          {/* APIs de Backend */}
           <Card padding="lg">
             <div className="flex items-center justify-between mb-05">
               <h2 className="text-xl font-semibold text-primary">
@@ -263,34 +250,28 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {/* Panel de alertas */}
         <div className="lg:col-span-1">
           <AlertsPanel alerts={alerts} onResolveAlert={resolveAlert} maxAlerts={6} />
         </div>
       </div>
 
-      {/* Recursos del sistema */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Recursos del Sistema</h2>
         <ResourcesGauge data={systemResources} loading={resourcesLoading} />
       </Card>
 
-      {/* Actividad reciente y errores */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-05">
-        {/* Errores recientes */}
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-06">Errores Recientes</h2>
           <ErrorsTable maxErrors={5} />
         </Card>
 
-        {/* Métricas por funcionalidad */}
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-06">Rendimiento por Funcionalidad</h2>
           <FunctionalityMetrics data={functionalityData} />
         </Card>
       </div>
 
-      {/* Performance charts */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Tendencias de Rendimiento</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -311,7 +292,6 @@ const DashboardPage = () => {
         </div>
       </Card>
 
-      {/* Actividad reciente */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Actividad Reciente</h2>
         {summaryLoading ? (

@@ -6,7 +6,6 @@ import * as XLSX from 'exceljs';
 import '@carbon/charts-react/styles.css';
 import { LineChart, SimpleBarChart, DonutChart, GaugeChart } from '@carbon/charts-react';
 
-// 🔧 FUNCIONES HELPER
 const getFunctionalityIcon = (funcionalidad) => {
   const iconMap = {
     'chatbot': <Bot className="w-5 h-5 text-interactive" />,
@@ -31,7 +30,6 @@ const getFunctionalityName = (funcionalidad) => {
   return nameMap[funcionalidad] || nameMap['unknown'];
 };
 
-// 🔧 FUNCIÓN PARA CONVERTIR A NÚMERO DE FORMA SEGURA
 const toNumber = (value, defaultValue = 0) => {
   if (value === null || value === undefined) return defaultValue;
   const num = Number(value);
@@ -50,7 +48,6 @@ const MetricsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch múltiples endpoints en paralelo usando los REALES del backend
       const [detailedMetrics, servicesData, recentErrors, functionalityPerf, hourlyData] = await Promise.all([
         statsService.getDetailedMetrics({ timeframe: '24h', funcionalidad: 'all' }),
         statsService.getServicesStatus(),
@@ -58,8 +55,6 @@ const MetricsPage = () => {
         statsService.getFunctionalityPerformance(),
         statsService.getHourlyTrendsV2(24)
       ]);
-
-      // Validaciones silenciosas
 
       setMetrics({
         summary: {
@@ -99,7 +94,6 @@ const MetricsPage = () => {
 
     const workbook = new XLSX.Workbook();
     
-    // Hoja 1: Resumen
     const summarySheet = workbook.addWorksheet('Resumen');
     summarySheet.columns = [
       { header: 'Métrica', key: 'metric', width: 30 },
@@ -116,7 +110,6 @@ const MetricsPage = () => {
       { metric: 'P99 (ms)', value: toNumber(metrics.summary?.p99_response_time_ms) },
     ]);
 
-    // Hoja 2: Por Funcionalidad
     const functionalitySheet = workbook.addWorksheet('Por Funcionalidad');
     functionalitySheet.columns = [
       { header: 'Funcionalidad', key: 'functionality', width: 20 },
@@ -139,7 +132,6 @@ const MetricsPage = () => {
       })) || []
     );
 
-    // Hoja 3: Servicios
     if (services?.length > 0) {
       const servicesSheet = workbook.addWorksheet('Estado Servicios');
       servicesSheet.columns = [
@@ -164,7 +156,6 @@ const MetricsPage = () => {
       );
     }
 
-    // Hoja 4: Endpoints más lentos
     if (metrics.slowest_endpoints?.length > 0) {
       const slowestSheet = workbook.addWorksheet('Endpoints Lentos');
       slowestSheet.columns = [
@@ -187,7 +178,6 @@ const MetricsPage = () => {
       );
     }
 
-    // Descargar archivo
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);

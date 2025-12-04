@@ -117,7 +117,6 @@ const statsService = {
   async getModelsStatus() {
     try {
       const services = await this.getServicesStatus();
-      // Backend retorna array, filtrar solo modelos LLM
       return Array.isArray(services) ? services.filter(s => s.service_type === 'llm') : [];
     } catch (error) {
       if (error instanceof APIError) {
@@ -135,7 +134,6 @@ const statsService = {
   async getAlerts() {
     try {
       const response = await statsAPI.get('/alerts/active');
-      // Backend retorna array directamente
       return Array.isArray(response) ? response : [];
     } catch (error) {
       if (error instanceof APIError) {
@@ -288,7 +286,6 @@ const statsService = {
       } else {
         console.warn('Functionality Performance endpoint failed:', error.message);
       }
-      // Retornar array vacío en lugar de lanzar error
       return [];
     }
   },
@@ -309,7 +306,6 @@ const statsService = {
       } else {
         console.warn('Recent Errors endpoint failed:', error.message);
       }
-      // Retornar array vacío en lugar de lanzar error para no romper la UI
       return [];
     }
   },
@@ -330,7 +326,6 @@ const statsService = {
       } else {
         console.warn('Hourly Trends endpoint failed:', error.message);
       }
-      // Retornar array vacío en lugar de lanzar error para no romper la UI
       return [];
     }
   },
