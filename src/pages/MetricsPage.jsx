@@ -377,7 +377,7 @@ const MetricsPage = () => {
                            toNumber(metrics?.summary?.success_rate) >= 70 ? '#f1c21b' : '#da1e28'
                 }
               },
-              theme: 'g90'
+              theme: 'white'
             }}
           />
         </div>
@@ -431,7 +431,7 @@ const MetricsPage = () => {
                   },
                   curve: 'curveMonotoneX',
                   height: '300px',
-                  theme: 'g90',
+                  theme: 'white',
                   color: {
                     scale: {
                       'Requests': '#0f62fe'
@@ -475,7 +475,7 @@ const MetricsPage = () => {
                     alignment: 'center'
                   },
                   height: '300px',
-                  theme: 'g90',
+                  theme: 'white',
                   legend: {
                     alignment: 'center'
                   }
@@ -531,7 +531,7 @@ const MetricsPage = () => {
                   }
                 },
                 height: '350px',
-                theme: 'g90',
+                theme: 'white',
                 color: {
                   scale: {
                     'Promedio': '#24a148',
