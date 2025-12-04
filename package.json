@@ -1,8 +1,8 @@
 {
   "name": "ibm-ai-platform",
   "private": true,
-  "version": "1.0.0",
-  "description": "Plataforma de Inteligencia Artificial IBM",
+  "version": "3.0.0",
+  "description": "IBM AI Platform Frontend - By Jung Lucas",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "docker:up": "docker-compose up -d",
     "docker:stop": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "demo": "docker-compose up -d --build"
   },
   "dependencies": {

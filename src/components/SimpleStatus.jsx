@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { simplePing } from '../utils/simplePing';
 
@@ -10,7 +10,7 @@ const SimpleStatus = ({ url, name, interval = 10000 }) => {
   });
   const [isChecking, setIsChecking] = useState(false);
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     if (!url) {
       setStatus({ 
         status: 'disconnected', 
@@ -33,13 +33,13 @@ const SimpleStatus = ({ url, name, interval = 10000 }) => {
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [url]);
 
   useEffect(() => {
     checkStatus();
     const timer = setInterval(checkStatus, interval);
     return () => clearInterval(timer);
-  }, [url, interval]);
+  }, [interval, checkStatus]);
 
   const getStatusConfig = () => {
     switch (status.status) {

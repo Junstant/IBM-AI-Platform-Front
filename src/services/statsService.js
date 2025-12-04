@@ -262,7 +262,7 @@ const statsService = {
    * @returns {Promise<Object>} - Métricas detalladas con percentiles
    * @throws {APIError}
    */
-  async getDetailedMetrics({ timeframe = '24h', funcionalidad = 'all' }) {
+  async getDetailedMetrics({ timeframe: _timeframe = '24h', funcionalidad: _funcionalidad = 'all' }) {
     try {
       return await statsAPI.get('/metrics/detailed');
     } catch (error) {

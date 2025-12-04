@@ -1,177 +1,94 @@
-# IBM AI Platform - Frontend 🚀
+# IBM AI Platform - Frontend
 
-Frontend de la plataforma de IA construido con React, Vite y Carbon Design System.
+Frontend de la plataforma de inteligencia artificial construido con React, Vite y Carbon Design System para IBM Power Systems (PPC64LE).
 
-## 📋 Stack Tecnológico
+## Stack Tecnológico
 
-- **React 18** - Framework UI
-- **Vite** - Build tool y dev server
-- **Carbon Design System** - Componentes IBM
-- **Nginx Alpine** - Servidor web en producción
-- **Docker** - Containerización
+- React 18 + Vite
+- Carbon Design System + Carbon Charts
+- Tailwind CSS
+- Docker + Nginx Alpine
 
-## 🏗️ Arquitectura
+## Inicio Rápido
+
+```bash
+# Desarrollo local
+npm install
+npm run dev
+
+# Docker (Producción)
+docker compose up --build frontend
+```
+
+## Arquitectura
 
 ```
-Frontend (React) → Nginx → Backend APIs:
+Frontend (React + Nginx) → Backend APIs:
   ├─ /api/stats/*    → stats-api:8003
   ├─ /api/rag/*      → rag-api:8004
   ├─ /api/fraude/*   → fraude-api:8001
   └─ /api/textosql/* → textosql-api:8002
 ```
 
-## 🚀 Desarrollo Local
-
-```bash
-# Instalar dependencias
-npm install
-
-# Servidor de desarrollo
-npm run dev
-
-# Build de producción
-npm run build
-```
-
-## 🐳 Docker
-
-```bash
-# Build y run
-docker compose up --build frontend
-
-# Ver logs
-docker logs -f frontend
-
-# Rebuild completo
-docker compose build frontend && docker compose up -d frontend
-```
-
-## 📚 Documentación Principal
-
-- **INTEGRACION_RAG_API_v3.md** - Integración completa RAG API con Milvus
-- **STATS_API_ALIGNMENT_v2.md** - Alineación Stats API v2.0 (verificado)
-- **CAMBIOS_ERROR_502.md** - Solución error 502 nginx
-- **FRONTEND_API_INTEGRATION.md** - Guía general de integración APIs
-
-## ⚙️ Servicios del Frontend
-
-### 1. RAG Service (`src/services/ragService.js`)
-```javascript
-import ragService from './services/ragService';
-
-// Health check
-await ragService.checkHealth();
-
-// Upload documento
-await ragService.uploadDocument(file, {
-  embedding_model: 'nomic-embed-text-v1.5',
-  llm_model: 'mistral-7b'
-});
-
-// Query
-await ragService.queryDocuments('¿Cómo funciona?', { top_k: 5 });
-```
-
-### 2. Stats Service (`src/services/statsService.js`)
-```javascript
-import statsService from './services/statsService';
-
-// Dashboard summary
-await statsService.getDashboardSummary();
-
-// Services status
-await statsService.getServicesStatus();
-
-// Alerts
-await statsService.getAlerts();
-```
-
-## 🔧 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 src/
-├── components/     # Componentes reutilizables
-│   ├── carbon/    # Componentes Carbon DS personalizados
-│   └── stats/     # Componentes de estadísticas
-├── pages/          # Páginas de la aplicación
-│   ├── DashboardPage.jsx
-│   ├── DocumentAnalysisPage.jsx (RAG v3.0)
-│   ├── MetricsPage.jsx
-│   └── ...
-├── services/       # Clientes API
-│   ├── ragService.js      (RAG v3.0)
-│   ├── statsService.js    (Stats v2.0)
-│   └── ...
+├── components/     # Componentes reutilizables (Carbon DS)
+├── pages/          # Vistas principales de la aplicación
+├── services/       # Clientes API (ragService, statsService)
 ├── hooks/          # Custom React hooks
-│   └── useStatsAPI.js
-├── utils/          # Utilidades
-│   └── apiClient.js
-└── config/         # Configuración
-    └── environment.js
+├── utils/          # Utilidades y helpers
+└── config/         # Configuración de entorno
 ```
 
-## 🌐 Endpoints API
+## Funcionalidades
 
-### Stats API v2.0 (✅ Verificado)
-```
-GET  /api/stats/dashboard/summary
-GET  /api/stats/services/status
-GET  /api/stats/alerts/active
-POST /api/stats/alerts/{id}/resolve
-GET  /api/stats/activity/recent
-GET  /api/stats/errors/recent
-GET  /api/stats/system/resources
-GET  /api/stats/functionality/performance
-GET  /api/stats/metrics/detailed
-GET  /api/stats/trends/hourly
-```
+- **Dashboard**: Métricas en tiempo real de modelos LLM y APIs
+- **RAG Documents**: Análisis semántico con Milvus + embeddings
+- **Fraud Detection**: ML para detección de fraude
+- **Text-to-SQL**: Conversión lenguaje natural a SQL
+- **NLP Analysis**: Procesamiento de lenguaje natural
+- **Image Generator**: Generación de imágenes con IA
+- **Chatbot**: Asistente conversacional con LLM
 
-### RAG API v3.0
-```
-GET  /api/rag/health
-GET  /api/rag/models
-POST /api/rag/upload
-POST /api/rag/query
-GET  /api/rag/documents
-DEL  /api/rag/documents/{id}
-GET  /api/rag/stats
-```
-
-## 📦 Build & Deploy
+## Scripts Disponibles
 
 ```bash
-# Build para producción
-docker compose build frontend
+npm run dev        # Servidor desarrollo (localhost:5173)
+npm run build      # Build producción
+npm run preview    # Preview build local
+npm run demo       # Deploy completo Docker
+```
 
-# Deploy
-docker compose up -d frontend
+## Configuración Docker
+
+El contenedor se construye automáticamente con `setup.sh` del backend. Variables de entorno en `docker-compose.yml`:
+
+- `VITE_STATS_API_URL`: URL de Stats API
+- `VITE_RAG_API_URL`: URL de RAG API
+- `VITE_FRAUD_API_URL`: URL de Fraud API
+- `VITE_TEXTOSQL_API_URL`: URL de Text-to-SQL API
+
+## Despliegue
+
+```bash
+# Build y deploy
+docker compose build frontend && docker compose up -d frontend
 
 # Verificar logs
 docker logs -f frontend
 
-# Verificar configuración nginx generada
-docker exec frontend cat /etc/nginx/conf.d/default.conf
+# Reconstrucción completa (sin cache)
+docker compose build --no-cache frontend
 ```
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
-### Error 502 Bad Gateway
-1. Verificar servicios backend: `docker ps | grep -E 'stats|rag|fraude'`
-2. Ver logs nginx: `docker logs frontend`
-3. Verificar DNS: `docker exec frontend getent hosts stats-api`
-
-### Endpoints retornan 404
-1. Verificar rutas en `nginx.conf.template`
-2. Verificar que el servicio backend esté corriendo
-3. Test directo: `curl http://localhost:8003/api/stats/health`
-
-### Variables de entorno no funcionan
-1. Verificar `Dockerfile` - ARG y ENV correctos
-2. Verificar `docker-compose.yml` - build args
-3. Rebuild completo: `docker compose build --no-cache frontend`
+**502 Bad Gateway**: Verificar que servicios backend estén corriendo (`docker ps`)  
+**404 Endpoints**: Revisar configuración nginx en `nginx.conf.template`  
+**Variables entorno**: Rebuild con `--no-cache` para forzar actualización
 
 ---
 
-**Puerto**: 2012  
-**Versión**: 3.0.0  
-**Última actualización**: Diciembre 2025
+**Puerto**: 2012 | **Versión**: 3.0.0 | **Arquitectura**: Compatible PPC64LE

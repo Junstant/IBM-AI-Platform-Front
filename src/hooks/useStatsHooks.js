@@ -16,9 +16,7 @@ export const useDashboardSummary = (refreshInterval = config.ui.refreshIntervals
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching dashboard summary from /api/stats/dashboard/summary...');
       const result = await statsAPI.get('/dashboard/summary');
-      console.log('✅ Dashboard summary received:', result);
       setData(result);
       setLastUpdated(new Date());
     } catch (err) {

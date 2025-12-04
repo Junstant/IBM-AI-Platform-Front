@@ -59,25 +59,7 @@ const MetricsPage = () => {
         statsService.getHourlyTrendsV2(24)
       ]);
 
-      // Backend retorna: { total_requests, successful_requests, failed_requests, success_rate, 
-      //                   error_rate, avg_response_time_ms, median_response_time_ms, 
-      //                   p95_response_time_ms, p99_response_time_ms, top_endpoints, slowest_endpoints }
-      console.log('📊 Detailed Metrics:', detailedMetrics);
-      console.log('🔧 Services:', servicesData);
-      console.log('⚠️ Errors:', recentErrors);
-      console.log('📈 Functionality:', functionalityPerf);
-      console.log('⏰ Hourly Trends:', hourlyData);
-
-      // Advertencias para endpoints que fallaron
-      if (!hourlyData || hourlyData.length === 0) {
-        console.warn('⚠️ Hourly trends endpoint retornó vacío - el gráfico de tendencias estará vacío');
-      }
-      if (!recentErrors || recentErrors.length === 0) {
-        console.info('ℹ️ No hay errores recientes registrados');
-      }
-      if (!functionalityPerf || functionalityPerf.length === 0) {
-        console.warn('⚠️ Functionality performance endpoint retornó vacío');
-      }
+      // Validaciones silenciosas
 
       setMetrics({
         summary: {
@@ -108,9 +90,8 @@ const MetricsPage = () => {
 
   useEffect(() => {
     fetchMetrics();
-    const interval = setInterval(fetchMetrics, 30000); // Actualizar cada 30s
+    const interval = setInterval(fetchMetrics, 30000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const downloadExcel = async () => {

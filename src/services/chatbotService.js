@@ -182,7 +182,7 @@ const chatbotService = {
    * @param {boolean} [useTOON] - Usar TOON para optimización (default: auto)
    * @returns {string} - Prompt completo
    */
-  buildConversationPrompt(messages, newMessage, useTOON = null) {
+  buildConversationPrompt(messages, newMessage, _useTOON = null) {
     const conversation = [];
 
     // Agregar mensajes del historial (excluyendo mensajes iniciales del bot)
@@ -207,16 +207,11 @@ const chatbotService = {
       conversation.splice(0, conversation.length - maxMessages);
     }
 
-    // Auto-detectar si usar TOON (más de 3 mensajes)
-    const shouldUseTOON = useTOON !== null ? useTOON : conversation.length > 3;
-
     // TOON encoding está disponible pero requiere importación dinámica async
     // Para mantener compatibilidad síncrona, usamos ChatML tradicional
-    if (shouldUseTOON) {
-      console.info('Long conversation detected, using ChatML format (TOON available for future optimization)');
-    }
+    // Auto-detectar: useTOON || conversation.length > 3
 
-    // Para conversaciones cortas, usar formato ChatML tradicional
+    // Usar formato ChatML tradicional
     const systemMsg = "Eres un asistente de IA amigable y útil. Responde en el mismo idioma que el usuario.";
     const prompt = [`<|system|>\n${systemMsg}`];
     
