@@ -137,10 +137,15 @@ const chatbotService = {
                   firstTokenTime = performance.now();
                 }
                 
-                // Calcular tokens/segundo
+                // Calcular tokens/segundo (solo después de tener varios tokens)
                 const currentTime = performance.now();
                 const elapsedSeconds = (currentTime - (firstTokenTime || startTime)) / 1000;
-                const tokensPerSecond = elapsedSeconds > 0 ? (tokenCount / elapsedSeconds).toFixed(1) : 0;
+                
+                // Calcular velocidad (retornar número, no string)
+                let tokensPerSecond = 0;
+                if (elapsedSeconds > 0.1 && tokenCount > 2) {
+                  tokensPerSecond = parseFloat((tokenCount / elapsedSeconds).toFixed(1));
+                }
                 
                 // Llamar al callback para actualizar el UI con tokens/s
                 if (onStreamUpdate) {
