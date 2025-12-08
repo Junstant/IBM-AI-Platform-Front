@@ -84,8 +84,8 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    location /proxy/${GEMMA_12B_PORT}/ {
-        proxy_pass http://gemma-12b:8080/;
+    location /proxy/${ARCTIC_TEXT2SQL_PORT}/ {
+        proxy_pass http://arctic-text2sql:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }

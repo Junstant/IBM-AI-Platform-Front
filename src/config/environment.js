@@ -74,7 +74,7 @@ const config = {
     ports: {
       gemma2b: import.meta.env.VITE_GEMMA_2B_PORT || "8085",
       gemma4b: import.meta.env.VITE_GEMMA_4B_PORT || "8086",
-      gemma12b: import.meta.env.VITE_GEMMA_12B_PORT || "8087",
+      arctic: import.meta.env.VITE_ARCTIC_TEXT2SQL_PORT || "8091",
       mistral: import.meta.env.VITE_MISTRAL_PORT || "8088",
       deepseek8b: import.meta.env.VITE_DEEPSEEK_8B_PORT || "8089",
     },
@@ -103,13 +103,13 @@ const config = {
         internalPort: 8080,
       },
       {
-        id: "gemma-12b",
-        name: "Gemma 12B",
-        port: import.meta.env.VITE_GEMMA_12B_PORT || "8087",
-        description: "Modelo de alta capacidad",
-        type: "general",
-        recommended: "rag",
-        containerName: "gemma-12b",
+        id: "arctic-text2sql",
+        name: "Arctic Text2SQL",
+        port: import.meta.env.VITE_ARCTIC_TEXT2SQL_PORT || "8091",
+        description: "Modelo Arctic optimizado para Text-to-SQL",
+        type: "textosql",
+        recommended: "textosql",
+        containerName: "arctic-text2sql",
         internalPort: 8080,
       },
       {
@@ -149,7 +149,7 @@ const config = {
     // Modelo por defecto para cada feature
     defaults: {
       chatbot: "gemma-2b",
-      textosql: "mistral-7b",
+      textosql: "arctic-text2sql",
       rag: "mistral-7b",
     },
   },
