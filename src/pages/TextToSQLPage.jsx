@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Database, Play, Download, Settings, AlertCircle, CheckCircle, Copy, Eye, EyeOff, Loader, RefreshCw } from "lucide-react";
 import config from "../config/environment";
 import ExcelJS from "exceljs";
@@ -839,7 +840,6 @@ const TextToSQLPageContent = () => {
             <div className="flex items-center justify-between gap-4 mb-4">
               <h3 className="text-lg font-semibold">Esquema de Base de Datos: {selectedDatabase?.name}</h3>
               <div className="flex items-center space-x-3">
-                <div className="text-caption text-success">{schemaData?.schema ? Object.keys(schemaData.schema.tables).length : 0} tablas</div>
                 <button onClick={handleToggleSchemaModal} className="h-8 px-04 py-02 bg-success text-white hover:opacity-90 transition-colors">
                   Cerrar
                 </button>
@@ -852,35 +852,41 @@ const TextToSQLPageContent = () => {
                 <span className="ml-2 text-gray-600">Cargando esquema...</span>
               </div>
             ) : schemaData && schemaData.schema ? (
-              <div className="space-y-4">
-                {/* Información general */}
-                <div className="bg-ui-01 p-4 border border-success">
-                  <h4 className="font-semibold text-success mb-2">Base de Datos: {schemaData.database_id}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-success">Tablas:</span>
-                      <div className="text-success">{Object.keys(schemaData.schema.tables).length}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-success">Relaciones:</span>
-                      <div className="text-success">{schemaData.schema.relationships?.length || 0}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-success">Columnas totales:</span>
-                      <div className="text-success">{Object.values(schemaData.schema.tables).reduce((total, table) => total + table.columns.length, 0)}</div>
+              typeof schemaData.schema === "string" ? (
+                <div className="prose max-w-none bg-white p-4 border border-ui-03 overflow-x-auto">
+                  <ReactMarkdown>{schemaData.schema}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Información general */}
+                  <div className="bg-ui-01 p-4 border border-success">
+                    <h4 className="font-semibold text-success mb-2">Base de Datos: {schemaData.database_id}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-success">Tablas:</span>
+                        <div className="text-success">{Object.keys(schemaData.schema.tables).length}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-success">Relaciones:</span>
+                        <div className="text-success">{schemaData.schema.relationships?.length || 0}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-success">Columnas totales:</span>
+                        <div className="text-success">{Object.values(schemaData.schema.tables).reduce((total, table) => total + table.columns.length, 0)}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Vista interactiva con ReactFlow */}
-                <div className="bg-gray-50 p-4 border border-ui-03">
-                  <h4 className="font-semibold text-gray-800 mb-3">Vista Interactiva del Esquema</h4>
-                  <DatabaseSchemaFlow schemaData={schemaData} />
-                  <div className="mt-3 text-sm text-gray-600">
-                    💡 <strong>Tip:</strong> Usa los controles en la esquina superior izquierda para hacer zoom y ajustar la vista. Las líneas verdes muestran las relaciones entre tablas.
+                  {/* Vista interactiva con ReactFlow */}
+                  <div className="bg-gray-50 p-4 border border-ui-03">
+                    <h4 className="font-semibold text-gray-800 mb-3">Vista Interactiva del Esquema</h4>
+                    <DatabaseSchemaFlow schemaData={schemaData} />
+                    <div className="mt-3 text-sm text-gray-600">
+                      💡 <strong>Tip:</strong> Usa los controles en la esquina superior izquierda para hacer zoom y ajustar la vista. Las líneas verdes muestran las relaciones entre tablas.
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             ) : (
               <div className="text-center py-8 text-gray-500">No se pudo cargar el esquema de la base de datos</div>
             )}

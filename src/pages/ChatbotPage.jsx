@@ -11,7 +11,6 @@ import ModelSelector from "../components/ModelSelector";
 import SimpleStatus from "../components/SimpleStatus";
 import chatbotService, { APIError } from "../services/chatbotService";
 import config from "../config/environment";
-// import DebugConfig from "../components/DebugConfig"; // 🐛 DEBUG REMOVIDO
 
 const ChatbotPageContent = () => {
   // ✨ USAR MODELO POR DEFECTO DESDE CONFIGURACIÓN
@@ -23,18 +22,10 @@ const ChatbotPageContent = () => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
 
-  // Conectividad simple manejada por SimpleStatus
-
   // Función para limpiar el historial de conversación
   const clearConversation = () => {
     setMessages([chatbotService.getResetMessage()]);
   };
-
-  // Usar chatbotService para construir el prompt (movido a servicio)
-  // Ya no necesitamos esta función aquí
-
-  // Usar chatbotService para enviar mensajes (movido a servicio)
-  // Ya no necesitamos esta función aquí
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -134,12 +125,12 @@ const ChatbotPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col -m-06 animate-fadeIn" style={{ height: 'calc(97vh - 2.5rem)' }}>
+    <div className="flex flex-col -m-06" style={{ height: 'calc(97vh - 2.5rem)' }}>
       {/* Header compacto */}
-      <div className="bg-ui-02 border-b border-ui-03 px-06 py-05 flex-shrink-0 animate-slideDown">
+      <div className="bg-ui-02 border-b border-ui-03 px-06 py-05 flex-shrink-0">
         <div className="flex items-center justify-between gap-04">
           <div className="flex items-center space-x-04">
-            <div className="w-10 h-10 bg-interactive flex items-center justify-center animate-scaleIn">
+            <div className="w-10 h-10 bg-interactive flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -352,7 +343,7 @@ const ChatbotPageContent = () => {
         <div className="flex items-center gap-03 max-w-6xl mx-auto">
           {/* Selector de modelo */}
           <div className="flex-shrink-0 min-w-[280px]">
-            <ModelSelector value={selectedModel?.id} onChange={setSelectedModel} showPort={true} hideLabel={true} />
+            <ModelSelector value={selectedModel?.name} onChange={setSelectedModel} showPort={true} hideLabel={true} />
           </div>
 
           {/* Warning cuando no hay modelo */}

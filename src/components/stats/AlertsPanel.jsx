@@ -134,7 +134,7 @@ const AlertsPanel = ({ alerts, onResolveAlert, showAll = false, maxAlerts = 5 })
                     <p className="text-sm font-medium text-gray-900">{alert.title}</p>
                     {getSeverityBadge(alert.severity)}
                   </div>
-                  {onResolveAlert && (
+                  {onResolveAlert && alert.id && (
                     <button
                       onClick={() => onResolveAlert(alert.id)}
                       className="text-gray-400 hover:text-gray-600 transition-colors"

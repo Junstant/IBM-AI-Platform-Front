@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Brain, Zap, TrendingUp, Activity, Bot, Image, FileText, BarChart3, MessageSquare, Cpu, Settings, Shield, Database, ArrowUpRight } from "lucide-react";
 import { Card } from "../components/carbon";
-import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity } from "../hooks/useStatsHooks";
+import { useDashboardSummary, useServicesStatus, useAlerts, useRecentActivity, useSystemResources, useHourlyTrends } from "../hooks/useStatsHooks";
+import statsService from "../services/statsService";
 import ModelStatusCard from "../components/stats/ModelStatusCard";
 import PerformanceChart from "../components/stats/PerformanceChart";
 import ResourcesGauge from "../components/stats/ResourcesGauge";
@@ -16,13 +17,36 @@ const DashboardPage = () => {
   const { data: services } = useServicesStatus();
   const { data: alerts, resolveAlert } = useAlerts();
   const { data: recentActivity } = useRecentActivity(10);
+  const { data: systemResources, loading: resourcesLoading } = useSystemResources();
+  
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const { data: hourlyTrends } = useHourlyTrends(
+    yesterday.toISOString(),
+    now.toISOString()
+  );
+  
+  const [functionalityData, setFunctionalityData] = React.useState([]);
+  
+  React.useEffect(() => {
+    const loadFunctionalityData = async () => {
+      try {
+        const data = await statsService.getFunctionalityPerformance();
+        setFunctionalityData(data || []);
+      } catch (error) {
+        console.error('Error loading functionality data:', error);
+        setFunctionalityData([]);
+      }
+    };
+    loadFunctionalityData();
+    const interval = setInterval(loadFunctionalityData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Extraer modelos y APIs del array de servicios
   const allServices = Array.isArray(services) ? services : [];
   const models = allServices.filter(s => s.service_type === 'llm');
   const apis = allServices.filter(s => s.service_type !== 'llm');
 
-  // Stats con datos reales o fallback
   const stats = [
     {
       title: "Modelos IA Activos",
@@ -105,13 +129,11 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-06 animate-fadeIn">
-      {/* Header */}
       <div className="my-5 animate-slideDown">
         <h1 className="text-3xl font-semibold text-primary mb-03">Dashboard de IA</h1>
         <p className="text-secondary">Bienvenido a la plataforma de inteligencia artificial de IBM, haga click en la demo que desea utilizar</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-05">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -133,13 +155,11 @@ const DashboardPage = () => {
         })}
       </div>
 
-      {/* Quick Actions */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Demos Disponibles</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-05">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
-            // Map color names to both border and text colors
             const colorStyles = {
               interactive: { border: "border-t-interactive", text: "text-interactive" },
               danger: { border: "border-t-danger", text: "text-danger" },
@@ -164,11 +184,8 @@ const DashboardPage = () => {
         </div>
       </Card>
 
-      {/* Stats en tiempo real y alertas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-05">
-        {/* Modelos y APIs */}
         <div className="lg:col-span-2 space-y-05">
-          {/* Modelos LLM */}
           <Card padding="lg">
             <div className="flex items-center justify-between mb-05">
               <h2 className="text-xl font-semibold text-primary">
@@ -201,7 +218,6 @@ const DashboardPage = () => {
             )}
           </Card>
 
-          {/* APIs de Backend */}
           <Card padding="lg">
             <div className="flex items-center justify-between mb-05">
               <h2 className="text-xl font-semibold text-primary">
@@ -234,43 +250,48 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {/* Panel de alertas */}
         <div className="lg:col-span-1">
           <AlertsPanel alerts={alerts} onResolveAlert={resolveAlert} maxAlerts={6} />
         </div>
       </div>
 
-      {/* Recursos del sistema */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Recursos del Sistema</h2>
-        <ResourcesGauge />
+        <ResourcesGauge data={systemResources} loading={resourcesLoading} />
       </Card>
 
-      {/* Actividad reciente y errores */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-05">
-        {/* Errores recientes */}
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-06">Errores Recientes</h2>
           <ErrorsTable maxErrors={5} />
         </Card>
 
-        {/* Métricas por funcionalidad */}
         <Card padding="lg">
           <h2 className="text-xl font-semibold text-primary mb-06">Rendimiento por Funcionalidad</h2>
-          <FunctionalityMetrics />
+          <FunctionalityMetrics data={functionalityData} />
         </Card>
       </div>
 
-      {/* Performance charts */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Tendencias de Rendimiento</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PerformanceChart title="Tiempo de Respuesta" dataKey="response_time" type="line" color="#8884d8" />
-          <PerformanceChart title="Consultas por Hora" dataKey="requests_count" type="area" color="#82ca9d" />
+          <PerformanceChart 
+            data={hourlyTrends} 
+            title="Tiempo de Respuesta" 
+            dataKey="avg_response_time" 
+            type="line" 
+            color="#8884d8" 
+          />
+          <PerformanceChart 
+            data={hourlyTrends} 
+            title="Consultas por Hora" 
+            dataKey="total_requests" 
+            type="area" 
+            color="#82ca9d" 
+          />
         </div>
       </Card>
 
-      {/* Actividad reciente */}
       <Card padding="lg">
         <h2 className="text-xl font-semibold text-primary mb-06">Actividad Reciente</h2>
         {summaryLoading ? (

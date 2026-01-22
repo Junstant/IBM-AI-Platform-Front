@@ -179,7 +179,7 @@ class RAGService {
    * });
    */
   async uploadDocument(file, options = {}) {
-    const { embedding_model, llm_model, onProgress } = options;
+    const { embedding_model, llm_model } = options;
 
     // Validar archivo
     if (!file || !(file instanceof File)) {
@@ -230,9 +230,6 @@ class RAGService {
       }
 
       const data = await response.json();
-      
-      console.log(`[RAG Service] ✅ Document uploaded: ${data.filename} (${data.total_chunks} chunks)`);
-      
       return data;
     } catch (error) {
       console.error('[RAG Service] Upload failed:', error);
@@ -273,9 +270,6 @@ class RAGService {
         query: query.trim(),
         top_k
       });
-
-      console.log(`[RAG Service] 🔍 Query executed: "${query}" (${response.sources.length} sources)`);
-      
       return response;
     } catch (error) {
       console.error('[RAG Service] Query failed:', error);
@@ -315,7 +309,6 @@ class RAGService {
 
     try {
       const response = await ragAPI.delete(`/documents/${documentId}`);
-      console.log(`[RAG Service] 🗑️ Document ${documentId} deleted`);
       return response;
     } catch (error) {
       console.error('[RAG Service] Delete failed:', error);
@@ -369,7 +362,7 @@ class RAGService {
     try {
       const health = await this.checkHealth();
       return health.status === 'healthy' && health.milvus === 'connected';
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -383,7 +376,7 @@ class RAGService {
     try {
       const models = await this.getModels();
       return models.embedding_models.find(m => m.id === modelId) || null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -397,7 +390,7 @@ class RAGService {
     try {
       const models = await this.getModels();
       return models.llm_models.find(m => m.id === modelId) || null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

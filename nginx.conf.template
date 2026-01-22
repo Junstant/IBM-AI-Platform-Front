@@ -4,6 +4,10 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # ✅ 1. RESOLVER DNS DE DOCKER
+    # Esto es vital. Le dice a Nginx dónde preguntar por las IPs de los contenedores.
+    resolver 127.0.0.11 valid=30s;
+
     # ✅ Configuración para uploads grandes (RAG)
     client_max_body_size 100M;
     client_body_timeout 300s;
@@ -13,7 +17,7 @@ server {
     proxy_send_timeout      300s;
     proxy_read_timeout      300s;
 
-    # --- PROXY PARA APIS ---
+    # --- PROXY PARA APIS (ESTÁNDAR) ---
     location /api/fraude/ {
         proxy_pass http://${FRAUDE_API_HOST}:${FRAUDE_API_PORT}/;
         proxy_set_header Host $host;
@@ -38,7 +42,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Configuración especial para uploads grandes
         client_max_body_size 100M;
         proxy_request_buffering off;
         proxy_http_version 1.1;
@@ -68,29 +71,46 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # --- PROXY PARA MODELOS (SEPARADOS) ---
+    # --- PROXY PARA MODELOS (FIX ROBUSTO APLICADO) ---
+    # Usamos variables ($upstream_...) para forzar la resolución DNS al recibir la petición
+    # y reescritura (rewrite) manual porque proxy_pass con variables no recorta la URL automáticamente.
+
     location /proxy/${MISTRAL_PORT}/ {
-        proxy_pass http://mistral-7b:8080/;
+        set $upstream_mistral mistral-7b;
+        rewrite ^/proxy/${MISTRAL_PORT}/(.*) /$1 break;
+        proxy_pass http://$upstream_mistral:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
+
     location /proxy/${GEMMA_2B_PORT}/ {
-        proxy_pass http://gemma-2b:8080/;
+        set $upstream_gemma2b gemma-2b;
+        rewrite ^/proxy/${GEMMA_2B_PORT}/(.*) /$1 break;
+        proxy_pass http://$upstream_gemma2b:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
+
     location /proxy/${GEMMA_4B_PORT}/ {
-        proxy_pass http://gemma-4b:8080/;
+        set $upstream_gemma4b gemma-4b;
+        rewrite ^/proxy/${GEMMA_4B_PORT}/(.*) /$1 break;
+        proxy_pass http://$upstream_gemma4b:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    location /proxy/${GEMMA_12B_PORT}/ {
-        proxy_pass http://gemma-12b:8080/;
+
+    location /proxy/${ARCTIC_TEXT2SQL_PORT}/ {
+        set $upstream_arctic arctic-text2sql;
+        rewrite ^/proxy/${ARCTIC_TEXT2SQL_PORT}/(.*) /$1 break;
+        proxy_pass http://$upstream_arctic:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
+
     location /proxy/${DEEPSEEK_8B_PORT}/ {
-        proxy_pass http://deepseek-8b:8080/;
+        set $upstream_deepseek deepseek-8b;
+        rewrite ^/proxy/${DEEPSEEK_8B_PORT}/(.*) /$1 break;
+        proxy_pass http://$upstream_deepseek:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
