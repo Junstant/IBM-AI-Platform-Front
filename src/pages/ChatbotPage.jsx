@@ -75,7 +75,6 @@ const ChatbotPageContent = () => {
 
     // Agregar el mensaje del bot vacío
     setMessages((prev) => [...prev, botResponse]);
-    setIsLoading(false);
 
     try {
       // Construir el prompt con historial
@@ -97,7 +96,7 @@ const ChatbotPageContent = () => {
         }
       );
 
-      // Marcar como completado
+      // Marcar como completado y habilitar envío de nuevo mensaje
       setMessages((prev) => 
         prev.map((msg) => 
           msg.id === botMessageId 
@@ -105,6 +104,9 @@ const ChatbotPageContent = () => {
             : msg
         )
       );
+      
+      // ✅ Habilitar el input después de completar la respuesta
+      setIsLoading(false);
     } catch (error) {
       console.error("Error enviando mensaje a llama.cpp:", error);
 
@@ -125,6 +127,9 @@ const ChatbotPageContent = () => {
             : msg
         )
       );
+      
+      // ✅ Habilitar el input después del error también
+      setIsLoading(false);
     }
   };
 
